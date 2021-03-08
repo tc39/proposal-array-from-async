@@ -76,26 +76,26 @@ since its syntax is strictly a superset of one of the proposals’.)
 In the **Hack language**’s pipe syntax,
 the RHS of the pipe is an **expression** containing a special **placeholder**,
 which is evaluated with the placeholder bound to the lefthand side’s value.
-That is, you write `value |> one(%) |> two(%) |> three(%)`
+That is, you write `value |> one(#) |> two(#) |> three(#)`
 to pipe `value` through the three functions.
 
 **Pro:** The RHS can be **any expression**,
 and the placeholder can go anywhere any normal variable identifier could go,
 so you can pipe to any code you want **without any special rules**:
 
-* `value |> one(%)` for functions,
-* `value |> one(1, %)` for multi-argument functions,
-* `value |> %.foo()` for method calls
-(or `value |> obj.foo(%)`, for the other side),
-* `value |> % + 1` for arithmetic,
-* `value |> new Foo(%)` for constructing objects,
-* `value |> await %` for awaiting promises,
+* `value |> one(#)` for functions,
+* `value |> one(1, #)` for multi-argument functions,
+* `value |> #.foo()` for method calls
+(or `value |> obj.foo(#)`, for the other side),
+* `value |> # + 1` for arithmetic,
+* `value |> new Foo(#)` for constructing objects,
+* `value |> await #` for awaiting promises,
 * etc.
 
 **Con:** If **all** you’re doing is piping through **already-defined unary functions**,
 Hack pipes are **slightly** more verbose than F# pipes,
 since you need to **actually write** the function-call syntax
-by adding a `(%)` to it.
+by adding a `(#)` to it.
 
 ### Alternative proposal: F# pipes
 In the **F# language**’s pipe syntax,
@@ -147,7 +147,7 @@ even without **all the other syntax** that Hack pipes can do without a tax.
 
 ### Hack pipes may be simpler to use
 The syntax tax of Hack pipes on unary function calls
-(i.e., the `(%)` to invoke the RHS’s unary function)
+(i.e., the `(#)` to invoke the RHS’s unary function)
 **isn’t a special case**:
 it’s just **writing ordinary code** in **the way you normally would** without a pipe.
 
@@ -167,18 +167,15 @@ because `someFunction + 1` isn’t callable.
 You can avoid having to make this recognition
 by *always* wrapping the RHS in an arrow function
 (e.g., `value |> x=>someFunction(x) + 1`),
-but then you’re paying the tax 100% of the time
+but then you’re paying the tax 100# of the time
 and effectively just writing more-verbose Hack pipes anyway.
 
 ## Description
-The **topic reference** `%` is a **nullary operator**.
+The **topic reference** `#` is a **nullary operator**.
 It acts as an immutable **placeholder** for a **topic value**.
 
 The precise token for the topic reference is not final.
-`%` could instead be `#`, `@`, or many other tokens.
-`%` is tentatively chosen here because
-`%` is only also used for the relatively uncommon modulo operator –
-and because it is analogous to the common [`printf` syntax][].
+`#` could instead be `%`, `@`, or many other tokens.
 
 The **pipe operator** `|>` is an associative **infix operator**.
 It evaluates its lefthand-side expression (the **head**),
@@ -193,34 +190,32 @@ than all operators **other than**:
 * the generator operators `yield` and `yield *`;
 * and the comma operator `,`.
 
-For example, `value => value |> % == null |> foo(%, 0)`  
-would group into `value => (value |> (% == null) |> foo(%, 0))`, 
+For example, `value => value |> # == null |> foo(#, 0)`  
+would group into `value => (value |> (# == null) |> foo(#, 0))`, 
 which is equivalent to `value => foo(value == null, 0)`.
 
 There are three syntactic limitations that help prevent unintentional errors, early at compilation time:
 
 1. A pipeline’s body **must** use its topic reference.
    That is, `value |> foo + 1` is an early syntax error,
-   because it does not contain `%`.
+   because it does not contain `#`.
    This design is because omission of the topic reference from a pipeline body
    is almost certainly an accidental error.
 
 2. The head and the body of a pipeline **cannot** be
    comma-separated lists.
-   That is, `(value0, value1) |> foo(%, 0)` is an early syntax error.
+   That is, `(value0, value1) |> foo(#, 0)` is an early syntax error.
    This design is to prevent confusion about
    which value is bound to the topic reference.
 
-3. `value |> yield % |> % + 1` is an early syntax error,
-   which can be fixed into `value |> (yield %) |> % + 1`.
+3. `value |> yield # |> # + 1` is an early syntax error,
+   which can be fixed into `value |> (yield #) |> # + 1`.
    This design is because the `yield` operator has a very loose precedence,
    and it is likely that omitting the parentheses is an accidental error.
 
 There are no other special rules.
 
 [MDN operator precedence]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
-[`printf` syntax]: https://en.wikipedia.org/wiki/Printf_format_string
-
 
 ## Real-world examples
 
@@ -248,9 +243,9 @@ From [jquery/src/core/parseHTML.js][].
 
 ```js
 return data
- |> buildFragment([%], context, scripts)
- |> %.childNodes
- |> jQuery.merge([], %);
+ |> buildFragment([#], context, scripts)
+ |> #.childNodes
+ |> jQuery.merge([], #);
 ```
 
 <tr>
@@ -269,8 +264,8 @@ From [lodash.js version 4.17.20][].
 ```js
 function listCacheHas (key) {
   return this.__data__
-   |> assocIndexOf(%, key)
-   |> % > -1;
+   |> assocIndexOf(#, key)
+   |> # > -1;
 }
 ```
 
@@ -289,9 +284,9 @@ From [underscore.js][].
 
 ```js
 return pred
- |> cb(%)
- |> _.negate(%)
- |> _.filter(obj, %, context);
+ |> cb(#)
+ |> _.negate(#)
+ |> _.filter(obj, #, context);
 ```
 
 <tr>
@@ -310,10 +305,10 @@ From [jquery/src/core/init.js][].
 
 ```js
 match
- |> context[%]
+ |> context[#]
  |> isFunction(this[match])
-  ? this[match](%);
-  : this.attr(match, %);
+  ? this[match](#);
+  : this.attr(match, #);
 ```
 
 <tr>
@@ -330,8 +325,8 @@ From [underscore.js][].
 
 ```js
 return self
- |> srcFn.apply(%, args)
- |> _.isObject(%) ? % : self;
+ |> srcFn.apply(#, args)
+ |> _.isObject(#) ? # : self;
 ```
 
 <tr>
@@ -349,11 +344,11 @@ From [underscore.js][].
 
 ```js
 return obj
- |> % == null
+ |> # == null
 	? 0
-	: isArrayLike(%)
-	? %.length
-	: _.keys(%).length;
+	: isArrayLike(#)
+	? #.length
+	: _.keys(#).length;
 ```
 
 <tr>
@@ -377,11 +372,11 @@ From [jquery/src/core/init.js][].
 
 ```js
 context
- |> % && %.nodeType
-  ? %.ownerDocument || %
+ |> # && #.nodeType
+  ? #.ownerDocument || #
   : document
- |> jQuery.parseHTML(match[1], %, true)
- |> jQuery.merge(%);
+ |> jQuery.parseHTML(match[1], #, true)
+ |> jQuery.merge(#);
 ```
 
 <tr>
@@ -402,10 +397,10 @@ From [jquery/src/core/init.js][].
 
 ```js
 return context
- |> !% || %.jquery
-  ? % || root // Handle $(expr, $(...))
-  : this.constructor(%) // Handle $(expr, context)
- |> %.find(selector);
+ |> !# || #.jquery
+  ? # || root // Handle $(expr, $(...))
+  : this.constructor(#) // Handle $(expr, context)
+ |> #.find(selector);
 ```
 
 <tr>
@@ -428,11 +423,11 @@ From [lodash.js version 4.17.20][].
 ```js
 function castPath (value, object) {
   return value
-   |> isArray(%)
-    ? %
-    : isKey(%, object)
-    ? [%]
-    : (% |> toString(%) |> stringToPath(%));
+   |> isArray(#)
+    ? #
+    : isKey(#, object)
+    ? [#]
+    : (# |> toString(#) |> stringToPath(#));
 }
 ```
 
@@ -457,34 +452,34 @@ that would combine Hack pipes `|>` with arrow functions `=>`,
 performing **partial expression application**.
 
 For example, instead of the proposed `foo(?, 0)`,
-one would write `+> foo(%, 0)` to mean `x=>foo(x, 0)`.
+one would write `+> foo(#, 0)` to mean `x=>foo(x, 0)`.
 This would avoid the garden-path problem in that,
 when reading the expression from left to right,
 it is immediately apparent that it creates a new function,
 rather than calling `foo` directly.
 
-But additionally, `+> % + 1` would mean `x => x + 1`.
+But additionally, `+> # + 1` would mean `x => x + 1`.
 This would not be possible with the proposed `?` token.
 
 Creating non-unary functions might be done
 by adding numbers to topic references,
-such as `%0` (equivalent to plain `%`), `%1`, `%2`, etc.  
-For instance, `example.sort(+> %0 - %1 |> foo(%, 0))`  
-would mean `example.sort((x,y) => x - y |> foo(%, 0))`.
+such as `#0` (equivalent to plain `#`), `#1`, `#2`, etc.  
+For instance, `example.sort(+> #0 - #1 |> foo(#, 0))`  
+would mean `example.sort((x,y) => x - y |> foo(#, 0))`.
 
 ### Tacit topic binding
 Many `catch` and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
 For example, `catch (err) { console.error(foo(err.code, 0)); }`  
-might become `catch |> { %.code |> foo(%, 0) |> console.error(%); }`,  
+might become `catch |> { #.code |> foo(#, 0) |> console.error(#); }`,  
 and `for (const val of arr) { bar(val.foo(), 0); }`  
-might become `for (arr) |> { %.foo() |> bar(%, 0); }`.
+might become `for (arr) |> { #.foo() |> bar(#, 0); }`.
 
 ### “Smart-mix” pipes
 In the future, **tacit function application** might also be added,
 which would resemble **F# pipes**.
-For example, `value |> % + 1 |> foo` would mean `value |> % + 1 |> foo(%)`.
+For example, `value |> # + 1 |> foo` would mean `value |> # + 1 |> foo(#)`.
 Tacit function application (F# style) would have to be somehow distinguishable
 from expressions that use topic references (Hack style).
 
