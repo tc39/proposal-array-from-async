@@ -452,7 +452,7 @@ such as `#0` (equivalent to plain `#`), `#1`, `#2`, etc.
 For instance, `example.sort(+> #0 - #1 |> foo(#, 0))`  
 would mean `example.sort((x,y) => x - y |> foo(#, 0))`.
 
-### Tacit topic binding
+### Topic binding for `catch` and `for`
 Many `catch` and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
