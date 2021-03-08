@@ -431,26 +431,32 @@ then they could also elegantly handle
 **partial function application** in the future.
 
 Instead of using a special syntax for partial function application,
-such as with the proposed unary `?` token,
+such as with the [proposed unary `?` token][],
 there could be a **topic-function** operator `+>`
 that would combine Hack pipes `|>` with arrow functions `=>`,
 performing **partial expression application**.
 
-For example, instead of the proposed `foo(?, 0)`,
-one would write `+> foo(#, 0)` to mean `x=>foo(x, 0)`.
-This would avoid the garden-path problem in that,
+[proposed unary `?` token]: https://github.com/tc39/proposal-partial-application/
+
+For example, instead of the proposed `example.map(foo(?, 0))`,  
+to mean `example.map(x => foo(x, 0))`,  
+one would write `example.map(+> foo(#, 0))`.  
+This would **avoid the garden-path problem** in that,
 when reading the expression from left to right,
 it is immediately apparent that it creates a new function,
 rather than calling `foo` directly.
 
-But additionally, `+> # + 1` would mean `x => x + 1`.
-This would not be possible with the proposed `?` token.
+But additionally, `example.map(+> foo(#, #)`  
+would mean `example.map(x => foo(x, x))`,  
+and `example.map(+> # + 1)`  
+would mean `x => x + 1`.  
+**Neither** of these examples would be possible with the proposed `?` token.
 
-Creating non-unary functions might be done
+Creating non-unary functions could be done
 by adding numbers to topic references,
 such as `#0` (equivalent to plain `#`), `#1`, `#2`, etc.  
-For instance, `example.sort(+> #0 - #1 |> foo(#, 0))`  
-would mean `example.sort((x,y) => x - y |> foo(#, 0))`.
+For instance, `example.sort(+> #0 - #1)`  
+would mean `example.sort((x, y) => x - y)`.
 
 ### Topic binding for `catch` and `for`
 Many `catch` and `for` statements could become pithier
