@@ -1,14 +1,14 @@
 {
   "private": true,
-  "name": "proposal-smart-pipelines",
-  "description": "Draft specification for smart pipelines.",
+  "name": "proposal-hack-pipes",
+  "description": "Draft specification for Hack pipes in JavaScript.",
   "author": "J. S. Choi <jschoi@jschoi.org> (https://jschoi.org/)",
   "license": "MIT",
-  "repository": "js-choi/proposal-smart-pipelines",
+  "repository": "github:js-choi/proposal-hack-pipes",
   "scripts": {
     "prespec": "mkdir -p out/",
-    "spec": "ecmarkup spec.html out/index.html --assets inline --contributors \"J. S. Choi, Ecma International\" --copyright true --title \"Smart Pipelines\" --status \"proposal\" --stage 0",
-    "prewatch": "mkdir -p out/",
+    "spec": "ecmarkup spec.html out/index.html --assets inline --contributors \"J. S. Choi, Ecma International\" --copyright true --title \"Hack pipes\" --status \"proposal\" --stage 0",
+    "prewatch": "npm run prespec",
     "watch": "npm run spec -- --watch"
   },
   "devDependencies": {
