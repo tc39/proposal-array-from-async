@@ -3,11 +3,17 @@ ECMAScript Stage-0 Proposal. Living Document. J. S. Choi, 2021-03.
 
 This explainer was adapted from an [essay by Tab Atkins][] with permission.
 
+(This document presumptively uses `#`
+as the placeholder token for the topic reference.
+This is not a final decision;
+`#` could instead be `%`, `@`, or many other tokens.)
+
 [essay by Tab Atkins]: https://gist.github.com/tabatkins/1261b108b9e6cdab5ad5df4b8021bcb5
 
 ## Why a pipe operator
 In the State of JS 2020 survey, the **fourth top answer** to
-[“What do you feel is currently missing from JavaScript?”](https://2020.stateofjs.com/en-US/opinions/#missing_from_js)
+[“What do you feel is currently missing from
+JavaScript?”](https://2020.stateofjs.com/en-US/opinions/#missing_from_js)
 was the **pipe operator**.
 
 When you call a JavaScript function on a value,
@@ -98,12 +104,14 @@ since you need to **actually write** the function-call syntax
 by adding a `(#)` to it.
 
 ### Alternative proposal: F# pipes
-In the **F# language**’s pipe syntax,
+In the [**F# language**’s pipe syntax][F# pipes],
 the RHS of the pipe is an expression that must resolve to a function,
 which is then called with the lefthand side’s value as its sole argument.
 That is, you write `value |> one |> two |> three` to pipe `value`
 through the three functions.
 `left |> right` becomes `right(left)`.
+
+[F# pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
 
 **Pro:** The restriction that the RHS *must* resolve to a function
 lets you write very terse pipes
@@ -130,9 +138,9 @@ If you want to integrate them into a pipe expression
 they need to be handled as **special syntax cases**:
 `value |> await |> one` to simulate `one(await value)`, etc.
 
-### Hack pipes favor the most-common use cases
+### Hack pipes favor more-common use cases
 Both Hack pipes and F# pipes put a **syntax tax** on different cases.
-Hack pipes put a syntax tax on just unary functions.
+Hack pipes put a syntax tax only on unary functions.
 F# pipes put a syntax tax on everything besides unary functions.
 
 The case of “unary function” is in general be **less common**
@@ -183,7 +191,7 @@ immutably binds the resulting value to the topic reference,
 then evaluates its righthand-side expression (the **body**) with that binding,
 which in turn becomes the value of the whole **pipeline** expression.
 
-The pipe operator’s precedence is **looser**
+The pipe operator’s [precedence][] is **looser**
 than all operators **other than**:
 * the function arrow `=>`;
 * the assignment operators `=`, `+=`, etc.;
@@ -194,7 +202,9 @@ For example, `value => value |> # == null |> foo(#, 0)`
 would group into `value => (value |> (# == null) |> foo(#, 0))`, 
 which is equivalent to `value => foo(value == null, 0)`.
 
-There are three syntactic limitations that help prevent unintentional errors, early at compilation time:
+There are three syntactic restrictions
+that help **prevent unintentional errors early**,
+at compilation time:
 
 1. A pipeline’s body **must** use its topic reference.
    That is, `value |> foo + 1` is an early syntax error,
@@ -208,14 +218,17 @@ There are three syntactic limitations that help prevent unintentional errors, ea
    This design is to prevent confusion about
    which value is bound to the topic reference.
 
-3. `value |> yield # |> # + 1` is an early syntax error,
+3. A `yield` expression **must** have parentheses.
+   That is, `value |> yield # |> # + 1` is an early syntax error,
    which can be fixed into `value |> (yield #) |> # + 1`.
-   This design is because the `yield` operator has a very loose precedence,
-   and it is likely that omitting the parentheses is an accidental error.
+   This design is because the `yield` operator has a very loose [precedence][],
+   and it is likely that omitting the parentheses
+   (equivalent to `value |> (yield # |> # + 1)`)
+   is an accidental error.
 
 There are no other special rules.
 
-[MDN operator precedence]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+[precedence]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 ## Real-world examples
 
@@ -403,40 +416,12 @@ return context
  |> #.find(selector);
 ```
 
-<tr>
-<td>
-
-```js
-function castPath (value, object) {
-  if (isArray(value)) {
-    return value;
-  }
-  return isKey(value, object)
-    ? [value]
-    : stringToPath(toString(value));
-}
-```
-From [lodash.js version 4.17.20][].
-
-<td>
-
-```js
-function castPath (value, object) {
-  return value
-   |> isArray(#)
-    ? #
-    : isKey(#, object)
-    ? [#]
-    : (# |> toString(#) |> stringToPath(#));
-}
-```
-
 </table>
 
 [jquery/src/core/parseHTML.js]: https://github.com/jquery/jquery/blob/2.2-stable/src/core/parseHTML.js
 [jquery/src/core/init.js]: https://github.com/jquery/jquery/blob/2.2-stable/src/core/init.js
 [underscore.js]: https://underscorejs.org/docs/underscore-esm.html
-[lodash.js version 4.17.20]: https://www.runpkg.com/?lodash@4.17.20/lodash.js)
+[lodash.js version 4.17.20]: https://www.runpkg.com/?lodash@4.17.20/lodash.js
 
 ## Possible future extensions
 
@@ -471,9 +456,9 @@ would mean `example.sort((x,y) => x - y |> foo(#, 0))`.
 Many `catch` and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
-For example, `catch (err) { console.error(foo(err.code, 0)); }`  
+For example, `catch (err) { err.code |> foo(#, 0) |> console.error(#); }`  
 might become `catch |> { #.code |> foo(#, 0) |> console.error(#); }`,  
-and `for (const val of arr) { bar(val.foo(), 0); }`  
+and `for (const val of arr) { val.foo() |> bar(#, 0); }`  
 might become `for (arr) |> { #.foo() |> bar(#, 0); }`.
 
 ### “Smart-mix” pipes
