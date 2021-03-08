@@ -5,7 +5,7 @@ This explainer was adapted from an [essay by Tab Atkins][] with permission.
 
 (This document presumptively uses `#`
 as the placeholder token for the topic reference.
-This is not a final decision;
+This choice of token is not a final decision;
 `#` could instead be `%`, `@`, or many other tokens.)
 
 [essay by Tab Atkins]: https://gist.github.com/tabatkins/1261b108b9e6cdab5ad5df4b8021bcb5
