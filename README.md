@@ -425,7 +425,7 @@ return context
 
 ## Possible future extensions
 
-### Topic functions
+### Pipe functions
 If Hack pipes are added to JavaScript,
 then they could also elegantly handle
 **partial function application** in the future.
@@ -458,7 +458,7 @@ such as `#0` (equivalent to plain `#`), `#1`, `#2`, etc.
 For instance, `example.sort(+> #0 - #1)`  
 would mean `example.sort((x, y) => x - y)`.
 
-### Topic binding for `catch` and `for`
+### Pipe syntax for `catch` and `for`
 Many `catch` and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
