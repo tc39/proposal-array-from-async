@@ -1,8 +1,8 @@
 <pre class=metadata>
-title: Smart Pipelines
+title: Hack pipes
 status: proposal
 stage: 0
-location: https://github.com/js-choi/proposal-smart-pipelines
+location: https://github.com/js-choi/proposal-hack-pipes
 copyright: false
 contributors: J. S. Choi
 </pre>
@@ -11,7 +11,7 @@ contributors: J. S. Choi
 
 <emu-intro id=introduction>
 <h1>Introduction</h1>
-<p>This is the formal specification for a proposed "smart pipe operator" <code>|&gt;</code> in JavaScript. It modifies the original <a href=https://tc39.github.io/ecma262/>ECMAScript specification</a> with several new or revised clauses. The <strong>Core Proposal</strong> is at Stage 0. Additional Features are given as annexes; none of the Additional Features are at a TC39-proposal stage. See <a href=https://github.com/js-choi/proposal-smart-pipelines/blob/master/readme.md>the proposal's explainer</a> for the proposal's background, motivation, usage examples, explanation, and information on planned add-on proposals.</p>
+<p>This is the formal specification for a proposed Hack-style pipe operator <code>|&gt;</code> in JavaScript. It modifies the original <a href=https://tc39.github.io/ecma262/>ECMAScript specification</a> with several new or revised clauses. See <a href=https://github.com/js-choi/proposal-hack-pipes/blob/master/readme.md>the proposal's explainer</a> for the proposal's background, motivation, and usage examples.</p>
 </emu-intro>
 
 <emu-clause id=executable-code-and-execution-contexts>
@@ -24,51 +24,21 @@ contributors: J. S. Choi
 <h1><ins>Lexical Topics</ins></h1>
 
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-lexical-environments>original Lexical Environments clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-lexical-environments>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-lexical-environments>original Lexical Environments clause</a>.</p>
 </emu-note>
 
-<p>The <dfn>topic binding</dfn> of a Lexical Environment immutably binds the topic reference `#` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that Lexical Environment, at the time of the Lexical Environment's instantiation. The topic of a Lexical Environment conceptually serves as the value that the lexical context is "about".</p>
+<p>The <dfn>topic binding</dfn> of a Lexical Environment immutably binds the topic reference `%` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that Lexical Environment, at the time of the Lexical Environment's instantiation. The topic of a Lexical Environment conceptually serves as the value that the lexical context is "about".</p>
 
 <p>A <dfn>topic-binding environment</dfn> is a Lexical Environment that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its Lexical Environment's nearest outer environment that is a topic-binding environment, as defined by the abstract operator GetTopicEnvironment.</p>
 
 <emu-note>
-<p>The <strong>only</strong> Lexical Environments that are topic-binding environments are declarative environments that are associated with <strong>|PipelineTopicStep|</strong> and which were created with the <strong>TopicEnvironmentInstantiation</strong> abstract operation.</p>
+<p>The <strong>only</strong> Lexical Environments that are topic-binding environments are declarative environments that are associated with <strong>|PipelineTopicBody|</strong> and which were created with the <strong>TopicEnvironmentInstantiation</strong> abstract operation.</p>
 
-<p>There is also one syntax nonterminal that <strong>instantiates</strong> topic-binding environments with <strong>provided topic values</strong> of any ECMAScript language type. This <dfn>topic-binding nonterminal</dfn> is |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which may use the abstract operation <strong>TopicEnvironmentInstantiation</strong>. In addition, |PipelineTopicStep| <strong>hides</strong> its own inner topic references from Contains. Within the scope of <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
+<p>In addition, |PipelineTopicBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
 
-<p>All other Lexical Environments do not establish any topic bindings; in particular, object and global environments are never topic-binding environments.</p>
+<p>No other Lexical Environments do not establish any topic bindings; in particular, object and global environments are never topic-binding environments.</p>
 
-<p>In addition, several syntax nonterminals associated with Lexical Environments are associated with early error rules that <strong>forbid</strong> their containing the topic reference `#`, <strong>except</strong> where the topic reference is within <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>. These <dfn>topic-forbidding nonterminals</dfn> are:</p>
-
-<dl>
-<dt><strong>Top-level program scopes</strong>:</dt>
-<dd>|ScriptBody| from <emu-grammar>Script : ScriptBody</emu-grammar>.</dd>
-<dd>|ModuleBody| from <emu-grammar>Module : ModuleBody</emu-grammar>.</dd>
-
-<dt><strong>Inner program scopes</strong> that <strong>establish lexical bindings</strong>:</dt>
-<dd>Any |FunctionStatementList| from <emu-grammar>FunctionBody : FunctionStatementList</emu-grammar>, <strong>except</strong> when |FunctionStatementList| is the |FunctionBody| of a |ConciseBody|—that is, <strong>except</strong> when it is the body of an |ArrowFunction|.</dd>
-<dd>Any |Statement| in any production of |IterationStatement|, such as |Statement| from <emu-grammar>|IterationStatement| : `for` `(` ForDeclaration `in` Expression `)` Statement</emu-grammar>.</dd>
-<dd>Any |Statement| from <emu-grammar>WithStatement : `with` `(` Expression `)` Statement</emu-grammar>.</dd>
-<dd>Any |Block| from <emu-grammar>Catch : `catch` `(` CatchParameter `)` Block</emu-grammar>.</dd>
-</dl>
-
-<p>Any use of the topic reference within these nonterminals (as detected by the static semantic rule <strong>Contains</strong>) would trigger <strong>early error rules</strong> associated with their productions: during program compilation, <strong>before</strong> runtime evaluation ever would have begun.</p>
-
-<p>Also note that the other nonterminals of the productions above do not have similar topic-forbidding early error rules. For instance, the topic reference may be used as usual within |ForDeclaration| from <emu-grammar>ForStatement : `for` `(` ForDeclaration `in` Expression `)`</emu-grammar>.</p>
-
-<p>Other syntax nonterminals, even if they similarly define inner program scopes that contain nested |Statement|s, <strong>may</strong> contain topic references, as long as there is a topic binding in the outer scope. These other nonterminals have no early error rules that check for topic references. <strong>Topic-permitting</strong> nonterminals include:</p>
-
-<dt><strong>Topic-permitting inner program scopes</strong>:</dt>
-<dd>Any |FunctionStatementList| from <emu-grammar>FunctionBody : FunctionStatementList</emu-grammar> <strong>only</strong> in which |FunctionStatementList| is the |FunctionBody| of a <strong>|ConciseBody|</strong>—that is, the body of an <strong>|ArrowFunction|</strong>.</dd>
-<dd>Any |Statement| in any production of |IfStatement|, such as <emu-grammar>`if` `(` Expression `)` Statement</emu-grammar>.</dd>
-<dd>Any |CaseBlock| from <emu-grammar>SwitchStatement : `switch` `(` Expression `)` CaseBlock</emu-grammar>.</dd>
-<dd>Any |Block| from <emu-grammar>TryStatement : `try` Block Catch</emu-grammar>, but not |Catch| itself, which forbids topic references.</dd>
-<dd>Any |Block| from <emu-grammar>Finally : `finally` Block</emu-grammar>.</dd>
-<dd>Any |Block| from <emu-grammar>BlockStatement : Block</emu-grammar>.</dd>
-</dl>
-
-<p>These topic-permitting nonterminals’ Lexical Environments do <strong>not</strong> establish topic bindings of their own; therefore, at runtime, topic references that are contained within their scopes would be <strong>evaluated</strong> to the value of their <strong>outer</strong> environments' topic bindings. In addition, their inner topic references are <strong>visible</strong> to Contains and they are subject to the same early error rules associated with their <strong>outer</strong> scopes’ productions.</p>
-
+<p>In addition, |ScriptBody| and |ModuleBody| are associated with early error rules that <strong>forbid</strong> their containing the topic reference `%`, <strong>except</strong> where the topic reference is within |PipelineTopicBody|. These early error rules are defined using the static semantic rule Contains, from which |PipelineTopicBody| hides the topic reference.</p>
 </emu-note>
 
 </emu-clause>
@@ -77,7 +47,7 @@ contributors: J. S. Choi
 <h1>Environment Records</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-environment-records>original Environment Records clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-environment-records>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-environment-records>original Environment Records clause</a>.</p>
 </emu-note>
 
 <emu-table id=table-15 caption="Abstract Methods of Environment Records">
@@ -109,7 +79,7 @@ Purpose
 <h1>Declarative Environment Records</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-declarative-environment-records>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>.</p>
 </emu-note>
 
 <p>Each declarative Environment Record is associated with an ECMAScript program scope containing variable, constant, let, class, module, import, and/or function declarations. A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.</p>
@@ -141,7 +111,7 @@ Purpose
 *false* | *true*
 </td>
 <td>
-If [[TopicBindingStatus]]'s value is *true*, the Environment Record binds the Environment Record establishes its environment's topic binding (that is, it binds `#`) to values. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
+If [[TopicBindingStatus]]'s value is *true*, the Environment Record binds the Environment Record establishes its environment's topic binding (that is, it binds `%`) to values. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
 </td>
 </tr>
 <tr>
@@ -152,7 +122,7 @@ If [[TopicBindingStatus]]'s value is *true*, the Environment Record binds the En
 List of any | ~empty~
 </td>
 <td>
-If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List containing the one element which is the environment's topic value (that is, the value of `#` within its program scope). Otherwise, the value of [[TopicValues]] is ~empty~.
+If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List containing the one element which is the environment's topic value (that is, the value of `%` within its program scope). Otherwise, the value of [[TopicValues]] is ~empty~.
 </td>
 </tr>
 </tbody>
@@ -160,7 +130,7 @@ If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List cont
 </emu-table>
 
 <emu-note type=editor>
-<p>[[TopicValues]] is a List in order to be <emu-xref href=#sec-additional-feature-np-declarative-environment-records>forward compatible with Additional Feature NP</emu-xref>.</p>
+<p>[[TopicValues]] is a List in order to be forward compatible with future extensions that would use multiple topic values, e.g., topic functions.</p>
 </emu-note>
 
 <p>Declarative Environment Records support all of the abstract methods of Environment Records listed in <emu-xref href="#table-15"></emu-xref>. In addition, declarative Environment Records support the methods listed in <emu-xref href="#table-62"></emu-xref>.</p>
@@ -192,7 +162,7 @@ Establish the immutable topic binding of this Environment Record and set the top
 </ins>
 
 <emu-note type=editor>
-<p>BindTopicValues() accepts a List argument rather than a single-value argument in order to be <emu-xref href=#sec-additional-feature-np-declarative-environment-records>forward compatible with Additional Feature NP</emu-xref>.</p>
+<p>BindTopicValues() accepts a List argument rather than a single-value argument in order to be forward compatible with future extensions that would use multiple topic values, e.g., topic functions.</p>
 </emu-note>
 
 <p>The behaviour of the concrete <ins>and additional</ins> specification methods for declarative Environment Records is defined by the following algorithms.</p>
@@ -213,7 +183,7 @@ Establish the immutable topic binding of this Environment Record and set the top
 <emu-clause id=sec-declarative-environment-records-bindtopicvalues>
 <h1><ins>BindTopicValues ( _V_ )</ins></h1>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-declarative-environment-records-bindtopicvalues>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>.</p>
 </emu-note>
 <p>The method BindTopicValues for declarative Environment Records is guaranteed to be called only when the Environment Records do not yet have established topic bindings.</p>
 <emu-alg>
@@ -273,13 +243,13 @@ Establish the immutable topic binding of this Environment Record and set the top
 <h1>Punctuators</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-punctuators>original Punctuators clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-punctuators>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-punctuators>original Punctuators clause</a>.</p>
 </emu-note>
 
 <ins class=block>
 <emu-grammar>
 Punctuator :: one of
-  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `%` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `|&gt;` `#` `=` `+=` `-=` `*=` `%=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
+  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `%` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `|&gt;` `%` `=` `+=` `-=` `*=` `%=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
 </emu-grammar>
 </ins>
 
@@ -300,7 +270,7 @@ Punctuator :: one of
 <h1>Primary Expression</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-primary-expression>original Primary Expression clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-primary-expression>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-primary-expression>original Primary Expression clause</a>.</p>
 </emu-note>
 
 <h2>Syntax</h2>
@@ -308,7 +278,7 @@ Punctuator :: one of
 <emu-grammar>
 PrimaryExpression[Yield, Await] :
   `this`
-  <ins>`#`</ins>
+  <ins>`%`</ins>
   IdentifierReference[?Yield, ?Await]
   Literal
   ArrayLiteral[?Yield, ?Await]
@@ -327,11 +297,11 @@ PrimaryExpression[Yield, Await] :
 <h1>The <ins>Topic Reference</ins></h1>
 
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause to be inserted between the <a href=https://tc39.github.io/ecma262/#sec-this-keyword>original `this` Keyword clause</a> and the <a href=https://tc39.github.io/ecma262/#sec-identifier-reference>original Identifier Reference clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-topic-references>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section is a wholly new sub-clause to be inserted between the <a href=https://tc39.github.io/ecma262/#sec-this-keyword>original `this` Keyword clause</a> and the <a href=https://tc39.github.io/ecma262/#sec-identifier-reference>original Identifier Reference clause</a>.</p>
 </emu-note>
 
 <emu-note>
-<p>The <dfn>topic reference</dfn>, which is the token `#`, is a nullary operator that evaluates to the value of the current Lexical Environment's topic. The topic reference acts as if it were a special variable: implicitly bound to the topic value, yet still lexically scoped. But `#` is not actually an |IdentifierName| and the topic reference is not a variable, and it cannot be bound by typical assignment; instead, it is immutably bound to a value during the instantiation of certain topic-binding environments.</p>
+<p>The <dfn>topic reference</dfn>, which is the token `%`, is a nullary operator that evaluates to the value of the current Lexical Environment's topic. The topic reference acts as if it were a special variable: implicitly bound to the topic value, yet still lexically scoped. But `%` is not actually an |IdentifierName| and the topic reference is not a variable, and it cannot be bound by typical assignment; instead, it is immutably bound to a value during the instantiation of certain topic-binding environments.</p>
 
 <p>The concept of lexical topic binding is further discussed in <emu-xref href="#sec-lexical-topics">Lexical Topics</emu-xref> and in <emu-xref href="#sec-declarative-environment-records">Declarative Environment Records</emu-xref>.</p>
 </emu-note>
@@ -339,9 +309,9 @@ PrimaryExpression[Yield, Await] :
 <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
 <h1>Runtime Semantics: GetTopicEnvironment</h1>
 <emu-note>
-<p>GetTopicEnvironment finds the Environment Record that currently supplies the topic binding (the binding of `#`). That is, it finds the running execution topic's nearest-ancestral topic-binding environment, which is the nearest-ancestral outer environment that has a topic binding status of *true*. It is <strong>never</strong> called when there is no topic environment.</p>
+<p>GetTopicEnvironment finds the Environment Record that currently supplies the topic binding (the binding of `%`). That is, it finds the running execution topic's nearest-ancestral topic-binding environment, which is the nearest-ancestral outer environment that has a topic binding status of *true*. It is <strong>never</strong> called when there is no topic environment.</p>
 </emu-note>
-<p>When the abstract operation GetTopicEnvironment is called the following steps are performed:</p>
+<p>When the abstract operation GetTopicEnvironment is called, the following steps are performed:</p>
 <emu-alg>
 1. Let _lex_ be the running execution context's Lexical Environment.
 2. Repeat,
@@ -355,8 +325,8 @@ PrimaryExpression[Yield, Await] :
 </emu-alg>
 
 <emu-note>
-<p>The loop in step 2 will always terminate because the List of environments will always end before reaching the global environment. GetTopicEnvironment will never be called when there is no topic-binding environment in the List of environments.</p>
-<p>This is because how, in general, syntax nonterminals that define top-level scopes (such as |Script| and |Module|) are syntactically forbidden to contain the topic reference `#`. Any use of the topic reference within those nonterminals (as detected by the static semantic rule Contains) would trigger early error rules associated with those nonterminals. It is only within nonterminals that hide the topic reference from Contains such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar> that the topic reference is syntactically permitted.</p>
+<p>The loop in step&nbsp;2 will always terminate because the List of environments will always end before reaching the global environment. GetTopicEnvironment will never be called when there is no topic-binding environment in the List of environments.</p>
+<p>This is due to how the two syntax nonterminals associated with the global environment or module environments (i.e., |Script| and |Module|) are syntactically forbidden to contain the topic reference `%`. Any use of the topic reference within those nonterminals (as detected by the static semantic rule Contains) would trigger early error rules associated with those nonterminals. It is only within nonterminals that hide the topic reference from Contains (i.e., |PipelineTopicBody|) that the topic reference is syntactically permitted.</p>
 </emu-note>
 </emu-clause>
 
@@ -379,7 +349,7 @@ PrimaryExpression[Yield, Await] :
 <emu-clause id=sec-topic-references-runtime-semantics-evaluation>
 <h1>Runtime Semantics: Evaluation</h1>
 
-<emu-grammar>PrimaryExpression : `#`</emu-grammar>
+<emu-grammar>PrimaryExpression : `%`</emu-grammar>
 <emu-alg>
 1. Let _topicValues_ be GetTopicValues().
 2. Return topicValues_[0].
@@ -388,103 +358,46 @@ PrimaryExpression[Yield, Await] :
 
 </emu-clause>
 
-<emu-clause id="sec-function-calls">
-<h1>Function Calls</h1>
-
-<emu-clause id="sec-evaluatecall" aoid="EvaluateCall" oldids="sec-evaluatedirectcall">
-<h1>Runtime Semantics: EvaluateCall(_func_, _ref_, _arguments_, _tailPosition_ )</h1>
-
-<emu-note type=editor>
-<p>This section is an augmentation of the <a href=https://tc39.github.io/ecma262/#sec-evaluatecall>original EvaluateCall clause</a> such that its _arguments_ parameter may be a List, rather than a Parse Node that will undergo ArgumentListEvaluation into a List.</p>
-</emu-note>
-
-<p>The abstract operation EvaluateCall takes as arguments a value _func_, a value _ref_, a Parse Node <ins>or List</ins> _arguments_, and a Boolean argument _tailPosition_. It performs the following steps:</p>
-<emu-alg>
-1. <ins>Assert: _arguments_ is either a Parse Node or a List.</ins>
-1. If Type(_ref_) is Reference, then
-  1. If IsPropertyReference(_ref_) is *true*, then
-    1. Let _thisValue_ be GetThisValue(_ref_).
-  1. Else the base of _ref_ is an Environment Record,
-    1. Let _refEnv_ be GetBase(_ref_).
-    1. Let _thisValue_ be _refEnv_.WithBaseObject().
-1. Else Type(_ref_) is not Reference,
-  1. Let _thisValue_ be *undefined*.
-1. <ins>If _arguments_ is a List, let _argList_ be _arguments_.</ins>
-1. <ins>Else l</ins><del>L</del>et _argList_ be ArgumentListEvaluation of _arguments_.
-1. ReturnIfAbrupt(_argList_).
-1. If Type(_func_) is not Object, throw a *TypeError* exception.
-1. If IsCallable(_func_) is *false*, throw a *TypeError* exception.
-1. If _tailPosition_ is *true*, perform PrepareForTailCall().
-1. Let _result_ be Call(_func_, _thisValue_, _argList_).
-1. Assert: If _tailPosition_ is *true*, the above call will not return here, but instead evaluation will continue as if the following return has already occurred.
-1. Assert: If _result_ is not an abrupt completion, then Type(_result_) is an ECMAScript language type.
-1. Return _result_.
-</emu-alg>
-</emu-clause>
-</emu-clause>
-
 </emu-clause>
 
 <emu-clause id=sec-pipe-operator>
 <h1><ins>Pipe Operator</ins></h1>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause to be inserted between the <a href=https://tc39.github.io/ecma262/#sec-conditional-operator>original Conditional Operator (`?` `:`) clause</a> and the <a href=https://tc39.github.io/ecma262/#sec-assignment-operators>original Assignment Operators clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-bp-pipe-operator>further modifications by Additional Feature BP</emu-xref> and <emu-xref href=#sec-additional-feature-np-pipe-operator>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section is a wholly new sub-clause to be inserted between the <a href=https://tc39.github.io/ecma262/#sec-conditional-operator>original Conditional Operator (`?` `:`) clause</a> and the <a href=https://tc39.github.io/ecma262/#sec-assignment-operators>original Assignment Operators clause</a>.</p>
 </emu-note>
 
 <h2>Syntax</h2>
 <emu-grammar type=definition>
 PipeExpression[In, Yield, Await] :
   ConditionalExpression[?In, ?Yield, ?Await]
-  ConditionalExpression[?In, ?Yield, ?Await] `|&gt;` Pipeline[?In, ?Yield, ?Await]
+  ConditionalExpression[?In, ?Yield, ?Await] `|&gt;` PipelineTopicBody[?In, ?Yield, ?Await]
 
-Pipeline[In, Yield, Await] :
-  CoverPipelineBareStepAndTopicStep[?In, ?Yield, ?Await]
-  CoverPipelineBareStepAndTopicStep[?In, ?Yield, ?Await] `|&gt;` Pipeline[?In, ?Yield, ?Await]
-
-CoverPipelineBareStepAndTopicStep[In, Yield, Await] :
+PipelineTopicBody[In, Yield, Await] :
   ConditionalExpression[?In, ?Yield, ?Await]
-</emu-grammar>
-
-<h2>Supplemental Syntax</h2>
-<p>When processing an instance of the production <emu-grammar>CoverPipelineBareStepAndTopicStep : ConditionalExpression</emu-grammar>, the interpretation of |ConditionalExpression| is refined using the following grammar:</p>
-<emu-grammar type=definition>
-PipelineBareStep :
-  SimpleReference
-
-SimpleReference :
-  IdentifierReference
-  SimpleReference `.` IdentifierName
-
-PipelineTopicStep[In, Yield, Await] :
-  [lookahead &lt;! {`{`}] ConditionalExpression[?In, ?Yield, ?Await]
 </emu-grammar>
 
 <emu-clause id=sec-pipe-operator-static-semantics-early-errors>
 <h1>Static Semantics: Early Errors</h1>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause. It is forward compatible with <emu-xref href=#sec-additional-feature-np-pipe-operator-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section is a wholly new sub-clause.</p>
+</emu-note>
+
+<emu-note>
+<p>These early errors prohibit any pipeline input expressions or pipeline body expressions from covering comma-separated lists. That is, `(value0, value1) |> foo(%, 0)` is an early syntax error. This is in order to avoid confusion regarding which values in the sequences are bound to the topic.</p>
 </emu-note>
 
 <emu-grammar>PipeExpression : ConditionalExpression `|&gt;` Pipeline</emu-grammar>
-<emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>
+<emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
 1. It is a Syntax Error if _ConditionalExpression_ is covering |Arguments|.
 </emu-alg>
 
-<emu-note type=editor>
-<p>These early errors prohibit any pipeline input expressions or pipeline step expressions from covering comma-separated argument lists. This in turn ensures forward compatibility with <emu-xref href=#sec-additional-feature-np-pipe-operator>further modifications by Additional Feature NP</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>
+<emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
-1. It is a Syntax Error if _ConditionalExpression_ Contains `#` is *false*.
+1. It is a Syntax Error if _ConditionalExpression_ Contains `%` is *false*.
 2. It is a Syntax Error if _ConditionalExpression_ is covering a |YieldExpression|.
 3. It is a Syntax Error if _ConditionalExpression_ is covering a |PipelineTopicListHead|.
 </emu-alg>
-
-<emu-note type=editor>
-<p>This third early error prohibits a topic-style pipeline step from covering a comma-separated expression. This in turn ensures forward compatibility with <emu-xref href=#sec-additional-feature-np-pipe-operator>further modifications by Additional Feature NP</emu-xref>.</p>
-</emu-note>
 </emu-clause>
 
 <emu-clause id=sec-pipe-operator-static-semantics-contains>
@@ -492,12 +405,12 @@ PipelineTopicStep[In, Yield, Await] :
 <p>With parameter _symbol_.</p>
 <emu-see-also-para op="Contains"></emu-see-also-para>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause. It is forward compatible with <emu-xref href=#sec-additional-feature-np-pipe-operator-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section is a wholly new sub-clause.</p>
 </emu-note>
 
-<emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>
+<emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
-1. If _symbol_ is `#`, return *false*.
+1. If _symbol_ is `%`, return *false*.
 2. For each child node _child_ of this Parse Node, do
   1. If _child_ is an instance of _symbol_, return *true*.
   2. If _child_ is an instance of a nonterminal, then
@@ -507,53 +420,13 @@ PipelineTopicStep[In, Yield, Await] :
 </emu-alg>
 </emu-clause>
 
-<emu-clause id=sec-pipe-operator-static-semantics-coveredpipelinestep>
-<h1>Static Semantics: CoveredPipelineStep</h1>
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause.</p>
-</emu-note>
-
-<emu-grammar>CoverPipelineBareStepAndTopicStep : ConditionalExpression</emu-grammar>
-<emu-alg>
-1. If _ConditionalExpression_ is covering a _PipelineBareStep_, return the _PipelineBareStep_ that is covered by _ConditionalExpression_.
-2. Else, return the _PipelineTopicStep_ that is covered by _ConditionalExpression_.
-</emu-alg>
-</emu-clause>
-
-<emu-clause id=sec-pipe-operator-static-semantics-expectedargumentcount>
-<h1>Static Semantics: ExpectedArgumentCount</h1>
-<emu-see-also-para op=ExpectedArgumentCount></emu-see-also-para>
-<emu-note type=editor>
-<p>This section is not strictly required for the core proposal, but it would be commonly used by both <emu-xref href=#sec-additional-feature-pf>Additional Feature PF</emu-xref> and <emu-xref href=#sec-additional-feature-np>Additional Feature NP</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>
-PipelineBareStep : SimpleReference
-</emu-grammar>
-<emu-alg>
-1. Return *0*.
-</emu-alg>
-
-<emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>
-<emu-alg>
-1. Return *1*.
-</emu-alg>
-
-<emu-grammar>Pipeline : CoverPipelineBareStepAndTopicStep `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. Let _pipelineStep_ be CoveredPipelineStep of _CoverPipelineBareStepAndTopicStep_.
-2. Return ExpectedArgumentCount of _pipelineStep_.
-</emu-alg>
-
-</emu-clause>
-
 <emu-clause id=sec-pipe-operator-runtime-semantics-TopicEnvironmentInstantiation aoid=TopicEnvironmentInstantiation>
 <h1>Runtime Semantics: TopicEnvironmentInstantiation</h1>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause. It is forward compatible with <emu-xref href=#sec-additional-feature-np-pipe-operator-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref>.</p>
+<p>This section is a wholly new sub-clause.</p>
 </emu-note>
 <emu-note>
-<p>This abstract operation constructs, instantiates, then returns a new declarative Lexical Environment for a topic-style pipeline step. It creates an immutable topic binding in that declarative environment using the given _topicValues_.</p>
+<p>This abstract operation constructs, instantiates, then returns a new declarative Lexical Environment for a pipeline body. It creates an immutable topic binding in that declarative environment using the given _topicValues_.</p>
 </emu-note>
 <p>TopicPipelineInstantiation is performed as follows using arguments _env_ and _topicValues_.</p>
 <ul>
@@ -575,35 +448,15 @@ PipelineBareStep : SimpleReference
 <h1>Runtime Semantics: PipelineEvaluation</h1>
 <p>With parameter _inputValues_.</p>
 
-<emu-grammar>PipelineBareFunction : SimpleReference</emu-grammar>
+<emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
-1. Let _memberExpr_ be the |MemberExpression| that is covered by _SimpleReference_.
-2. Let _funcRef_ be the result of evaluating _memberExpr_.
-3. Let _funcValue_ be ? GetValue(_ref_).
-4. Let _thisCall_ be this |PipelineBareFunction|.
-5. Let _tailCall_ be IsInTailPosition(_thisCall_).
-6. Let _callRef_ be ? EvaluateCall(_funcValue_, _ref_, _inputValues_, _tailCall_).
-7. Let _callValue_ be ? GetValue(_callRef_).
-8. Return a List containing the one element which is _callValue_.
-</emu-alg>
-
-<emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>
-<emu-alg>
-1. Let _oldEnv_ be the running execution context's Lexical Environment.
-2. Let _pipelineStepEnv_ be New Declarative Environment(_oldEnv_).
-3. Perform TopicEnvironmentInstantiation(_inputValues_, _pipelineStepEnv_).
-4. Set the running execution context's Lexical Environment to _pipelineStepEnv_.
+1. Let _outerEnv_ be the running execution context's Lexical Environment.
+2. Let _pipelineBodyEnv_ be New Declarative Environment(_oldEnv_).
+3. Perform TopicEnvironmentInstantiation(_inputValues_, _pipelineBodyEnv_).
+4. Set the running execution context's Lexical Environment to _pipelineBodyEnv_.
 5. Let _pipelineValue_ be the result of evaluating _ConditionalExpression_.
-6. Set the running execution context's Lexical Environment to _oldEnv_.
+6. Set the running execution context's Lexical Environment to _outerEnv_.
 7. Return a List containing the one element which is _pipelineValue_.
-</emu-alg>
-
-<emu-grammar>Pipeline : CoverPipelineBareStepAndTopicStep `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. Let _pipelineStep_ be ? CoveredPipelineStep of _CoverPipelineBareStepAndTopicStep_.
-2. Let _stepOutputValues_ be ? PipelineEvaluation of _pipelineStep_ with argument _inputValues_.
-3. Let _pipelineRemainderOutputRef_ be ? PipelineEvaluation of _Pipeline_ with argument _stepOutputValues_.
-4. Return ? GetValue(_pipelineRemainderOutputRef_).
 </emu-alg>
 
 </emu-clause>
@@ -627,7 +480,7 @@ PipelineBareStep : SimpleReference
 <h1>Assignment Operators</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-assignment-operators>original Assignment Operators clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-pf-assignment-operators>further modifications by Additional Feature PF</emu-xref>.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-assignment-operators>original Assignment Operators clause</a>.</p>
 </emu-note>
 
 <h2>Syntax</h2>
@@ -646,162 +499,6 @@ AssignmentExpression[In, Yield, Await] :
 </emu-clause>
 </emu-clause>
 
-<emu-clause id=sec-ecmascript-language-statements-and-declarations>
-<h1>ECMAScript Language: Statements and Declarations</h1>
-
-<emu-clause id=sec-iteration-statements>
-<h1>Iteration Statements</h1>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-iteration-statements>original Iteration Statements clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-iteration-statements-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref> and further modifications by Additional Feature TS.</p>
-</emu-note>
-
-<emu-clause id=sec-iteration-statements-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-<emu-grammar>
-IterationStatement :
-  `do` Statement `while` `(` Expression `)` `;`
-  `while` `(` Expression `)` Statement
-  `for` `(` Expression? `;` Expression? `;` Expression? `)` Statement
-  `for` `(` `var` VariableDeclarationList `;` Expression? `;` Expression? `)` Statement
-  `for` `(` LexicalDeclaration Expression? `;` Expression? `)` Statement
-  `for` `(` LeftHandSideExpression `in` Expression `)` Statement
-  `for` `(` `var` ForBinding `in` Expression `)` Statement
-  `for` `(` ForDeclaration `in` Expression `)` Statement
-  `for` `(` LeftHandSideExpression `of` AssignmentExpression `)` Statement
-  `for` `(` `var` ForBinding `of` AssignmentExpression `)` Statement
-  `for` `(` ForDeclaration `of` AssignmentExpression `)` Statement
-  `for` `await` `(` LeftHandSideExpression `of` AssignmentExpression `)` Statement
-  `for` `await` `(` `var` ForBinding `of` AssignmentExpression `)` Statement
-  `for` `await` `(` ForDeclaration `of` AssignmentExpression `)` Statement
-</emu-grammar>
-<ul>
-<li><ins>It is a Syntax Error if |Statement| Contains `#` is *true*.</ins></li>
-</ul>
-
-<ins class=block>
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including iteration statements, may <strong>not</strong> contain a topic reference `#`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-</ins>
-</emu-clause>
-
-</emu-clause>
-
-<emu-clause id=sec-with-statement>
-<h1>The `with` statement</h1>
-
-<emu-clause id=sec-with-statement-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-with-statement-static-semantics-early-errors>original `with` Statement, Static Semantics: Early Errors clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-function-definitions-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref>. It is not planned to be removed by other additional syntax.</p>
-</emu-note>
-
-<emu-grammar>WithStatement : `with` `(` Expression `)` Statement</emu-grammar>
-<ul>
-<li>
-<ins>It is a Syntax Error if |Statement| Contains `#` is *true*.</ins>
-</li>
-</ul>
-
-<ins class=block>
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including |WithStatement|, may <strong>not</strong> contain a topic reference `#`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-</ins>
-
-</emu-clause>
-</emu-clause>
-
-<emu-clause id=sec-try-statement>
-<h1>The `try` statement</h1>
-
-<emu-clause id=sec-try-statement-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-try-statement-static-semantics-early-errors>original `try` Statement, Static Semantics: Early Errors clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-try-statement-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref> and further modifications by Additional Feature TS. [TODO: Add link to Additional Feature TS once it’s written.]</p>
-</emu-note>
-
-<emu-grammar>
-Catch : `catch` `(` CatchParameter `)` Block
-</emu-grammar>
-<ul>
-<li>
-<ins>It is a Syntax Error if |Block| Contains `#` is *true*.</ins>
-</li>
-</ul>
-
-<ins class=block>
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including |Catch|, may <strong>not</strong> contain a topic reference `#`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early errors above.</p>
-<p>Furthermore, the `try` and `finally` blocks themselves (|Block| and |Finally| in |TryStatement|) <strong>may</strong> contain topic references, assuming that the |TryStatement| is contained within a parse that is also allowed to contain the topic reference. During runtime, such topic references would refer to the outer environment's topic binding. Along with arrow functions (that is, |FunctionBody| in |ConciseBody|), this behaviour is unlike that of any other syntax nonterminal containing |Statement|.</p>
-</emu-note>
-</ins>
-
-</emu-clause>
-
-</emu-clause>
-</emu-clause>
-
-<emu-clause id=sec-ecmascript-language-functions-and-classes>
-<h1>ECMAScript Language: Functions and Classes</h1>
-
-<emu-clause id=sec-function-definitions>
-<h1>Function Definitions</h1>
-
-<emu-clause id=sec-function-definitions-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-function-definitions-static-semantics-early-errors>original Function Definitions, Static Semantics: Early Errors clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-function-definitions-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>FunctionBody : FunctionStatementList</emu-grammar>
-<ul>
-<li>
-<ins>If |FunctionStatementList| is not the |FunctionBody| of a |ConciseBody|, it is a Syntax Error if |FunctionStatementList| Contains `#` is *true*.</ins>
-</li>
-</ul>
-
-<ins class=block>
-<emu-note>
-<p>Arrow functions' |ConciseBody| <strong>may</strong> contain the topic reference `#`, as long as |ConciseBody| is within a parse that is also allowed to contain the topic reference. During runtime, such topic references would refer to the outer environment's topic binding. This is not true for the definitions of <strong>other</strong> types of functions, which may <strong>not</strong> contain any topic reference.</p>
-<p>Along with |Block| in |TryStatement|, this behaviour is <strong>unlike</strong> that of any other syntax nonterminal containing |Statement|. Syntax nonterminals that establish new lexical bindings within new inner program scopes, including |FunctionBody|, may <strong>not</strong> contain a topic reference `#`.</p>
-</emu-note>
-</ins>
-
-</emu-clause>
-</emu-clause>
-
-<emu-clause id=sec-arrow-function-definitions>
-<h1>Arrow Function Definitions</h1>
-
-<emu-clause id=sec-arrow-function-definitions-static-semantics-contains>
-<h1>Static Semantics: Contains</h1>
-<p>With parameter _symbol_.</p>
-<emu-see-also-para op="Contains"></emu-see-also-para>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-arrow-function-definitions-static-semantics-contains>original Arrow Functions, Static Semantics: Contains clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-arrow-function-definitions-static-semantics-contains>further modifications by Additional Feature NP</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>ArrowFunction : ArrowParameters `=&gt;` ConciseBody</emu-grammar>
-<emu-alg>
-1. If _symbol_ is not one of |NewTarget|, |SuperProperty|, |SuperCall|, <del>`super` or `this`</del> <ins>`super`, `this`, or `#`</ins>, return *false*.
-2. If _ArrowParameters_ Contains _symbol_ is *true*, return *true*.
-3. Return |ConciseBody| Contains _symbol_.
-</emu-alg>
-
-<emu-note>
-Normally, Contains does not look inside most function forms. However, Contains is used to detect `new.target`, <del>`this`, and `super`</del><ins>`this`, `super`, and `#`</ins> usage within an |ArrowFunction|.
-</emu-note>
-
-</emu-clause>
-</emu-clause>
-</emu-clause>
-
 <emu-clause id=sec-ecmascript-language-scripts-and-modules>
 <h1>ECMAScript Language: Scripts and Modules</h1>
 
@@ -812,19 +509,19 @@ Normally, Contains does not look inside most function forms. However, Contains i
 <h1>Static Semantics: Early Errors</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-scripts-static-semantics-early-errors>original Scripts, Static Semantics: Early Errors clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-function-definitions-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref>. It is not planned to be removed by other additional syntax.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-scripts-static-semantics-early-errors>original Scripts, Static Semantics: Early Errors clause</a>.</p>
 </emu-note>
 
 <emu-grammar>ScriptBody : StatementList</emu-grammar>
 <ul>
 <li>
-<ins>It is a Syntax Error if |StatementList| Contains `#` is *true*.</ins>
+<ins>It is a Syntax Error if |StatementList| Contains `%` is *true*.</ins>
 </li>
 </ul>
 
 <ins class=block>
 <emu-note>
-<p>In general, a top-level program scope, including |Script|, may <strong>not</strong> contain a topic reference `#`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
+<p>In general, a top-level program scope, including |Script|, may <strong>not</strong> contain a topic reference `%`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
 </emu-note>
 </ins>
 
@@ -838,19 +535,20 @@ Normally, Contains does not look inside most function forms. However, Contains i
 <h1>Static Semantics: Early Errors</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-scripts-static-semantics-early-errors>original Modules, Static Semantics: Early Errors clause</a>. It is forward compatible with <emu-xref href=#sec-additional-feature-np-function-definitions-static-semantics-early-errors>further modifications by Additional Feature NP</emu-xref>. It is not planned to be removed by other additional syntax.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-scripts-static-semantics-early-errors>original Modules, Static Semantics: Early Errors clause</a>.</p>
 </emu-note>
 
 <emu-grammar>ModuleItem : StatementListItem</emu-grammar>
 <ul>
 <li>
-<ins>It is a Syntax Error if |StatementListItem| Contains `#` is *true*.</ins>
+<ins>It is a Syntax Error if |StatementListItem| Contains `%` is *true*.</ins>
 </li>
 </ul>
 
 <ins class=block>
 <emu-note>
-<p>In general, a top-level program scope, including |Module|, may <strong>not</strong> contain a topic reference `#`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
+<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including iteration statements, may <strong>not</strong> contain a topic reference `%`.</p>
+<p>However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
 </emu-note>
 </ins>
 
@@ -858,2213 +556,3 @@ Normally, Contains does not look inside most function forms. However, Contains i
 </emu-clause>
 
 </emu-clause>
-
-<emu-annex id=sec-additional-feature-bc>
-<h1>Additional Feature BC: Bare Constructor Calls</h1>
-<p><strong>Not at Stage 0.</strong></p>
-<p>This annex specifies additional ECMAScript language syntax and semantics for <strong>bare constructor calls</strong>. It augments the <emu-xref href=#introduction>core proposal</emu-xref> by introducing an additional <strong>bare-style pipeline form</strong>, in which a |SimpleReference| is prepended with an `new`.</p>
-
-<p>See the <a href=https://github.com/js-choi/proposal-smart-pipelines/blob/master/readme.md#additional-feature-bc>explainer document, § Motivation, Additional Feature BC</a> for information on this feature's motivation.</p>
-
-<emu-annex id=sec-additional-feature-bc-ecmascript-language-expressions>
-<h1>ECMAScript Language: Expressions</h1>
-
-<emu-annex id=sec-additional-feature-bc-primary-expression>
-<h1>Primary Expression</h1>
-
-<emu-annex id="sec-new-operator">
-<h1>The `new` Operator</h1>
-
-<emu-annex id="sec-new-operator-runtime-semantics-evaluation">
-<h1>Runtime Semantics: Evaluation</h1>
-
-<emu-annex id="sec-evaluatenew" aoid="EvaluateNew">
-<h1>Runtime Semantics: EvaluateNew ( _constructExpr_, _arguments_ )</h1>
-
-<emu-note type=editor>
-<p>This section is an augmentation of the <a href=https://tc39.github.io/ecma262/#sec-evaluatenew>original EvaluateNew clause</a> such that its _arguments_ parameter may be a List, rather than a Parse Node that will undergo ArgumentListEvaluation into a List.</p>
-</emu-note>
-
-<p>The abstract operation EvaluateNew with arguments _constructExpr_, and _arguments_ performs the following steps:</p>
-<emu-alg>
-1. Assert: _constructExpr_ is either a |NewExpression| or a |MemberExpression|.
-1. Assert: _arguments_ is either ~empty~, a List, or an |Arguments|.
-1. Let _ref_ be the result of evaluating _constructExpr_.
-1. Let _constructor_ be ? GetValue(_ref_).
-1. If _arguments_ is ~empty~, let _argList_ be a new empty List.
-1. <ins>Else if _arguments_ is a List, let _argList_ be _arguments_.</ins>
-1. Else,
-  1. Let _argList_ be ArgumentListEvaluation of _arguments_.
-  1. ReturnIfAbrupt(_argList_).
-1. If IsConstructor(_constructor_) is *false*, throw a *TypeError* exception.
-1. Return ? Construct(_constructor_, _argList_).
-</emu-alg>
-</emu-annex>
-</emu-annex>
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-bc-pipe-operator>
-<h1>Pipe Operator</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator>new clause in the core proposal</emu-xref>. It is mutually compatible with <emu-xref href=#sec-additional-feature-np-pipe-operator>further modifications by Additional Feature NP</emu-xref>.</p>
-</emu-note>
-
-<h2>Supplemental Syntax</h2>
-<emu-grammar type=definition>
-PipelineBareStep :
-  SimpleReference
-  <ins class=block>
-  `new` SimpleReference
-  </ins>
-</emu-grammar>
-
-<emu-annex id=sec-additional-feature-bc-pipe-operator-static-semantics-expectedargumentcount>
-<h1>Static Semantics: ExpectedArgumentCount</h1>
-<emu-see-also-para op=ExpectedArgumentCount></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-static-semantics-expectedargumentcount>new clause in the core proposal</emu-xref>. It is mutually compatible with further modifications by other additional features.</p>
-</emu-note>
-
-<emu-grammar>
-PipelineBareStep :
-  SimpleReference
-  <ins class=block>
-  `new` SimpleReference
-  </ins>
-</emu-grammar>
-<emu-alg>
-1. Return *0*.
-</emu-alg>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-bc-pipe-operator-runtime-semantics-pipelineevaluation aoid=PipelineEvaluation>
-<h1>Runtime Semantics: PipelineEvaluation</h1>
-<p>With parameter _inputValues_.</p>
-
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-runtime-semantics-pipelineevaluation>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>PipelineBareStep : `new` SimpleReference</emu-grammar>
-<emu-alg>
-1. Let _constructExpr_ be the |MemberExpression| that is covered by _SimpleReference_.
-2. Let _newRef_ be ? EvaluateNew(NewExpression, _inputValues_).
-3. Let _newValue_ be ? GetValue(_newRef_).
-4. Return a List containing the one element which is _newValue_.
-</emu-alg>
-</ins>
-
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-ba>
-<h1>Additional Feature BA: Bare Awaited Calls</h1>
-<p><strong>Not at Stage 0.</strong></p>
-<p>This annex specifies additional ECMAScript language syntax and semantics for <strong>bare awaited function calls</strong>. It augments the <emu-xref href=#introduction>core proposal</emu-xref> by introducing an additional <strong>bare-style pipeline form</strong>, in which a |SimpleReference| is prepended with an `await`.</p>
-
-<p>See the <a href=https://github.com/js-choi/proposal-smart-pipelines/blob/master/readme.md#additional-feature-ba>explainer document, § Motivation, Additional Feature BA</a> for information on this feature's motivation.</p>
-
-<emu-annex id=sec-additional-feature-ba-ecmascript-language-expressions>
-<h1>ECMAScript Language: Expressions</h1>
-
-<emu-annex id=sec-additional-feature-ba-pipe-operator>
-<h1>Pipe Operator</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator>new clause in the core proposal</emu-xref>. It is mutually compatible with <emu-xref href=#sec-additional-feature-np-pipe-operator>further modifications by Additional Feature NP</emu-xref>.</p>
-</emu-note>
-
-<h2>Supplemental Syntax</h2>
-<emu-grammar type=definition>
-<ins class=block>
-PipelineBareAwaitedFunction[Await] :
-  [+Await] `await` SimpleReference
-</ins>
-</emu-grammar>
-
-<emu-annex id=sec-additional-feature-ba-pipe-operator-static-semantics-expectedargumentcount>
-<h1>Static Semantics: ExpectedArgumentCount</h1>
-<emu-see-also-para op=ExpectedArgumentCount></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-static-semantics-expectedargumentcount>new clause in the core proposal</emu-xref>. It is mutually compatible with further modifications by other additional features.</p>
-</emu-note>
-
-<emu-grammar>
-PipelineBareStep :
-  SimpleReference
-  <ins class=block>`await` SimpleReference</ins>
-</emu-grammar>
-<emu-alg>
-1. Return *0*.
-</emu-alg>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-ba-pipe-operator-runtime-semantics-pipelineevaluation aoid=PipelineEvaluation>
-<h1>Runtime Semantics: PipelineEvaluation</h1>
-<p>With parameter _inputValues_.</p>
-
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-runtime-semantics-pipelineevaluation>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>PipelineBareAwaitedFunction : `await` SimpleReference</emu-grammar>
-<p>This algorithm is an altered version of the algorithm of <emu-xref href="#sec-function-calls-runtime-semantics-evaluation">Function Calls, Runtime Semantics: Evaluation</emu-xref>, modified as follows:</p>
-<emu-alg>
-1. Let _memberExpr_ be the |MemberExpression| that is covered by _SimpleReference_.
-2. Let _ref_ be the result of evaluating _memberExpr_.
-3. Let _func_ be ? GetValue(_ref_).
-4. Let _thisCall_ be this |PipelineBareFunction|.
-5. Let _tailCall_ be IsInTailPosition(_thisCall_).
-6. Let _callRef_ be ? EvaluateCall(_func_, _ref_, _inputValues_, _tailCall_).
-7. Let _callValue_ be ? GetValue(_exprRef_).
-8. Let _awaitRef_ be ? Await(_callValue_).
-9. Let _awaitValue_ be ? GetValue(_awaitRef_).
-10. Return a List containing the one element which is _awaitValue_.
-</emu-alg>
-</ins>
-
-</emu-annex>
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-bp>
-<h1>Additional Feature BP: Block Pipelines</h1>
-<p><strong>Not at Stage 0.</strong></p>
-<p>This annex specifies additional ECMAScript language syntax and semantics for <strong>pipeline functions</strong>. It augments the <emu-xref href=#introduction>core proposal</emu-xref> by introducing an additional <strong>topic-style pipeline form</strong>: a |Block|.</p>
-
-<p>See the <a href=https://github.com/js-choi/proposal-smart-pipelines/blob/master/readme.md#additional-feature-bp>explainer document, § Motivation, Additional Feature BP</a> for information on this feature's motivation.</p>
-
-<emu-annex id=sec-additional-feature-bp-ecmascript-language-expressions>
-<h1>ECMAScript Language: Expressions</h1>
-
-<emu-annex id=sec-additional-feature-bp-pipe-operator>
-<h1>Pipe Operator</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator>new clause in the core proposal</emu-xref>. It is mutually compatible with further modifications by other additional features.</p>
-</emu-note>
-
-<h2>Supplemental Syntax</h2>
-<emu-grammar type=definition>
-PipelineTopicStep[In, Yield, Await] :
-  [lookahead &lt;! {`{`}] ConditionalExpression[?In, ?Yield, ?Await]
-  <ins>Block[?In, ?Yield, ?Await]</ins>
-</emu-grammar>
-
-<emu-annex id=sec-additional-feature-bp-pipe-operator-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-static-semantics-early-errors>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>PipelineTopicStep : Block</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if _StatementList_ Contains `#` is *false*.
-</emu-alg>
-</ins>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-bp-pipe-operator-static-semantics-contains>
-<h1>Static Semantics: Contains</h1>
-<p>With parameter _symbol_.</p>
-<emu-see-also-para op="Contains"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-static-semantics-contains>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>
-PipelineTopicStep :
-  ConditionalExpression
-  <ins class=block>
-  Block
-  </ins>
-</emu-grammar>
-<emu-alg>
-1. If _symbol_ is `#`, return *false*.
-2. For each child node _child_ of this Parse Node, do
-  1. If _child_ is an instance of _symbol_, return *true*.
-  2. If _child_ is an instance of a nonterminal, then
-    1. Let _contained_ be the result of _child_ Contains _symbol_.
-    2. If _contained_ is *true*, return *true*.
-2. Return *false*.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-bp-pipe-operator-runtime-semantics-pipelineevaluation aoid=PipelineEvaluation>
-<h1>Runtime Semantics: PipelineEvaluation</h1>
-<p>With parameter _inputValues_.</p>
-
-<emu-grammar>PipelineTopicStep : Block</emu-grammar>
-<emu-alg>
-1. Let _oldEnv_ be the running execution context's Lexical Environment.
-2. Let _pipelineStepEnv_ be New Declarative Environment(_oldEnv_).
-3. Perform TopicEnvironmentInstantiation(_inputValues_, _pipelineStepEnv_).
-4. Set the running execution context's Lexical Environment to _pipelineStepEnv_.
-5. Let _pipelineValue_ be the result of evaluating _Body_.
-6. Set the running execution context's Lexical Environment to _oldEnv_.
-7. Return a List containing the one element which is _pipelineValue_.
-</emu-alg>
-</emu-annex>
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf>
-<h1>Additional Feature PF: Pipeline Functions</h1>
-<p><strong>Not at Stage 0.</strong></p>
-<p>This annex specifies additional ECMAScript language syntax and semantics for <strong>pipeline functions</strong>. It augments the <emu-xref href=#introduction>core proposal</emu-xref> by introducing an additional <strong>pipeline-function operator</strong> `+&gt;`. This new <strong>unary</strong> operator creates arrow functions with an implicit parameter inputted into a pipeline. The operator brings much power: it enables terse <strong>method extraction</strong>, terse <strong>partial application</strong> of functions/expressions (into unary functions), and terse <strong>composition</strong> of functions/expressions.</p>
-
-<p>[TODO: <strong>This annex is unfinished.</strong> Async pipeline functions are yet to be added.]</p>
-
-<p>See the <a href=https://github.com/js-choi/proposal-smart-pipelines/blob/master/readme.md#additional-feature-pf>explainer document, § Motivation, Additional Feature PF</a> for information on this feature's motivation.</p>
-
-<emu-table id=table-additional-feature-pf-examples caption="Examples of Pipeline Functions">
-<table>
-<tr>
-<td><pre><code language=javascript>+&gt; console.log;</code></pre></td>
-<td><pre><code language=javascript>(...$) =&gt; console.log(...$)
-console.log.bind(console);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>+&gt; f(#, 5);</code></pre></td>
-<td><pre><code language=javascript>$ =&gt; f($, 5);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>+&gt; # + 1;</code></pre></td>
-<td><pre><code language=javascript>$ =&gt; $ + 1;</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>+&gt; f |&gt; g;</code></pre></td>
-<td><pre><code language=javascript>(...$) =&gt; g(f(...$));</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>+&gt; f |&gt; o.m;</code></pre></td>
-<td><pre><code language=javascript>(...$) =&gt; o.m(f(...$));</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>+&gt; f |&gt; # + 1 |&gt; o.m;</code></pre></td>
-<td><pre><code language=javascript>(...$) =&gt; o.m(f(...$) + 1);</code></pre></td>
-</tr>
-</table>
-</emu-table>
-
-<p>This annex uses a new token `+&gt;`, but this token is merely an <strong>illustrative placeholder</strong> to avoid premature bikeshedding discussion. The actual operator ideally would communicate its status as a combination of `=&gt;` and `|&gt;`. Example replacements of `+&gt;` include `-&gt;` |Pipeline| (which both resembles the `|&gt;` operator with the `|` rotated sideways and resembles the `=&gt;` operator but with a narrower arrow body) and `=|` |Pipeline| (which is a blending of `=&gt;` and `|&gt;` with the `&gt;` removed).</p>
-
-<emu-annex id=sec-additional-feature-pf-ecmascript-language-expressions>
-<h1>ECMAScript Language: Expressions</h1>
-
-<emu-annex id=sec-additional-feature-pf-assignment-operators>
-<h1>Assignment Operators</h1>
-
-<emu-note type=editor>
-<p>This section further augments the <emu-xref href=#sec-assignment-operators>amendments in the core proposal to the original Ecma262 clause</emu-xref>.</p>
-</emu-note>
-
-<h2>Syntax</h2>
-
-<emu-grammar>
-AssignmentExpression[In, Yield, Await] :
-  PipeExpression[?In, ?Yield, ?Await]
-  <ins>PipelineFunction[?In, ?Yield, ?Await]</ins>
-  [+Yield] YieldExpression[?In, ?Await]
-  ArrowFunction[?In, ?Yield, ?Await]
-  AsyncArrowFunction[?In, ?Yield, ?Await]
-  LeftHandSideExpression[?Yield, ?Await] `=` AssignmentExpression[?In, ?Yield, ?Await]
-  LeftHandSideExpression[?Yield, ?Await] AssignmentOperator AssignmentExpression[?In, ?Yield, ?Await]
-</emu-grammar>
-
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-ecmascript-language-functions-and-classes>
-<h1>ECMAScript Language: Functions and Classes</h1>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions>
-<h1><ins>Pipeline Function Definitions</ins></h1>
-
-<emu-note type=editor>
-<p>This section would be a wholly new sub-clause to the <emu-xref href=#sec-ecmascript-language-functions-and-classes>ECMAScript Language: Functions and Classes clause</emu-xref>.</p>
-</emu-note>
-
-<h2>Syntax</h2>
-<emu-grammar type=definition>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-boundnames>
-<h1>Static Semantics: BoundNames</h1>
-<emu-see-also-para op="BoundNames"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. Return a new empty List.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-contains>
-<h1>Static Semantics: Contains</h1>
-<p>With parameter _symbol_.</p>
-<emu-see-also-para op="Contains"></emu-see-also-para>
-
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. If _symbol_ is not one of |NewTarget|, |SuperProperty|, |SuperCall|, <del>`super` or `this`</del> <ins>`super`, `this`, or `#`</ins>, return *false*.
-2. Return |Pipeline| Contains _symbol_.
-</emu-alg>
-
-<emu-note>
-Normally, Contains does not look inside most function forms. However, Contains is used to detect `new.target`, <ins>`this`, `super`, and `#`</ins> usage within a |PipelineFunction|.
-</emu-note>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-containsexpression>
-<h1>Static Semantics: ContainsExpression</h1>
-<emu-see-also-para op="ContainsExpression"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. Return *false*.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-containsusestrict>
-<h1>Static Semantics: ContainsUseStrict</h1>
-<emu-see-also-para op="ContainsUseStrict"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. Return *false*.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-expectedargumentcount>
-<h1>Static Semantics: ExpectedArgumentCount</h1>
-<emu-see-also-para op="ExpectedArgumentCount"></emu-see-also-para>
-<emu-note>
-<p>Because the formal parameter lists of pipeline functions are their pipelines themselves, the ExpectedArgumentCount of pipeline functions is implicitly specified by the <emu-xref href=#sec-pipe-operator-static-semantics-expectedargumentcount>ExpectedArgumentCount of the pipelines</emu-xref>.</p>
-</emu-note>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-hasname>
-<h1>Static Semantics: HasName</h1>
-<emu-see-also-para op="HasName"></emu-see-also-para>
-<emu-grammar>PipelineFunction : `+&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. Return *false*.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-issimpleparameterlist>
-<h1>Static Semantics: IsSimpleParameterList</h1>
-<emu-see-also-para op="IsSimpleParameterList"></emu-see-also-para>
-<emu-grammar>PipelineFunction : `+&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. Return *true*.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-runtime-semantics-iteratorbindinginitialization>
-<h1>Runtime Semantics: IteratorBindingInitialization</h1>
-<p>With parameters _iteratorRecord_ and _environment_.</p>
-<emu-see-also-para op="IteratorBindingInitialization"></emu-see-also-para>
-
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. Return NormalCompletion(~empty~).
-</emu-alg>
-
-<emu-note>
-<p>This syntax-directed operation is defined for <emu-xref href=#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization>array destructuring</emu-xref>, <emu-xref href=#sec-function-definitions-runtime-semantics-iteratorbindinginitialization>function parameters</emu-xref>, <emu-xref href=#sec-arrow-function-definitions-runtime-semantics-iteratorbindinginitialization>arrow-function parameters</emu-xref>, and <emu-xref href=#sec-arrow-function-definitions-runtime-semantics-iteratorbindinginitialization>async-arrow-function parameters</emu-xref>, and it is used by <emu-xref href=#sec-functiondeclarationinstantiation>FunctionDeclarationInstantiation</emu-xref> to bind function parameters to function arguments during a function call. _iteratorRecord_ is an <emu-xref href=#sec-iterator-interface>Iterator</emu-xref> object of the argument List created with <emu xref href=#sec-createlistiteratorRecord>CreateListIteratorRecord</emu-xref>. _environment_ is the Environment Record within which the parameter bindings are to be established.</p>
-<p>However, pipeline functions do not use IteratorBindingInitialization to create parameter bindings; instead, they pass their arguments directly into PipelineEvaluation, as specified in their algorithm for <emu-xref href=#sec-additional-feature-pf-pipeline-function-definitions-runtime-semantics-evaluatebody>EvaluateBody</emu-xref>.</p>
-</emu-note>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-lexicallydeclarednames>
-<h1>Static Semantics: LexicallyDeclaredNames</h1>
-<emu-see-also-para op="LexicallyDeclaredNames"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]
-</emu-grammar>
-<emu-alg>
-1. Return a new empty List.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-lexicallyscopeddeclarations>
-<h1>Static Semantics: LexicallyScopedDeclarations</h1>
-<emu-see-also-para op="LexicallyScopedDeclarations"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]
-
-</emu-grammar>
-<emu-alg>
-1. Return a new empty List.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-vardeclarednames>
-<h1>Static Semantics: VarDeclaredNames</h1>
-<emu-see-also-para op="VarDeclaredNames"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]
-</emu-grammar>
-<emu-alg>
-1. Return a new empty List.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-static-semantics-varscopeddeclarations>
-<h1>Static Semantics: VarScopedDeclarations</h1>
-<emu-see-also-para op="VarScopedDeclarations"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. Return a new empty List.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-runtime-semantics-evaluatebody>
-<h1>Runtime Semantics: EvaluateBody</h1>
-<p>With parameters _functionObject_ and List _argumentsList_.</p>
-<emu-see-also-para op="EvaluateBody"></emu-see-also-para>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. Perform ? FunctionDeclarationInstantiation(_functionObject_, _argumentsList_).
-2. Let _exprRef_ be ? PipelineEvaluation of |Pipeline| with argument _argumentsList_.
-3. Let _exprValue_ be ? GetValue(_exprRef_).
-4. Return Completion{[[Type]]: ~return~, [[Value]]: _exprValue_, [[Target]]: ~empty~}.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-pf-pipeline-function-definitions-runtime-semantics-evaluation>
-<h1>Runtime Semantics: Evaluation</h1>
-<emu-grammar>PipelineFunction[In, Yield, Await] : `+&gt;` Pipeline[?In, ?Yield, ?Await]</emu-grammar>
-<emu-alg>
-1. If the |PipelineFunction| is declared in strict mode code, let _strict_ be *true*. Otherwise let _strict_ be *false*.
-2. Let _scope_ be the LexicalEnvironment of the running execution context.
-3. Let _closure_ be FunctionCreate(~Arrow~, |Pipeline|, |Pipeline|, _scope_, _strict_).
-4. Return _closure_.
-</emu-alg>
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np>
-<h1>Additional Feature NP: N-ary Pipelines</h1>
-<p><strong>Not at Stage 0.</strong></p>
-<p>This annex specifies additional ECMAScript language syntax and semantics for <strong>n-ary smart pipelines</strong> and <strong>multiple lexical topics</strong>. It augments the <emu-xref href=#introduction>core proposal</emu-xref> by introducing n-ary pipeline forms `inputList |> …` and `… |> stepList |> …`, an additional secondary topic reference `##`, a tertiary topic reference `###`, a |RestTopicReference| `...`, and an argument-List syntax to bind the new references [TODO: xref]. When combined with the <emu-xref href=#sec-additional-feature-pf>additional feature PF</emu-xref>, the resulting additional feature PF+NP enables <strong>partial application</strong> of functions/expressions into n-ary functions. [TODO: xref with PF+NP]</p>
-
-<p>See the <a href=https://github.com/js-choi/proposal-smart-pipelines/blob/master/readme.md#additional-feature-np>explainer document, § Motivation, Additional Feature NP</a> for information on this feature's motivation.</p>
-
-<emu-table id=table-additional-feature-np-examples caption="Examples of Multiple Lexical Topics">
-<table>
-<tr>
-<td><pre><code language=javascript>a |&gt; f;</code></pre></td>
-<td><pre><code language=javascript>f(a);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a) |&gt; f;</code></pre></td>
-<td><pre><code language=javascript>f(a);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; f;</code></pre></td>
-<td><pre><code language=javascript>f(a, b);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(...a) |&gt; f;</code></pre></td>
-<td><pre><code language=javascript>f(...a);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>...a |&gt; f;</code></pre>
-<pre><code language=javascript>...a |&gt; f(...);</code></pre></td>
-<td><pre><code language=javascript>f(...a);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>...a |&gt; f(x, ...);</code></pre></td>
-<td><pre><code language=javascript>f(x, ...a);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>() |&gt; f;</code></pre>
-<pre><code language=javascript>() |&gt; f(...);</code></pre></td>
-<td><pre><code language=javascript>f();</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; # + ##;</code></pre></td>
-<td><pre><code language=javascript>a + b;</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>...a |&gt; # + ##;</code></pre>
-<pre><code language=javascript>a |&gt; ... |&gt; # + ##;</code></pre></td>
-<td><pre><code language=javascript>{ const [$, $$] = [...a]; $ + $$; }</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>() |&gt; # + ##;</code></pre></td>
-<td>Syntax Error: Pipeline head inputs 0 topic values `()` into a following step that expects 2 topic values.</td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; f(#, 0, ##);</code></pre></td>
-<td><pre><code language=javascript>f(a, 0, b);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; f(0, ##);</code></pre></td>
-<td><pre><code language=javascript>f(0, b);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b, c, d) |&gt; f(#, 0, ...);</code></pre></td>
-<td><pre><code language=javascript>f(a, 0, b, c, d);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b, c, d) |&gt; f(##, 0, ...);</code></pre></td>
-<td><pre><code language=javascript>f(b, 0, c, d);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b, c, d) |&gt; f(##, 0, [...]);</code></pre></td>
-<td><pre><code language=javascript>f(b, 0, [c, d]);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, ...[b, c, d]) |&gt; f(##, 0, [...]);</code></pre></td>
-<td><pre><code language=javascript>f(b, 0, [c, d]);</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; (# * b, ##) |&gt; f;</code></pre></td>
-<td><pre><code language=javascript>g(a * b, f(b));</code></pre></td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; (# * b, #) |&gt; f;</code></pre></td>
-<td>Syntax Error: Pipeline head inputs 2 topic values `(a, b)` into following step that expects 1 topic value.</td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; (# * b, f) |&gt; f;</code></pre></td>
-<td>Syntax Error: Topic-style pipeline step `f` in `(# * b, f)` binds topic but contains no topic reference.</td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; #;</code></pre></td>
-<td>Syntax Error: Pipeline head inputs 2 topic values `(a, b)` into following step that expects 1 topic value.</td>
-</tr>
-<tr>
-<td><pre><code language=javascript>a |&gt; # + ##;</code></pre></td>
-<td>Syntax Error: Pipeline head inputs 1 topic values `a` into following step that expects 2 topic values.</td>
-</tr>
-<tr>
-<td><pre><code language=javascript>() |&gt; # * 5;</code></pre></td>
-<td>Syntax Error: Pipeline head inputs 0 topic values `()` into following step that expects 1 topic value.</td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; f(#, 0);</code></pre></td>
-<td>Syntax Error: Pipeline head inputs 2 topic values `(a, b)` into following step that expects 1 topic value.</td>
-</tr>
-<tr>
-<td><pre><code language=javascript>(a, b) |&gt; (#, ##);</code></pre></td>
-<td>Syntax Error: Pipeline terminates with a 2-ary pipeline step but must terminate with a unary pipeline step.</td>
-</tr>
-</table>
-</emu-table>
-
-<emu-annex id=sec-additional-feature-np-executable-code-and-execution-contexts
->
-<h1>Executable Code and Execution Contexts</h1>
-
-<emu-annex id=sec-additional-feature-np-lexical-environments>
-<h1>Lexical Environments</h1>
-
-<emu-annex id=sec-additional-feature-np-lexical-topics>
-<h1>Lexical Topics</h1>
-
-<emu-note type=editor>
-<p>This section further augments the <emu-xref href=#sec-lexical-environments>corresponding new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<p>The <dfn>topic binding</dfn> of a Lexical Environment immutably binds the <del>topic reference `#` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that Lexical Environment, at the time of the Lexical Environment's instantiation</del><ins>topic references `#`, `##`, `###`, and `...`, each to a respective <dfn>topic value</dfn> of any ECMAScript language type. The token `#` is termed the <dfn>primary topic reference</dfn>, `##` is termed the <dfn>secondary topic reference</dfn>, and `###` is termed the <dfn>tertiary topic reference</dfn>; together, they form the |TopicExpression|s. In addition, `...` alone forms the |RestTopicReference|, which represents a List of topic values of any ECMAScript language type. A single topic binding will bind all of a Lexical Environment's topic references at once at the time of the Lexical Environment's instantiation, after which the binding cannot change</ins>. The topic<ins>s</ins> of a Lexical Environment conceptually serve<del>s</del> as the value<ins>s</ins> that the lexical context is "about".</p>
-
-<p>A <dfn>topic-binding environment</dfn> is a Lexical Environment that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its Lexical Environment's nearest outer environment that is a topic-binding environment, as defined by the abstract operator GetTopicEnvironment.</p>
-
-<emu-note>
-<p>In addition, several syntax productions associated with Lexical Environments are associated with early error rules that <strong>forbid</strong> their containing the topic reference<ins>s</ins> `#`<ins>, `##`, `###`, or `...`</ins>, <strong>except</strong> where that topic reference<del> is</del><ins>s are</ins> within a |PipelineTopicStep|. These <strong>topic-forbidding</strong> productions are:</p>
-
-<dl>
-<dt><strong>Top-level program scopes</strong>:</dt>
-<dd>|ScriptBody| from <emu-grammar>Script : ScriptBody</emu-grammar>.</dd>
-<dd>|ModuleBody| from <emu-grammar>Module : ModuleBody</emu-grammar>.</dd>
-
-<dt><strong>Inner program scopes</strong> that <strong>establish lexical bindings</strong>:</dt>
-<dd>Any |FunctionStatementList| from <emu-grammar>FunctionBody : FunctionStatementList</emu-grammar>, <strong>except</strong> when |FunctionStatementList| is the |FunctionBody| of a |ConciseBody|—that is, <strong>except</strong> when it is the body of an |ArrowFunction|.</dd>
-<dd>Any |Statement| in any production of |IterationStatement|, such as |Statement| from <emu-grammar>|IterationStatement| : `for` `(` ForDeclaration `in` Expression `)` Statement</emu-grammar>.</dd>
-<dd>Any |Statement| from <emu-grammar>WithStatement : `with` `(` Expression `)` Statement</emu-grammar>.</dd>
-<dd>Any |Block| from <emu-grammar>Catch : `catch` `(` CatchParameter `)` Block</emu-grammar>.</dd>
-</dl>
-</emu-note>
-
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-environment-records>
-<h1>Environment Records</h1>
-
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-declarative-environment-records>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<emu-table id=table-additional-feature-np-15 caption="Abstract Methods of Environment Records">
-<table>
-<thead>
-<tr>
-<th>
-Method
-</th>
-<th>
-Purpose
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-HasTopicBinding()
-</td>
-<td>
-Determine the status of an Environment Record's topic binding (<ins>that is, the bindings of `#`, `##`, `###`, and `...`</ins>). Return *true* if it establishes a topic binding and *false* if it does not.
-</td>
-</tr>
-</tbody>
-</table>
-</emu-table>
-
-<emu-annex id=sec-additional-feature-np-declarative-environment-records>
-<h1>Declarative Environment Records</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-declarative-environment-records>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-table id=table-additional-feature-np-61 caption="Additional Fields of Declarative Environment Records">
-<table>
-<thead>
-<tr>
-<th>
-Method
-</th>
-<th>
-Value
-</th>
-<th>
-Purpose
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-[[TopicBindingStatus]]
-</td>
-<td>
-*false* | *true*
-</td>
-<td>
-If [[TopicBindingStatus]]'s value is *true*, the Environment Record establishes its environment's topic binding (that is, it binds `#`<ins>, `##`, `###`, and `...`</ins>) to values. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
-</td>
-</tr>
-<tr>
-<td>
-[[TopicValues]]
-</td>
-<td>
-Any | ~empty~
-</td>
-<td>
-If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List containing is the values of the Environment Record's topic binding (that is, the values of `#`, `##`, and `###` within its program scope). Otherwise, the value of [[TopicValues]] is ~empty~.
-</td>
-</tr>
-<tr>
-<td>
-<ins>[[RestTopicStartIndex]]</ins>
-</td>
-<td>
-<ins>Integer index | ~empty~</ins>
-</td>
-<td>
-<ins>If the value of [[TopicBindingStatus]] is *true*, [[RestTopicStartIndex]] is the first index  in [[TopicValues]] of its Lexical Environment's rest topic reference `...`; if so, this index must be an integer inclusively between 0 and the number of elements of [[TopicValues]]. If the value of [[TopicBindingStatus]] is *false*, the value of [[RestTopicStartIndex]] is ~empty~.</ins>
-</td>
-</tr>
-</tbody>
-</table>
-</emu-table>
-
-<p>Declarative Environment Records support all of the abstract methods of Environment Records listed in <emu-xref href="#table-15"></emu-xref>. In addition, declarative Environment Records support the methods listed in <emu-xref href="#table-62"></emu-xref>.</p>
-
-<emu-table id=table-additional-feature-np-62 caption="Additional Methods of Declarative Environment Records">
-<table>
-<thead>
-<tr>
-<th>
-Method
-</th>
-<th>
-Purpose
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-BindTopicValues(V<ins>, VRestStartIndex</ins>)
-</td>
-<td>
-Establish the immutable topic binding of this Environment Record and set the topic binding<del>s'</del><ins>'s</ins> value<ins>s</ins>. <del>_V_ is the value for the binding and is a value of any ECMAScript language type.</del><ins>_V_ is a List with elements of any ECMAScript language type. _VRestStartIndex_ is either ~empty~ or an Array whose elements are of any ECMAScript language type.</ins> Afterward, the value returned by the Environment Record's HasTopicBinding method is *true*. This method cannot be called more than once on any single Environment Record.
-</td>
-</tr>
-</tbody>
-</table>
-</emu-table>
-
-<p>The behaviour of the concrete and additional specification methods for declarative Environment Records is defined by the following algorithms.</p>
-
-<emu-annex id=sec-additional-feature-np-declarative-environment-records-bindtopicvalues>
-<h1>BindTopicValues ( _V_<ins>, _VRestStartIndex_</ins> )</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-declarative-environment-records-bindtopicvalues>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-<p>The method BindTopicValues for declarative Environment Records is guaranteed to be called only when the Environment Records do not yet have established topic bindings.</p>
-<emu-alg>
-1. <ins>Assert: _V_ is a List.</ins>
-2. <ins>Assert: _VRest_ is either ~empty~ or an Array.</ins>
-3. Let _envRec_ be the declarative Environment Record for which the method was invoked.
-4. Assert: _envRec_.[[TopicBindingStatus]] is *false*.
-5. Set _envRec_.[[TopicValues]] to _V_.
-6. Set _envRec_.[[RestTopicStartIndex]] to _VRestStartIndex_.
-7. Set _envRec_.[[TopicBindingStatus]] to *true*.
-8. Return NormalCompletion(~empty~).
-</emu-alg>
-</emu-annex>
-</emu-annex>
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-ecmascript-language-lexical-grammar>
-<h1>ECMAScript Language: Lexical Grammar</h1>
-
-<emu-annex id=sec-additional-feature-np-punctuators>
-<h1>Punctuators</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-punctuators>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>
-Punctuator :: one of
-  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `%` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `|&gt;` `#` `##` `###` `=` `+=` `-=` `*=` `%=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
-</emu-grammar>
-</ins>
-
-<del class=block>
-<emu-grammar>
-Punctuator :: one of
-  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `%` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `|&gt;` `#` `=` `+=` `-=` `*=` `%=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
-</emu-grammar>
-</del>
-
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-ecmascript-language-expressions>
-<h1>ECMAScript Language: Expressions</h1>
-
-<emu-annex id=sec-additional-feature-np-primary-expression>
-<h1>Primary Expression</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-primary-expression>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<h2>Syntax</h2>
-<emu-grammar>
-PrimaryExpression[Yield, Await] :
-  `this`
-  <del class=block>`#`</del>
-  <ins class=block>TopicExpression</ins>
-  IdentifierReference[?Yield, ?Await]
-  Literal
-  ArrayLiteral[?Yield, ?Await]
-  ObjectLiteral[?Yield, ?Await]
-  FunctionExpression
-  ClassExpression[?Yield, ?Await]
-  GeneratorExpression
-  AsyncFunctionExpression
-  AsyncGeneratorExpression
-  RegularExpressionLiteral
-  TemplateLiteral[?Yield, ?Await, ~Tagged]
-  CoverParenthesizedExpressionAndArrowParameterList[?Yield, ?Await]
-</emu-grammar>
-
-<emu-annex id=sec-additional-feature-np-topic-references>
-<h1>The Topic Reference<ins>s</ins></h1>
-
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-topic-references>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<ins class=block>
-<h2>Syntax</h2>
-<emu-grammar>
-TopicExpression :
-  `#`
-  `##`
-  `###`
-
-RestTopicReference :
-  `...`
-</emu-grammar>
-
-<p>The |RestTopicReference| `...` is not itself a |TopicExpression|; instead, it is used by |SpreadElement|, |PropertyDefinition|, and |ArgumentList|.</p>
-</emu-note>
-</ins>
-
-<emu-annex id=sec-additional-feature-np-runtime-semantics-resolvetopicexpression aoid=ResolveTopicExpression>
-<h1><ins>Runtime Semantics: ResolveTopicExpression</ins></h1>
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause in addition to the augmentations of the core proposal.</p>
-</emu-note>
-
-<p>With parameter _topicIndex_.</p>
-<emu-note>
-<p>This abstract operation constructs, instantiates, then returns a new declarative Lexical Environment for a topic-style pipeline step. It creates an immutable topic binding in that declarative environment using the given _topicValues_.</p>
-</emu-note>
-
-<emu-alg>
-1. Assert: _topicIndex_ is an integer at least *0*.
-2. Let _envRec_ be GetTopicEnvironment().
-3. Assert: _envRec_ is a declarative Environment Record.
-4. Assert: _envRec_.HasTopicBinding() is true.
-5. Assert: _topicIndex_ is less than _envRec_.[[RestTopicStartIndex]].
-6. Let _topicValues_ be _envRec_.[[TopicValues]].
-7. Assert: _topicValues_ is a List.
-8. Assert: _topicIndex_ is less than the number of elements of _topicValues_.
-9. Return _envRec_.[[TopicValues]].
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-runtime-semantics-createresttopiciteratorrecord aoid=CreateRestTopicIteratorRecord>
-<h1><ins>Runtime Semantics: CreateRestTopicIteratorRecord</ins></h1>
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause in addition to the augmentations of the core proposal.</p>
-</emu-note>
-<emu-note>
-<p>The |RestTopicReference| `...` is not itself evaluated as a |TopicExpression|; instead, it is used by |SpreadElement|, |PropertyDefinition|, and |ArgumentList|, by way of calling the CreateRestTopicIteratorRecord abstract operation and using its values.</p>
-</emu-note>
-
-<emu-alg>
-1. Let _envRec_ be GetTopicEnvironment().
-2. Assert: _envRec_ is a declarative Environment Record.
-3. Assert: _envRec_.HasTopicBinding() is true.
-4. Let _restTopicStartIndex_ be _envRec_.[[RestTopicStartIndex]].
-5. Assert: _restTopicStartIndex_ is an integer at least *0*.
-6. Let _topicValues_ be _envRec_.[[TopicValues]].
-7. Assert: _topicValues_ is a List.
-8. Assert: _restTopicStartIndex_ is no more than the number of elements of _topicValues_.
-9. Let _iteratorRecord_ be CreateListIteratorRecord(_topicValues_).
-10. Set _iteratorRecord_.[[Iterator]].[[ListIteratorNextIndex]] to _restTopicStartIndex_.
-11. Return _iteratorRecord_.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-topic-reference-runtime-semantics-evaluation>
-<h1>Runtime Semantics: Evaluation</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-topic-references-runtime-semantics-evaluation>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-<ins class=block>
-<emu-note>
-<p>The |RestTopicReference| `...` is not itself evaluated as a |TopicExpression|; instead, it is used by |SpreadElement|, |PropertyDefinition|, and |ArgumentList|, using CreateRestTopicIteratorRecord.</p>
-</emu-note>
-</ins>
-
-<emu-grammar>PrimaryExpression : `#`</emu-grammar>
-<del class=block>
-<emu-alg>
-1. Let _topicValues_ be GetTopicValues().
-2. Return topicValues_[0].
-</emu-alg>
-</del>
-<ins class=block>
-<emu-alg>
-1. Return ? ResolveTopicExpression(*0*).
-</emu-alg>
-
-<emu-grammar>TopicExpression : `##`</emu-grammar>
-<emu-alg>
-1. Return ? ResolveTopicExpression(*1*).
-</emu-alg>
-
-<emu-grammar>TopicExpression : `###`</emu-grammar>
-<emu-alg>
-1. Return ? ResolveTopicExpression(*2*).
-</emu-alg>
-</ins>
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-array-initializer>
-<h1>Array Initializer</h1>
-<h2>Syntax</h2>
-<emu-grammar type="definition">
-SpreadElement[Yield, Await] :
-  `...` AssignmentExpression[+In, ?Yield, ?Await]
-  <ins class=block>RestTopicReference</ins>
-</emu-grammar>
-
-<emu-annex id=sec-additional-feature-np-runtime-semantics-arrayaccumulation>
-<h1>Runtime Semantics: ArrayAccumulation</h1>
-<p>With parameters _array_ and _nextIndex_.</p>
-<emu-grammar>SpreadElement : `...` AssignmentExpression</emu-grammar>
-<emu-alg>
-1. Let _spreadRef_ be the result of evaluating |AssignmentExpression|.
-2. Let _spreadObj_ be ? GetValue(_spreadRef_).
-3. Let _iteratorRecord_ be ? GetIterator(_spreadObj_).
-4. Repeat,
-  1. Let _next_ be ? IteratorStep(_iteratorRecord_).
-  2. If _next_ is *false*, return _nextIndex_.
-  3. Let _nextValue_ be ? IteratorValue(_next_).
-  4. Let _status_ be CreateDataProperty(_array_, ToString(ToUint32(_nextIndex_)), _nextValue_).
-  5. Assert: _status_ is *true*.
-  6. Let _nextIndex_ be _nextIndex_ + 1.
-</emu-alg>
-<emu-note>
-<p>CreateDataProperty is used to ensure that own properties are defined for the array even if the standard built-in Array prototype object has been modified in a manner that would preclude the creation of new own properties using [[Set]].</p>
-</emu-note>
-<ins class=block>
-<emu-grammar>SpreadElement : RestTopicReference</emu-grammar>
-<emu-alg>
-1. Let _iteratorRecord_ be ? CreateRestTopicIteratorRecord().
-2. Repeat,
-  1. Let _next_ be ? IteratorStep(_iteratorRecord_).
-  2. If _next_ is *false*, return _nextIndex_.
-  3. Let _nextValue_ be ? IteratorValue(_next_).
-  4. Let _status_ be CreateDataProperty(_array_, ToString(ToUint32(_nextIndex_)), _nextValue_).
-  5. Assert: _status_ is *true*.
-  6. Let _nextIndex_ be _nextIndex_ + 1.
-</emu-alg>
-<emu-note>
-<p>CreateDataProperty is used to ensure that own properties are defined for the array even if the standard built-in Array prototype object has been modified in a manner that would preclude the creation of new own properties using [[Set]].</p>
-</emu-note>
-</ins>
-</emu-annex>
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-left-hand-side-expressions>
-<h1>Left-Hand-Side Expressions</h1>
-<h2>Syntax</h2>
-<emu-grammar type="definition">
-Arguments[Yield, Await] :
-  `(` `)`
-  `(` ArgumentList[?Yield, ?Await] `)`
-  `(` ArgumentList[?Yield, ?Await] `,` `)`
-
-ArgumentList[Yield, Await] :
-  AssignmentExpression[+In, ?Yield, ?Await]
-  `...` AssignmentExpression[+In, ?Yield, ?Await]
-  <ins class=block>
-  RestTopicReference
-  </ins>
-  ArgumentList[?Yield, ?Await] `,` AssignmentExpression[+In, ?Yield, ?Await]
-  ArgumentList[?Yield, ?Await] `,` `...` AssignmentExpression[+In, ?Yield, ?Await]
-  ArgumentList[?Yield, ?Await] `,` RestTopicReference
-</emu-grammar>
-
-<emu-annex id=sec-additional-feature-np-argument-lists>
-<h1>Argument Lists</h1>
-
-<emu-annex id=sec-additional-feature-np-argument-lists-static-semantics-argumentlistminwidth>
-<h1><ins>Static Semantics: ArgumentListMinWidth</ins></h1>
-<emu-see-also-para op="ArgumentListMinWidth"></emu-see-also-para>
-
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-argument-lists>original Argument Lists clause</a>.</p>
-</emu-note>
-
-<emu-grammar>Arguments : `(` `)`</emu-grammar>
-<emu-alg>
-1. Return the numeric value *0*.
-</emu-alg>
-
-<emu-grammar>ArgumentList : ArgumentExpression</emu-grammar>
-<emu-alg>
-1. Return the numeric value *1*.
-</emu-alg>
-
-<emu-grammar>ArgumentList : `...` AssignmentExpression</emu-grammar>
-<emu-alg>
-1. Return the numeric value *0*.
-</emu-alg>
-
-<emu-grammar>ArgumentList : ArgumentList `,` ArgumentExpression</emu-grammar>
-<emu-alg>
-1. Let _preceding_ be the ArgumentListMinWidth of _ArgumentList_.
-2. Return _preceding_ + *1*.
-</emu-alg>
-
-<emu-grammar>ArgumentList : ArgumentList `,` `...` AssignmentExpression</emu-grammar>
-<emu-alg>
-1. Let _preceding_ be the ArgumentListMinWidth of _ArgumentList_.
-2. Return _preceding_ + *1*.
-</emu-alg>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-argument-lists-static-semantics-argumentlistmaxwidth>
-<h1><ins>Static Semantics: ArgumentListMaxWidth</ins></h1>
-<emu-see-also-para op="ArgumentListMaxWidth"></emu-see-also-para>
-
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-argument-lists>original Argument Lists clause</a>.</p>
-</emu-note>
-
-<emu-grammar>Arguments : `(` `)`</emu-grammar>
-<emu-alg>
-1. Return the numeric value *0*.
-</emu-alg>
-
-<emu-grammar>ArgumentList : ArgumentExpression</emu-grammar>
-<emu-alg>
-1. Return the numeric value *1*.
-</emu-alg>
-
-<emu-grammar>
-ArgumentList :
-  `...` AssignmentExpression
-  RestTopicReference
-  ArgumentList `,` `...` AssignmentExpression
-  ArgumentList `,` RestTopicReference
-</emu-grammar>
-<emu-alg>
-1. Return the numeric value *Infinity*.
-</emu-alg>
-
-<emu-grammar>ArgumentList : ArgumentList `,` ArgumentExpression</emu-grammar>
-<emu-alg>
-1. Let _preceding_ be the ArgumentListMaxWidth of _ArgumentList_.
-2. Return _preceding_ + *1*.
-</emu-alg>
-<emu-note>
-<p>If _preceding_ is *Infinity*, then _preceding_ + 1 is also *Infinity*.</p>
-</emu-note>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-argument-lists-runtime-semantics-argumentlistevaluation>
-<h1>Runtime Semantics: ArgumentListEvaluation</h1>
-<emu-see-also-para op="ArgumentListEvaluation"></emu-see-also-para>
-<emu-grammar>ArgumentList : `...` AssignmentExpression</emu-grammar>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-argument-lists-runtime-semantics-argumentlistevaluation>original ArgumentListEvaluation clause</a>.</p>
-</emu-note>
-
-<emu-alg>
-1. Let _list_ be a new empty List.
-2. Let _spreadRef_ be the result of evaluating |AssignmentExpression|.
-3. Let _spreadObj_ be ? GetValue(_spreadRef_).
-4. Let _iteratorRecord_ be ? GetIterator(_spreadObj_).
-5. Repeat,
-  1. Let _next_ be ? IteratorStep(_iteratorRecord_).
-  2. If _next_ is *false*, return _list_.
-  3. Let _nextArg_ be ? IteratorValue(_next_).
-  4. Append _nextArg_ as the last element of _list_.
-</emu-alg>
-<ins class=block>
-<emu-grammar>ArgumentList : RestTopicReference</emu-grammar>
-<emu-alg>
-1. Let _iteratorRecord_ be ? CreateRestTopicIteratorRecord().
-2. Repeat,
-  1. Let _next_ be ? IteratorStep(_iteratorRecord_).
-  2. If _next_ is *false*, return _list_.
-  3. Let _nextArg_ be ? IteratorValue(_next_).
-  4. Append _nextArg_ as the last element of _list_.
-</emu-alg>
-</ins>
-<emu-grammar>ArgumentList : ArgumentList `,` `...` AssignmentExpression</emu-grammar>
-<emu-alg>
-1. Let _precedingArgs_ be ArgumentListEvaluation of |ArgumentList|.
-2. ReturnIfAbrupt(_precedingArgs_).
-3. Let _spreadRef_ be the result of evaluating |AssignmentExpression|.
-4. Let _iteratorRecord_ be ? GetIterator(? GetValue(_spreadRef_)).
-5. Repeat,
-  1. Let _next_ be ? IteratorStep(_iteratorRecord_).
-  2. If _next_ is *false*, return _precedingArgs_.
-  3. Let _nextArg_ be ? IteratorValue(_next_).
-  4. Append _nextArg_ as the last element of _precedingArgs_.
-</emu-alg>
-<ins class=block>
-<emu-grammar>ArgumentList : ArgumentList `,` RestTopicReference</emu-grammar>
-<emu-alg>
-1. Let _precedingArgs_ be ArgumentListEvaluation of |ArgumentList|.
-2. ReturnIfAbrupt(_precedingArgs_).
-3. Let _iteratorRecord_ be ? CreateRestTopicIteratorRecord().
-4. Repeat,
-  1. Let _next_ be ? IteratorStep(_iteratorRecord_).
-  2. If _next_ is *false*, return _precedingArgs_.
-  3. Let _nextArg_ be ? IteratorValue(_next_).
-  4. Append _nextArg_ as the last element of _precedingArgs_.
-</emu-alg>
-</ins>
-</emu-annex>
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator>
-<h1>Pipe Operator</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<h2>Syntax</h2>
-<emu-grammar type=definition>
-PipeExpression[In, Yield, Await] :
-  ConditionalExpression[?In, ?Yield, ?Await]
-  <del class=block>ConditionalExpression[?In, ?Yield, ?Await] `|&gt;` Pipeline[?In, ?Yield, ?Await]</del>
-  <ins class=block>
-  PipelineHead[?In, ?Yield, ?Await] `|&gt;` Pipeline[?In, ?Yield, ?Await]
-  </ins>
-
-<ins class=block>
-PipelineHead[In, Yield, Await] :
-  [lookahead &lt;! {`(`}] ConditionalExpression[?In, ?Yield, ?Await]
-  Arguments[?Yield, ?Await]
-  `...` AssignmentExpression[+In, ?Yield, ?Await]
-</ins>
-
-Pipeline[In, Yield, Await] :
-  CoverPipelineBareStepAndTopicStep[?In, ?Yield, ?Await]
-  CoverPipelineBareStepAndTopicStep[?In, ?Yield, ?Await] `|&gt;` Pipeline[?In, ?Yield, ?Await]
-
-CoverPipelineBareStepAndTopicStep[In, Yield, Await] :
-  ConditionalExpression[?In, ?Yield, ?Await]
-</emu-grammar>
-
-<h2>Supplemental Syntax</h2>
-<p>When processing an instance of the production <emu-grammar>CoverPipelineBareStepAndTopicStep : ConditionalExpression</emu-grammar>, the interpretation of |ConditionalExpression| is refined using the following grammar:</p>
-<emu-grammar type=definition>
-PipelineBareStep :
-  SimpleReference
-
-SimpleReference :
-  IdentifierReference
-  SimpleReference `.` IdentifierName
-
-PipelineTopicStep[In, Yield, Await] :
-  <del class=block>
-  [lookahead &lt;! {`{`}] ConditionalExpression[?In, ?Yield, ?Await]
-  </del>
-  <ins class=block>
-  [lookahead &lt;! {`{` `(`}] ConditionalExpression[?In, ?Yield, ?Await]
-  Arguments[?Yield, ?Await]
-  `...` AssignmentExpression[+In, ?Yield, ?Await]
-  RestTopicReference
-  </ins>
-</emu-grammar>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-static-semantics-early-errors>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<del class=block>
-<emu-grammar>PipelineHead : ConditionalExpression</emu-grammar>
-<emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if _ConditionalExpression_ is covering |Arguments|.
-</emu-alg>
-</del>
-
-<ins class=block>
-<emu-grammar>Pipeline : PipelineHead `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if the ArgumentListMaxWidth of _PipelineHead_ is less than the ExpectedArgumentCount of _Pipeline_.
-2. It is a Syntax Error if the ArgumentListMinWidth of _Pipeline_ is not *1*.
-3. It is a Syntax Error if the ArgumentListMaxWidth of _Pipeline_ is not *1*.
-</emu-alg>
-
-<emu-grammar>Pipeline : CoverPipelineBareStepAndTopicStep `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if the ArgumentListMaxWidth of the CoveredPipelineStep of _CoverPipelineBareStepAndTopicStep_ is less than the ExpectedArgumentCount of _Pipeline_.
-</emu-alg>
-</ins>
-
-<emu-grammar>
-PipelineTopicStep :
-  ConditionalExpression
-  Block
-</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if <del>this _PipelineTopicStep_ Contains `#` is *false*.</del><ins>all of the following are true:</ins>
-  1. <ins>The ExpectedArgumentCount of this _PipelineTopicStep_ is the numeric value *0*.</ins>
-  2. <ins>This _PipelineTopicStep_ Contains `...` is *false*.</ins>
-2. It is a Syntax Error if this _PipelineTopicStep_ is covering a |YieldExpression|.
-3. It is a Syntax Error if this _PipelineTopicStep_ is covering a |PipelineTopicListHead|.
-</emu-alg>
-<emu-note type=editor>
-<p>The production <emu-grammar>PipelineTopicStep : Block</emu-grammar> above is included only when <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> is also included.</p>
-</emu-note>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-static-semantics-argumentlistminwidth>
-<h1><ins>Static Semantics: ArgumentListMinWidth</ins></h1>
-<emu-see-also-para op="ArgumentListMaxWidth"></emu-see-also-para>
-
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <emu-xref href=#sec-pipe-operator>Pipe Operator clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>Pipeline : CoverPipelineBareStepAndTopicStep</emu-grammar>
-<emu-alg>
-1. Let _pipelineStep_ be ? CoveredPipelineStep of _CoverPipelineBareStepAndTopicStep_.
-2. Return ? ArgumentListMinWidth of _pipelineStep_.
-</emu-alg>
-
-<emu-grammar>Pipeline : CoverPipelineBareStepAndTopicStep `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. Return ? ArgumentListMinWidth of _Pipeline_.
-</emu-alg>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-static-semantics-argumentlistmaxwidth>
-<h1><ins>Static Semantics: ArgumentListMaxWidth</ins></h1>
-<emu-see-also-para op="ArgumentListMaxWidth"></emu-see-also-para>
-
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <emu-xref href=#sec-pipe-operator>Pipe Operator clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>Pipeline : CoverPipelineBareStepAndTopicStep</emu-grammar>
-<emu-alg>
-1. Let _pipelineStep_ be ? CoveredPipelineStep of _CoverPipelineBareStepAndTopicStep_.
-2. Return ? ArgumentListMaxWidth of _pipelineStep_.
-</emu-alg>
-
-<emu-grammar>Pipeline : CoverPipelineBareStepAndTopicStep `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. Return ? ArgumentListMaxWidth of _Pipeline_.
-</emu-alg>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-static-semantics-contains>
-<h1>Static Semantics: Contains</h1>
-<p>With parameter _symbol_.</p>
-<emu-see-also-para op="Contains"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-static-semantics-early-errors>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>PipelineBareFunction : SimpleReference</emu-grammar>
-<emu-alg>
-1. If _symbol_ is <del>`#`</del><ins>|TopicExpression| or |RestTopicReference|</ins>, return *false*.
-2. For each child node _child_ of this Parse Node, do
-  1. If _child_ is an instance of _symbol_, return *true*.
-  2. If _child_ is an instance of a nonterminal, then
-    1. Let _contained_ be the result of _child_ Contains _symbol_.
-    2. If _contained_ is *true*, return *true*.
-2. Return *false*.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-static-semantics-expectedargumentcount>
-<h1>Static Semantics: ExpectedArgumentCount</h1>
-<emu-see-also-para op=ExpectedArgumentCount></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-static-semantics-expectedargumentcount>new clause in the core proposal</emu-xref>. It is mutually compatible with further modifications by other additional features.</p>
-</emu-note>
-
-<emu-grammar>
-PipelineTopicStep :
-  ConditionalExpression
-  Block
-</emu-grammar>
-<emu-alg>
-1. <ins>If this _PipelineTopicStep_ Contains `###`, then return *3*.</ins>
-2. <ins>Else if this _PipelineTopicStep_ Contains `##`, then return *2*.</ins>
-3. <ins>Else if this _PipelineTopicStep_ Contains `#`, then return *1*.</ins><del>Return *1*.</del>
-4. <ins>Else, return *0*.</ins>
-</emu-alg>
-<emu-note type=editor>
-<p>The production <emu-grammar>PipelineTopicStep : Block</emu-grammar> above is included only when <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> is also included.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>
-<emu-alg>
-1. Return *1*.
-</emu-alg>
-
-<emu-grammar>PipelineTopicStep : `...` AssignmentExpression</emu-grammar>
-<emu-alg>
-1. Return *0*.
-</emu-alg>
-
-<emu-grammar>PipelineTopicStep : `...`</emu-grammar>
-<emu-alg>
-1. Return *0*.
-</emu-alg>
-</ins>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-runtime-semantics-argumentlistevaluation>
-<h1><ins>Runtime Semantics: ArgumentListEvaluation</ins></h1>
-<emu-see-also-para op=ArgumentListEvaluation></emu-see-also-para>
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause in addition to the sub-clauses of the core proposal that extends the syntax-directed operation ArgumentListEvaluation defined in Ecma262.</p>
-</emu-note>
-
-<emu-grammar>PipelineHead : ConditionalExpression</emu-grammar>
-<emu-alg>
-1. Let _inputRef_ be the result of evaluating _ConditionalExpression_.
-2. Let _inputValue_ be ? GetValue(inputRef).
-2. Return a List containing the one element which is _inputValue_.
-</emu-alg>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-runtime-semantics-pipelineevaluation aoid=PipelineEvaluation>
-<h1>Runtime Semantics: PipelineEvaluation</h1>
-<p>With parameter _inputValues_.</p>
-
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-runtime-semantics-pipelineevaluation>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>
-PipelineTopicStep :
-  Arguments
-  `...`
-  `...` AssignmentExpression
-</emu-grammar>
-<emu-alg>
-1. Let _oldEnv_ be the running execution context's Lexical Environment.
-2. Let _pipelineStepEnv_ be New Declarative Environment(_oldEnv_).
-3. Perform TopicEnvironmentInstantiation(_inputValues_, _pipelineStepEnv_).
-4. Set the running execution context's Lexical Environment to _pipelineStepEnv_.
-5. Let _pipelineValue_ be ArgumentListEvaluation of this _PipelineStep_.
-6. Set the running execution context's Lexical Environment to _oldEnv_.
-7. Return a List containing the one element which is _pipelineValue_.
-</emu-alg>
-</ins>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-runtime-semantics-TopicEnvironmentInstantiation aoid=TopicEnvironmentInstantiation>
-<h1>Runtime Semantics: TopicEnvironmentInstantiation</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-runtime-semantics-TopicEnvironmentInstantiation>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<p>TopicEnvironmentInstantiation is performed as follows using arguments _code_, _env_, <del>and _topicValues_</del><ins>_topicValues_, and _restTopicStartIndex_</ins>.</p>
-<ul>
-<li>_topicValues_ is a List of values<del>: _env_'s primary topic reference will be bound to the first value</del><ins> with which _env_'s topic bindings will be established</ins>.</li>
-<li><ins>_restStartIndex_ is either ~empty~ or an integer index not exceeding the number of elements of _topicValues_. If it is ~empty~, |RestTopicReference| `...` will not be bound to anything. Otherwise, |RestTopicReference| will be bound to a new Array whose elements are those of _topicValues_ starting at _restStartIndex_'s position.</ins></li>
-</ul>
-
-<emu-alg>
-1. Assert: _topicValues_ is a List.
-2. <ins>Assert: _restTopicStartIndex_ is an integer, at least zero, and less than the number of elements of _topicValues_.</ins>
-3. Let _envRec_ be env's Environment Record.
-4. Assert: _envRec_ is a declarative Environment Record.
-5. Assert: _envRec_.HasTopicBinding() is *false*.
-6. Assert: _envRec_.[[TopicValues]] is ~empty~.
-7. Perform ! _envRec_.BindTopicValues(_topicValues_<ins>, _restTopicStartIndex_</ins>).
-</emu-alg>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-pipe-operator-runtime-semantics-evaluation>
-<h1>Runtime Semantics: Evaluation</h1>
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-pipe-operator-runtime-semantics-evaluation>new clause in the core proposal</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>PipeExpression : <del>ConditionalExpression</del><ins>PipelineHead</ins> `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. Let <del>_inputRef_ be the result of evaluating _ConditionalExpression_</del><ins>_inputValues_ be ? ArgumentListEvaluation of _PipelineHead_</ins>.
-2. <del>Let _inputValues_ be a List containing the one element which is the result of ? GetValue(_inputRef_).</del>
-3. Let _pipelineOutputValues_ be ? PipelineEvaluation of _Pipeline_ with argument _inputValues_.
-4. Assert: _pipelineOutputValues_ is a List containing one element.
-5. Return _pipelineOutputValues_[0].
-</emu-alg>
-</emu-annex>
-
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-ecmascript-language-statements-and-declarations>
-<h1>ECMAScript Language: Statements and Declarations</h1>
-
-<emu-annex id=sec-additional-feature-np-iteration-statements>
-<h1>Iteration Statements</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-iteration-statements-static-semantics-early-errors>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-annex id=sec-additional-feature-np-iteration-statements-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-<emu-grammar>
-IterationStatement :
-  `do` Statement `while` `(` Expression `)` `;`
-  `while` `(` Expression `)` Statement
-  `for` `(` Expression? `;` Expression? `;` Expression? `)` Statement
-  `for` `(` `var` VariableDeclarationList `;` Expression? `;` Expression? `)` Statement
-  `for` `(` LexicalDeclaration Expression? `;` Expression? `)` Statement
-  `for` `(` LeftHandSideExpression `in` Expression `)` Statement
-  `for` `(` `var` ForBinding `in` Expression `)` Statement
-  `for` `(` ForDeclaration `in` Expression `)` Statement
-  `for` `(` LeftHandSideExpression `of` AssignmentExpression `)` Statement
-  `for` `(` `var` ForBinding `of` AssignmentExpression `)` Statement
-  `for` `(` ForDeclaration `of` AssignmentExpression `)` Statement
-  `for` `await` `(` LeftHandSideExpression `of` AssignmentExpression `)` Statement
-  `for` `await` `(` `var` ForBinding `of` AssignmentExpression `)` Statement
-  `for` `await` `(` ForDeclaration `of` AssignmentExpression `)` Statement
-</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if <del>_Statement_ Contains `#` is *true*.</del><ins>any of the following conditions are true:</ins>
-  1. <ins>_Block_ Contains |TopicExpression| is *true*.</ins>
-  2. <ins>_Block_ Contains |RestTopicReference| is *true*.</ins>
-</emu-alg>
-
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including iteration statements, may <strong>not</strong> contain a <del>topic reference `#`</del><ins>|TopicExpression| (`#`, `##`, or `###`) or a |RestTopicReference| (`...`)</ins>. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-with-statement>
-<h1>The `with` statement</h1>
-
-<emu-annex id=sec-additional-feature-np-with-statement-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-with-statement-static-semantics-early-errors>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>WithStatement : `with` `(` Expression `)` Statement</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if <del>_Statement_ Contains `#` is *true*.</del><ins>any of the following conditions are true:</ins>
-  1. <ins>_Block_ Contains |TopicExpression| is *true*.</ins>
-  2. <ins>_Block_ Contains |RestTopicReference| is *true*.</ins>
-</emu-alg>
-
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including |WithStatement|, may <strong>not</strong> contain a <del>topic reference `#`</del><ins>|TopicExpression| (`#`, `##`, or `###`) or a |RestTopicReference| (`...`)</ins>. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-try-statement>
-<h1>The `try` statement</h1>
-
-<emu-annex id=sec-additional-feature-np-try-statement-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-try-statement-static-semantics-early-errors>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>
-Catch : `catch` `(` CatchParameter `)` Block</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if <del>_Block_ Contains `#` is *true*.</del><ins>any of the following conditions are true:</ins>
-  1. <ins>_Block_ Contains |TopicExpression| is *true*.</ins>
-  2. <ins>_Block_ Contains |RestTopicReference| is *true*.</ins>
-</emu-alg>
-
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including |Catch|, may <strong>not</strong> contain a <del>topic reference `#`</del><ins>|TopicExpression| (`#`, `##`, or `###`) or a |RestTopicReference| (`...`)</ins>. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early errors above.</p>
-</emu-note>
-</emu-annex>
-
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-ecmascript-language-functions-and-classes>
-<h1>ECMAScript Language: Functions and Classes</h1>
-
-<emu-annex id=sec-additional-feature-np-function-definitions>
-<h1>Function Definitions</h1>
-
-<emu-annex id=sec-additional-feature-np-function-definitions-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-function-definitions-static-semantics-early-errors>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>FunctionBody : FunctionStatementList</emu-grammar>
-<ul>
-<li>
-If |FunctionStatementList| is not the |FunctionBody| of a |ConciseBody|, it is a Syntax Error if |FunctionStatementList| Contains `#` is *true*.
-</li>
-</ul>
-
-<emu-note>
-<p>Arrow functions' |ConciseBody| <strong>may</strong> contain <del>the topic reference `#`</del><ins>a TopicExpression (`#`, `##`, or `###`) or a RestTopicReference (`...`)</ins>, as long as |ConciseBody| is within a parse that is also allowed to contain the topic reference. During runtime, such topic references would refer to the outer environment's topic binding. This is not true for the definitions of <strong>other</strong> types of functions, which may <strong>not</strong> contain any topic reference.</p>
-</emu-note>
-
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-arrow-function-definitions>
-<h1>Arrow Function Definitions</h1>
-
-<emu-annex id=sec-additional-feature-np-arrow-function-definitions-static-semantics-contains>
-<h1>Static Semantics: Contains</h1>
-<p>With parameter _symbol_.</p>
-<emu-see-also-para op="Contains"></emu-see-also-para>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-arrow-function-definitions-static-semantics-contains>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>ArrowFunction : ArrowParameters `=&gt;` ConciseBody</emu-grammar>
-<emu-alg>
-1. If _symbol_ is not one of |NewTarget|, |SuperProperty|, |SuperCall|, `super`, `this`, <del>or `#`</del><ins>|TopicExpression|, or |RestTopicReference|</ins>, return *false*.
-2. If _ArrowParameters_ Contains _symbol_ is *true*, return *true*.
-3. Return |ConciseBody| Contains _symbol_.
-</emu-alg>
-
-<emu-note>
-Normally, Contains does not look inside most function forms. However, Contains is used to detect `new.target`, `this`, `super`, <del>and `#`</del><ins>|TopicExpression| (`#`, `##`, or `###`), and |RestTopicReference| (`...`)</ins> usage within an |ArrowFunction|.
-</emu-note>
-
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-ecmascript-language-scripts-and-modules>
-<h1>ECMAScript Language: Scripts and Modules</h1>
-
-<emu-annex id=sec-additional-feature-np-scripts>
-<h1>Scripts</h1>
-
-<emu-annex id=sec-additional-feature-np-scripts-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-scripts-static-semantics-early-errors>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>ScriptBody : StatementList</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if <del>_StatementList_ Contains `#` is *true*.</del><ins>any of the following conditions are true:</ins>
-  1. <ins>_Block_ Contains |TopicExpression| is *true*.</ins>
-  2. <ins>_Block_ Contains |RestTopicReference| is *true*.</ins>
-</emu-alg>
-
-<emu-note>
-<p>In general, a top-level program scope, including |Script|, may <strong>not</strong> contain a <del>topic reference `#`</del><ins>|TopicExpression| (`#`, `##`, or `###`) or a |RestTopicReference| (`...`)</ins>. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-
-</emu-annex>
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-np-modules>
-<h1>Modules</h1>
-
-<emu-annex id=sec-additional-feature-np-modules-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-modules-static-semantics-early-errors>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-grammar>ModuleItem : StatementListItem</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if <del>_StatementListItem_ Contains `#` is *true*.</del><ins>any of the following conditions are true:</ins>
-  1. <ins>_Block_ Contains |TopicExpression| is *true*.</ins>
-  2. <ins>_Block_ Contains |RestTopicReference| is *true*.</ins>
-</emu-alg>
-
-<emu-note>
-<p>In general, a top-level program scope, including |Module|, may <strong>not</strong> contain a topic reference `#`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-
-</emu-annex>
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-ts>
-<h1>Additional Feature TS: Pipeline `try` Statements</h1>
-<p><strong>Not at Stage 0.</strong></p>
-
-<emu-annex id=sec-additional-feature-ts-ecmascript-language-statements-and-declarations>
-<h1>ECMAScript Language: Statements and Declarations</h1>
-
-<emu-annex id=sec-additional-feature-ts-try-statement>
-<h1>The `try` statement</h1>
-
-<emu-note type=editor>
-<p>This section adds onto the <emu-xref href=#sec-try-statement>augmentations in the core proposal to an existing clause</emu-xref>. It is also mutually compatible with the <a href=https://tc39.github.io/proposal-optional-catch-binding/>specification for optional `catch` binding</a>.</p>
-</emu-note>
-
-<h2>Syntax</h2>
-<emu-grammar type="definition">
-TryStatement[Yield, Await, Return] :
-  `try` Block[?Yield, ?Await, ?Return] Catch[?Yield, ?Await, ?Return]
-  `try` Block[?Yield, ?Await, ?Return] Finally[?Yield, ?Await, ?Return]
-  `try` Block[?Yield, ?Await, ?Return] Catch[?Yield, ?Await, ?Return] Finally[?Yield, ?Await, ?Return]
-  <ins class=block>
-  `try` `|&gt;` Pipeline[?Yield, ?Await, ?Return] `;` Catch[?Yield, ?Await, ?Return]
-  `try` `|&gt;` Pipeline[?Yield, ?Await, ?Return] `;` Finally[?Yield, ?Await, ?Return]
-  `try` `|&gt;` Pipeline[?Yield, ?Await, ?Return] `;` Catch[?Yield, ?Await, ?Return] Finally[?Yield, ?Await, ?Return]
-  </ins>
-
-Catch[Yield, Await, Return] :
-  `catch` `(` CatchParameter[?Yield, ?Await] `)` Block[?Yield, ?Await, ?Return]
-  <ins class=block>
-  `catch` `|&gt;` Pipeline[?Yield, ?Await, ?Return] Pipeline[?Yield, ?Await, ?Return] `;`
-  </ins>
-
-Finally[Yield, Await, Return] :
-  `finally` Block[?Yield, ?Await, ?Return]
-  <ins class=block>
-  `finally` `|&gt;` Pipeline[?Yield, ?Await, ?Return] Pipeline[?Yield, ?Await, ?Return] `;`
-  </ins>
-</emu-grammar>
-<emu-note>
-<p>The `try` statement encloses a block of code <ins>or a pipeline</ins> in which an exceptional condition can occur, such as a runtime error or a `throw` statement. The `catch` clause provides the exception-handling code. When a catch clause <ins>with a |Block| </ins>catches an exception, its |CatchParameter| is bound to that exception. <ins>When a catch clause with a |Pipeline| catches an exception, that exception is passed into its |Pipeline| as its input value.</ins></p>
-</emu-note>
-
-<emu-annex id=sec-additional-feature-ts-try-statement-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section augments the <emu-xref href=#sec-try-statement-static-semantics-early-errors>augmentations in the core proposal to an existing clause</emu-xref>.</p>
-</emu-note>
-
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<del class=block>
-<emu-grammar>
-Catch : `catch` `(` CatchParameter `)` Block</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if _Block_ Contains `#` is *true*.
-</emu-alg>
-</del>
-
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<del class=block>
-<emu-grammar>
-Catch : `catch` `(` CatchParameter `)` Block</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if <del>_Block_ Contains `#` is *true*.</del>any of the following conditions are true:
-  1. _Block_ Contains |TopicExpression| is *true*.
-  2. _Block_ Contains |RestTopicReference| is *true*.
-</emu-alg>
-</del>
-
-<del class=block>
-
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including |Catch|, may <strong>not</strong> contain a <del>topic reference `#`</del><ins>|TopicExpression| (`#`, `##`, or `###`) or a |RestTopicReference| (`...`)</ins>. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicStep : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early errors above.</p>
-</emu-note>
-</del>
-
-<emu-note type=editor>
-<p>The following early errors are inserted only if the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>
-TryStatement :
-  `try` `|&gt;` Pipeline `;` Catch
-  `try` `|&gt;` Pipeline `;` Finally
-  `try` `|&gt;` Pipeline `;` Catch Finally
-</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if the ArgumentListMinWidth of _Pipeline_ is not *1*.
-2. It is a Syntax Error if the ArgumentListMaxWidth of _Pipeline_ is not *1*.
-</emu-alg>
-
-<emu-grammar>Catch : `catch` `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if the ArgumentListMaxWidth of _PipelineHead_ is less than the ExpectedArgumentCount of _Pipeline_.
-2. It is a Syntax Error if the ArgumentListMinWidth of _Pipeline_ is not *1*.
-3. It is a Syntax Error if the ArgumentListMaxWidth of _Pipeline_ is not *1*.
-</emu-alg>
-
-<emu-grammar>Finally : `finally` `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. It is a Syntax Error if the ArgumentListMinWidth of _Pipeline_ is not *1*.
-2. It is a Syntax Error if the ArgumentListMaxWidth of _Pipeline_ is not *1*.
-</emu-alg>
-</ins>
-
-</emu-annex>
-
-<emu-annex id=sec-additional-feature-ts-try-statement-static-semantics-contains>
-<h1>Static Semantics: Contains</h1>
-<p>With parameter _symbol_.</p>
-<emu-see-also-para op="Contains"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause.</p>
-</emu-note>
-
-<emu-grammar>Catch : `catch` `|&gt;` Pipeline</emu-grammar>
-<emu-alg>
-1. If _symbol_ is `#`, return *false*.
-2. For each child node _child_ of this Parse Node, do
-  1. If _child_ is an instance of _symbol_, return *true*.
-  2. If _child_ is an instance of a nonterminal, then
-    1. Let _contained_ be the result of _child_ Contains _symbol_.
-    2. If _contained_ is *true*, return *true*.
-2. Return *false*.
-</emu-alg>
-</emu-annex>
-
-<emu-annex id="sec-additional-feature-ts-try-statement-static-semantics-containsduplicatelabels">
-<h1>Static Semantics: ContainsDuplicateLabels</h1>
-<p>With parameter _labelSet_.</p>
-<emu-see-also-para op="ContainsDuplicateLabels"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-try-statement-static-semantics-containsduplicatelabels>original `try` Statement, Static Semantics: ContainsDuplicateLabels clause</a>.</p>
-</emu-note>
-
-<ins class=block>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsDuplicateLabels of |Catch| with argument _labelSet_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasDuplicates_ be ContainsDuplicateLabels of |Pipeline| with argument _labelSet_.
-2. If _hasDuplicates_ is *true*, return *true*.
-3. Return ContainsDuplicateLabels of |Catch| with argument _labelSet_.
-</emu-alg>
-
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsDuplicateLabels of |Finally| with argument _labelSet_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasDuplicates_ be ContainsDuplicateLabels of |Pipeline| with argument _labelSet_.
-2. If _hasDuplicates_ is *true*, return *true*.
-3. Return ContainsDuplicateLabels of |Finally| with argument _labelSet_.
-</emu-alg>
-
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasDuplicates_ be ContainsDuplicateLabels of |Catch| with argument _labelSet_.
-1. If _hasDuplicates_ is *true*, return *true*.
-1. Return ContainsDuplicateLabels of |Finally| with argument _labelSet_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasDuplicates_ be ContainsDuplicateLabels of |Pipeline| with argument _labelSet_.
-2. If _hasDuplicates_ is *true*, return *true*.
-3. Let _hasDuplicates_ be ContainsDuplicateLabels of |Catch| with argument _labelSet_.
-4. If _hasDuplicates_ is *true*, return *true*.
-5. Return ContainsDuplicateLabels of |Finally| with argument _labelSet_.
-</emu-alg>
-
-<emu-grammar>Catch : `catch` `|&gt;` Pipeline</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return *false*.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsDuplicateLabels of |Pipeline| with argument _labelSet_.
-</emu-alg>
-</ins>
-</emu-annex>
-
-<emu-annex id="sec-additional-feature-ts-try-statement-static-semantics-containsundefinedbreaktarget">
-<h1>Static Semantics: ContainsUndefinedBreakTarget</h1>
-<p>With parameter _labelSet_.</p>
-<emu-see-also-para op="ContainsUndefinedBreakTarget"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-try-statement-static-semantics-containsundefinedbreaktarget>original `try` Statement, Static Semantics: ContainsUndefinedBreakTarget clause</a>.</p>
-</emu-note>
-<ins class=block>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline Catch</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsUndefinedBreakTarget of |Catch| with argument _labelSet_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedBreakTarget of |Pipeline| with argument _labelSet_.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedBreakTarget of |Catch| with argument _labelSet_.
-</emu-alg>
-
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsUndefinedBreakTarget of |Finally| with argument _labelSet_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedBreakTarget of |Pipeline| with argument _labelSet_.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedBreakTarget of |Finally| with argument _labelSet_.
-</emu-alg>
-
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedBreakTarget of |Catch| with argument _labelSet_.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedBreakTarget of |Finally| with argument _labelSet_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedBreakTarget of |Pipeline| with argument _labelSet_.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Let _hasUndefinedLabels_ be ContainsUndefinedBreakTarget of |Catch| with argument _labelSet_.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedBreakTarget of |Finally| with argument _labelSet_.
-</emu-alg>
-
-<emu-grammar>Catch : `catch` `|&gt;` Pipeline</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return *false*.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsUndefinedBreakTarget of |Pipeline| with argument _labelSet_.
-</emu-alg>
-</ins>
-</emu-annex>
-
-<emu-annex id="sec-additional-feature-ts-try-statement-static-semantics-containsundefinedcontinuetarget">
-<h1>Static Semantics: ContainsUndefinedContinueTarget</h1>
-<p>With parameters _iterationSet_ and _labelSet_.</p>
-<emu-see-also-para op="ContainsUndefinedContinueTarget"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-try-statement-static-semantics-containsundefinedcontinuetarget>original `try` Statement, Static Semantics: ContainsUndefinedContinueTarget clause</a>.</p>
-</emu-note>
-<ins class=block>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsUndefinedContinueTarget of |Catch| with arguments _iterationSet_ and &laquo; &raquo;.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedContinueTarget of |Pipeline| with arguments _iterationSet_ and &laquo; &raquo;.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedContinueTarget of |Catch| with arguments _iterationSet_ and &laquo; &raquo;.
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsUndefinedContinueTarget of |Finally| with arguments _iterationSet_ and &laquo; &raquo;.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedContinueTarget of |Pipeline| with arguments _iterationSet_ and &laquo; &raquo;.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedContinueTarget of |Finally| with arguments _iterationSet_ and &laquo; &raquo;.
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedContinueTarget of |Catch| with arguments _iterationSet_ and &laquo; &raquo;.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedContinueTarget of |Finally| with arguments _iterationSet_ and &laquo; &raquo;.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _hasUndefinedLabels_ be ContainsUndefinedContinueTarget of |Pipeline| with arguments _iterationSet_ and &laquo; &raquo;.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Let _hasUndefinedLabels_ be ContainsUndefinedContinueTarget of |Catch| with arguments _iterationSet_ and &laquo; &raquo;.
-1. If _hasUndefinedLabels_ is *true*, return *true*.
-1. Return ContainsUndefinedContinueTarget of |Finally| with arguments _iterationSet_ and &laquo; &raquo;.
-</emu-alg>
-<emu-grammar>Catch : `catch` `|&gt;` Pipeline `;`</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return *false*.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return ContainsUndefinedContinueTarget of |Pipeline| with arguments _iterationSet_ and &laquo; &raquo;.
-</emu-alg>
-</ins>
-</emu-annex>
-
-<emu-annex id="sec-additional-feature-ts-try-statement-static-semantics-vardeclarednames">
-<h1>Static Semantics: VarDeclaredNames</h1>
-<emu-see-also-para op="VarDeclaredNames"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-try-statement-static-semantics-vardeclarednames>original `try` Statement, Static Semantics: VarDeclaredNames clause</a>.</p>
-</emu-note>
-<ins class=block>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return VarDeclaredNames of |Catch|.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _names_ be VarDeclaredNames of |Pipeline|.
-1. Append to _names_ the elements of the VarDeclaredNames of |Catch|.
-1. Return _names_.
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return the VarDeclaredNames of |Finally|.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _names_ be VarDeclaredNames of |Pipeline|.
-1. Append to _names_ the elements of the VarDeclaredNames of |Finally|.
-1. Return _names_.
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _names_ be the VarDeclaredNames of |Catch|.
-1. Append to _names_ the elements of the VarDeclaredNames of |Finally|.
-1. Return _names_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _names_ be VarDeclaredNames of |Pipeline|.
-1. Append to _names_ the elements of the VarDeclaredNames of |Catch|.
-1. Append to _names_ the elements of the VarDeclaredNames of |Finally|.
-1. Return _names_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return « ».
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return the VarDeclaredNames of |Pipeline|.
-</emu-alg>
-</ins>
-</emu-annex>
-
-<emu-annex id="sec-additional-feature-ts-try-statement-static-semantics-varscopeddeclarations">
-<h1>Static Semantics: VarScopedDeclarations</h1>
-<emu-see-also-para op="VarScopedDeclarations"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-try-statement-static-semantics-varscopeddeclarations>original `try` Statement, Static Semantics: VarScopedDeclarations clause</a>.</p>
-</emu-note>
-<ins class=block>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return the VarScopedDeclarations of |Catch|.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _declarations_ be VarScopedDeclarations of |Pipeline|.
-1. Append to _declarations_ the elements of the VarScopedDeclarations of |Catch|.
-1. Return _declarations_.
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return the VarScopedDeclarations of |Finally|.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _declarations_ be VarScopedDeclarations of |Pipeline|.
-1. Append to _declarations_ the elements of the VarScopedDeclarations of |Finally|.
-1. Return _declarations_.
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch Finally</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _declarations_ be the VarScopedDeclarations of |Catch|.
-1. Append to _declarations_ the elements of the VarScopedDeclarations of |Finally|.
-1. Return _declarations_.
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Let _declarations_ be VarScopedDeclarations of |Pipeline|.
-1. Append to _declarations_ the elements of the VarScopedDeclarations of |Catch|.
-1. Append to _declarations_ the elements of the VarScopedDeclarations of |Finally|.
-1. Return _declarations_.
-</emu-alg>
-<emu-grammar>Catch : `catch` `|&gt;` Pipeline `;`</emu-grammar>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> are <strong>not</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return « ».
-</emu-alg>
-<emu-note type=editor>
-<p>If the augmentations of <emu-xref href=#sec-additional-feature-bp>Additional Feature BP</emu-xref> <strong>are</strong> also performed, then the algorithm for this production is the following.</p>
-</emu-note>
-<emu-alg>
-1. Return the VarScopedDeclarations of |Pipeline|.
-</emu-alg>
-</ins>
-</emu-annex>
-
-<emu-annex id="sec-runtime-semantics-catchclauseevaluation">
-<h1>Runtime Semantics: CatchClauseEvaluation</h1>
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-runtime-semantics-catchclauseevaluation>original CatchClauseEvaluation clause</a>.</p>
-</emu-note>
-<p>With parameter _thrownValue_.</p>
-<ins class=block>
-<emu-grammar>Catch : `catch` `|>` Pipeline `;`</emu-grammar>
-<emu-alg>
-1. Let _inputValues_ be a List containing the one element which is _thrownValue_.
-2. Let _pipelineOutputValues_ be ? PipelineEvaluation of _Pipeline_ with argument _inputValues_.
-5. Assert: _pipelineOutputValues_ is a List containing one element.
-6. Return Completion(_pipelineOutputValues_[0]).
-</emu-alg>
-</ins>
-
-</emu-annex>
-
-<emu-annex id="sec-additional-feature-ts-try-statement-runtime-semantics-evaluation">
-<h1>Runtime Semantics: Evaluation</h1>
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-try-statement-static-semantics-evaluation>original `try` Statement, Static Semantics: Evaluation clause</a>.</p>
-</emu-note>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch</emu-grammar>
-<emu-alg>
-1. Let _inputValues_ be ? GetTopicValues().
-2. Let _B_ be PipelineEvaluation |Pipeline| with argument _inputValues_.
-3. If _B_.[[Type]] is ~throw~, let _C_ be CatchClauseEvaluation of |Catch| with argument _B_.[[Value]].
-4. Else, let _C_ be _B_.
-5. Return Completion(UpdateEmpty(_C_, *undefined*)).
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Finally</emu-grammar>
-<emu-alg>
-1. Let _inputValues_ be ? GetTopicValues().
-2. Let _B_ be PipelineEvaluation |Pipeline| with argument _inputValues_.
-3. Let _F_ be the result of evaluating |Finally|.
-4. If _F_.[[Type]] is ~normal~, set _F_ to _B_.
-5. Return Completion(UpdateEmpty(_F_, *undefined*)).
-</emu-alg>
-<emu-grammar>TryStatement : `try` `|&gt;` Pipeline `;` Catch Finally</emu-grammar>
-<emu-alg>
-1. Let _inputValues_ be ? GetTopicValues().
-2. Let _B_ be PipelineEvaluation |Pipeline| with argument _inputValues_.
-3. If _B_.[[Type]] is ~throw~, let _C_ be CatchClauseEvaluation of |Catch| with argument _B_.[[Value]].
-4. Else, let _C_ be _B_.
-5. Let _F_ be the result of evaluating |Finally|.
-6. If _F_.[[Type]] is ~normal~, set _F_ to _C_.
-7. Return Completion(UpdateEmpty(_F_, *undefined*)).
-</emu-alg>
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
-
-</emu-annex>
