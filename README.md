@@ -449,7 +449,7 @@ rather than calling `foo` directly.
 But additionally, `example.map(+> foo(?, ?)`\
 would mean `example.map(x => foo(x, x))`,\
 and `example.map(+> ? + 1)`\
-would mean `x => x + 1`.\
+would mean `example.map(x => x + 1)`.\
 **Neither** of these examples would be possible with the proposed `?` token.
 
 Creating non-unary functions could be done
