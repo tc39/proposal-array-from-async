@@ -202,6 +202,14 @@ For example, `value => value |> ? == null |> foo(?, 0)`\
 would group into `value => (value |> (? == null) |> foo(?, 0))`,\
 which is equivalent to `value => foo(value == null, 0)`.
 
+If you need to interpose a side effect
+in the middle of a pipeline expression,
+without modifying the data being piped through,
+you could use a comma expression instead,
+such as with `value |> (sideEffect(), ?)`.
+This is especially useful for quick debugging
+with `value |> (console.log(?), ?)`.
+
 There are two syntactic restrictions
 that help **prevent unintentional errors early**,
 at compilation time:
@@ -211,12 +219,6 @@ at compilation time:
    because it does not contain `?`.
    This design is because omission of the topic reference from a pipeline body
    is almost certainly an accidental error.
-
-   If you need to interpose a side effect
-   in the middle of a pipeline expression,
-   without modifying the data being piped through,
-   you could use a comma expression instead,
-   such as with `value |> (sideEffect(), ?)`.
 
 2. A `yield` expression **must** have parentheses.
    `value |> yield ? |> ? + 1` is an early syntax error,
