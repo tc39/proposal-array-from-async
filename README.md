@@ -432,13 +432,12 @@ If Hack pipes are added to JavaScript,
 then they could also elegantly handle
 **partial function application** in the future.
 
-Instead of the [proposed special syntax for partial function application],
+Instead of the [proposed special syntax for partial function application][PFA],
 there could be a **topic-function** operator `+>`
 that would combine Hack pipes `|>` with arrow functions `=>`,
-performing **partial expression application**,
 and which would use the same general rules as `|>`.
 
-[proposed special syntax for partial function application]: https://github.com/tc39/proposal-partial-application/
+[PFA]: https://github.com/tc39/proposal-partial-application/
 
 For example, instead of the proposed `example.map(foo(?, 0))`,\
 to mean `example.map(x => foo(x, 0))`,\
@@ -448,17 +447,21 @@ when reading the expression from left to right,
 it is immediately apparent that it creates a new function,
 rather than calling `foo` directly.
 
-But additionally, `example.map(+> foo(?, ?)`\
-would mean `example.map(x => foo(x, x))`,\
+But pipe functions wouldn’t just do partial function application;
+they could also do **partial expression application**.
+For example, `example.map(+> ?.foo(0)`\
+would mean `example.map(x => x.foo(0))`,\
 and `example.map(+> ? + 1)`\
 would mean `example.map(x => x + 1)`.\
-**Neither** of these examples would be possible with the proposed `?` token.
+**Neither** of these examples would be possible with
+the [currently proposed syntax for partial function application][PFA].
 
 Creating non-unary functions could be done
 by adding numbers to topic references,
-such as `?0` (equivalent to plain `?`), `?1`, `?2`, etc.\
+such as `?0`, `?1`, `?2`, etc.\
 For instance, `example.sort(+> ?0 - ?1)`\
-would mean `example.sort((x, y) => x - y)`.
+would mean `example.sort((x, y) => x - y)`.\
+(`?0` would be equivalent to plain `?`.)
 
 ### Pipe syntax for `catch` and `for`
 Many `catch` and `for` statements could become pithier
