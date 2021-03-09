@@ -202,24 +202,24 @@ For example, `value => value |> ? == null |> foo(?, 0)`\
 would group into `value => (value |> (? == null) |> foo(?, 0))`,\
 which is equivalent to `value => foo(value == null, 0)`.
 
-There are three syntactic restrictions
+There are two syntactic restrictions
 that help **prevent unintentional errors early**,
 at compilation time:
 
 1. A pipeline’s body **must** use its topic reference.
-   That is, `value |> foo + 1` is an early syntax error,
+   `value |> foo + 1` is an early syntax error,
    because it does not contain `?`.
    This design is because omission of the topic reference from a pipeline body
    is almost certainly an accidental error.
 
-2. The head and the body of a pipeline **cannot** be
-   comma-separated lists.
-   That is, `(value0, value1) |> foo(?, 0)` is an early syntax error.
-   This design is to prevent confusion about
-   which value is bound to the topic reference.
+   If you need to interpose a side effect
+   in the middle of a pipeline expression,
+   without modifying the data being piped through,
+   you could use a comma expression instead,
+   such as with `value |> (sideEffect(), ?)`.
 
-3. A `yield` expression **must** have parentheses.
-   That is, `value |> yield ? |> ? + 1` is an early syntax error,
+2. A `yield` expression **must** have parentheses.
+   `value |> yield ? |> ? + 1` is an early syntax error,
    which can be fixed into `value |> (yield ?) |> ? + 1`.
    This design is because the `yield` operator has a very loose [precedence][],
    and it is likely that omitting the parentheses
