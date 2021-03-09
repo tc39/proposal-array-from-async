@@ -1,4 +1,4 @@
-# Hack pipe operator
+# Hack pipe operator for JavaScript
 ECMAScript Stage-0 Proposal. Living Document. J. S. Choi, 2021-03.
 
 This explainer was adapted from an [essay by Tab Atkins][] with permission.
