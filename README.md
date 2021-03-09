@@ -175,7 +175,7 @@ because `someFunction + 1` isn’t callable.
 You can avoid having to make this recognition
 by *always* wrapping the RHS in an arrow function
 (e.g., `value |> x=>someFunction(x) + 1`),
-but then you’re paying the tax 100? of the time
+but then you’re paying the tax 100% of the time
 and effectively just writing more-verbose Hack pipes anyway.
 
 ## Description
