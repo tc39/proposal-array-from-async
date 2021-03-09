@@ -3,17 +3,17 @@ ECMAScript Stage-0 Proposal. Living Document. J. S. Choi, 2021-03.
 
 This explainer was adapted from an [essay by Tab Atkins][] with permission.
 
-(This document presumptively uses `#`
+(This document presumptively uses `?`
 as the placeholder token for the topic reference.
 This choice of token is not a final decision;
-`#` could instead be `%`, `@`, or many other tokens.)
+`?` could instead be `%`, `@`, `#`, or many other tokens.)
 
 [essay by Tab Atkins]: https://gist.github.com/tabatkins/1261b108b9e6cdab5ad5df4b8021bcb5
 
 ## Why a pipe operator
 In the State of JS 2020 survey, the **fourth top answer** to
 [“What do you feel is currently missing from
-JavaScript?”](https://2020.stateofjs.com/en-US/opinions/#missing_from_js)
+JavaScript?”](https://2020.stateofjs.com/en-US/opinions/?missing_from_js)
 was the **pipe operator**.
 
 When you call a JavaScript function on a value,
@@ -47,7 +47,7 @@ and editing the code later to insert or delete more function calls is trivial,
 since you just have to put your cursor in one spot and start typing
 or delete one **contiguous run of characters** with a clear separator.
 
-The benefits of method chaining are so attractive 
+The benefits of method chaining are so attractive
 that some popular libraries contort their code structure
 *specifically* to allow more method chaining.
 The most prominent example is [jQuery][],
@@ -68,7 +68,7 @@ The `|>` operator then does some degree of magic to “pipe” `value`
 from the lefthand side into the righthand side.
 
 ## Why the Hack pipe operator
-There are **two competing proposals** for the pipe operator: Hack pipes and F# pipes.
+There are **two competing proposals** for the pipe operator: Hack pipes and F? pipes.
 The proponents of each haven’t been convinced by the others yet.
 The two pipe proposals just differ slightly on what the “magic” is,
 and thus on precisely how you spell your code when using `|>`.
@@ -82,36 +82,36 @@ since its syntax is strictly a superset of one of the proposals’.)
 In the **Hack language**’s pipe syntax,
 the RHS of the pipe is an **expression** containing a special **placeholder**,
 which is evaluated with the placeholder bound to the lefthand side’s value.
-That is, you write `value |> one(#) |> two(#) |> three(#)`
+That is, you write `value |> one(?) |> two(?) |> three(?)`
 to pipe `value` through the three functions.
 
 **Pro:** The RHS can be **any expression**,
 and the placeholder can go anywhere any normal variable identifier could go,
 so you can pipe to any code you want **without any special rules**:
 
-* `value |> one(#)` for functions,
-* `value |> one(1, #)` for multi-argument functions,
-* `value |> #.foo()` for method calls
-(or `value |> obj.foo(#)`, for the other side),
-* `value |> # + 1` for arithmetic,
-* `value |> new Foo(#)` for constructing objects,
-* `value |> await #` for awaiting promises,
+* `value |> one(?)` for functions,
+* `value |> one(1, ?)` for multi-argument functions,
+* `value |> ?.foo()` for method calls
+(or `value |> obj.foo(?)`, for the other side),
+* `value |> ? + 1` for arithmetic,
+* `value |> new Foo(?)` for constructing objects,
+* `value |> await ?` for awaiting promises,
 * etc.
 
 **Con:** If **all** you’re doing is piping through **already-defined unary functions**,
-Hack pipes are **slightly** more verbose than F# pipes,
+Hack pipes are **slightly** more verbose than F? pipes,
 since you need to **actually write** the function-call syntax
-by adding a `(#)` to it.
+by adding a `(?)` to it.
 
-### Alternative proposal: F# pipes
-In the [**F# language**’s pipe syntax][F# pipes],
+### Alternative proposal: F? pipes
+In the [**F? language**’s pipe syntax][F? pipes],
 the RHS of the pipe is an expression that must resolve to a function,
 which is then called with the lefthand side’s value as its sole argument.
 That is, you write `value |> one |> two |> three` to pipe `value`
 through the three functions.
 `left |> right` becomes `right(left)`.
 
-[F# pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
+[F? pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
 
 **Pro:** The restriction that the RHS *must* resolve to a function
 lets you write very terse pipes
@@ -120,13 +120,13 @@ lets you write very terse pipes
 **Con:** The restriction means that **any operations**
 that are performed by **other syntax**
 must be done by **wrapping** the operation in an **arrow function**:
-`value |> x=>x[0]`,  
-`value |> x=>x.foo()`,  
-`value |> x=>x+1`,  
-`value |> x=>new Foo(x)`  
-etc.  
+`value |> x=>x[0]`,
+`value |> x=>x.foo()`,
+`value |> x=>x+1`,
+`value |> x=>new Foo(x)`
+etc.
 Even calling a **named function requires wrapping**
-if you need to pass **more than one argument**:  
+if you need to pass **more than one argument**:
 `value |> x=>f(1, x)`.
 
 **Con:** The **`yield` and `await`** operations are scoped
@@ -139,9 +139,9 @@ they need to be handled as **special syntax cases**:
 `value |> await |> one` to simulate `one(await value)`, etc.
 
 ### Hack pipes favor more-common use cases
-Both Hack pipes and F# pipes put a **syntax tax** on different cases.
+Both Hack pipes and F? pipes put a **syntax tax** on different cases.
 Hack pipes put a syntax tax only on unary functions.
-F# pipes put a syntax tax on everything besides unary functions.
+F? pipes put a syntax tax on everything besides unary functions.
 
 The case of “unary function” is in general be **less common**
 than “**everything besides** unary functions”,
@@ -155,11 +155,11 @@ even without **all the other syntax** that Hack pipes can do without a tax.
 
 ### Hack pipes may be simpler to use
 The syntax tax of Hack pipes on unary function calls
-(i.e., the `(#)` to invoke the RHS’s unary function)
+(i.e., the `(?)` to invoke the RHS’s unary function)
 **isn’t a special case**:
 it’s just **writing ordinary code** in **the way you normally would** without a pipe.
 
-On the other hand, **F# pipes require** you to **distinguish**
+On the other hand, **F? pipes require** you to **distinguish**
 between “code that resolves to an unary function”
 versus **“anything else”** –
 and to remember to add the arrow-function wrapper around the latter case.
@@ -169,21 +169,21 @@ is **invalid syntax** and will **fail early**.
 There is no need to recognize that `someFunction + 1`
 will not evaluate into a unary function.
 
-But with F# pipes, `value |> someFunction + 1` is **still valid syntax** –
+But with F? pipes, `value |> someFunction + 1` is **still valid syntax** –
 it’ll just **fail late** at **runtime**,
 because `someFunction + 1` isn’t callable.
 You can avoid having to make this recognition
 by *always* wrapping the RHS in an arrow function
 (e.g., `value |> x=>someFunction(x) + 1`),
-but then you’re paying the tax 100# of the time
+but then you’re paying the tax 100? of the time
 and effectively just writing more-verbose Hack pipes anyway.
 
 ## Description
-The **topic reference** `#` is a **nullary operator**.
+The **topic reference** `?` is a **nullary operator**.
 It acts as an immutable **placeholder** for a **topic value**.
 
 The precise token for the topic reference is not final.
-`#` could instead be `%`, `@`, or many other tokens.
+`?` could instead be `%`, `@`, or many other tokens.
 
 The **pipe operator** `|>` is an associative **infix operator**.
 It evaluates its lefthand-side expression (the **head**),
@@ -198,8 +198,8 @@ than all operators **other than**:
 * the generator operators `yield` and `yield *`;
 * and the comma operator `,`.
 
-For example, `value => value |> # == null |> foo(#, 0)`  
-would group into `value => (value |> (# == null) |> foo(#, 0))`, 
+For example, `value => value |> ? == null |> foo(?, 0)`
+would group into `value => (value |> (? == null) |> foo(?, 0))`,
 which is equivalent to `value => foo(value == null, 0)`.
 
 There are three syntactic restrictions
@@ -208,22 +208,22 @@ at compilation time:
 
 1. A pipeline’s body **must** use its topic reference.
    That is, `value |> foo + 1` is an early syntax error,
-   because it does not contain `#`.
+   because it does not contain `?`.
    This design is because omission of the topic reference from a pipeline body
    is almost certainly an accidental error.
 
 2. The head and the body of a pipeline **cannot** be
    comma-separated lists.
-   That is, `(value0, value1) |> foo(#, 0)` is an early syntax error.
+   That is, `(value0, value1) |> foo(?, 0)` is an early syntax error.
    This design is to prevent confusion about
    which value is bound to the topic reference.
 
 3. A `yield` expression **must** have parentheses.
-   That is, `value |> yield # |> # + 1` is an early syntax error,
-   which can be fixed into `value |> (yield #) |> # + 1`.
+   That is, `value |> yield ? |> ? + 1` is an early syntax error,
+   which can be fixed into `value |> (yield ?) |> ? + 1`.
    This design is because the `yield` operator has a very loose [precedence][],
    and it is likely that omitting the parentheses
-   (equivalent to `value |> (yield # |> # + 1)`)
+   (equivalent to `value |> (yield ? |> ? + 1)`)
    is an accidental error.
 
 There are no other special rules.
@@ -256,9 +256,9 @@ From [jquery/src/core/parseHTML.js][].
 
 ```js
 return data
- |> buildFragment([#], context, scripts)
- |> #.childNodes
- |> jQuery.merge([], #);
+ |> buildFragment([?], context, scripts)
+ |> ?.childNodes
+ |> jQuery.merge([], ?);
 ```
 
 <tr>
@@ -277,8 +277,8 @@ From [lodash.js version 4.17.20][].
 ```js
 function listCacheHas (key) {
   return this.__data__
-   |> assocIndexOf(#, key)
-   |> # > -1;
+   |> assocIndexOf(?, key)
+   |> ? > -1;
 }
 ```
 
@@ -297,9 +297,9 @@ From [underscore.js][].
 
 ```js
 return pred
- |> cb(#)
- |> _.negate(#)
- |> _.filter(obj, #, context);
+ |> cb(?)
+ |> _.negate(?)
+ |> _.filter(obj, ?, context);
 ```
 
 <tr>
@@ -318,10 +318,10 @@ From [jquery/src/core/init.js][].
 
 ```js
 match
- |> context[#]
+ |> context[?]
  |> isFunction(this[match])
-  ? this[match](#);
-  : this.attr(match, #);
+  ? this[match](?);
+  : this.attr(match, ?);
 ```
 
 <tr>
@@ -338,8 +338,8 @@ From [underscore.js][].
 
 ```js
 return self
- |> srcFn.apply(#, args)
- |> _.isObject(#) ? # : self;
+ |> srcFn.apply(?, args)
+ |> _.isObject(?) ? ? : self;
 ```
 
 <tr>
@@ -357,11 +357,11 @@ From [underscore.js][].
 
 ```js
 return obj
- |> # == null
+ |> ? == null
 	? 0
-	: isArrayLike(#)
-	? #.length
-	: _.keys(#).length;
+	: isArrayLike(?)
+	? ?.length
+	: _.keys(?).length;
 ```
 
 <tr>
@@ -385,11 +385,11 @@ From [jquery/src/core/init.js][].
 
 ```js
 context
- |> # && #.nodeType
-  ? #.ownerDocument || #
+ |> ? && ?.nodeType
+  ? ?.ownerDocument || ?
   : document
- |> jQuery.parseHTML(match[1], #, true)
- |> jQuery.merge(#);
+ |> jQuery.parseHTML(match[1], ?, true)
+ |> jQuery.merge(?);
 ```
 
 <tr>
@@ -410,10 +410,10 @@ From [jquery/src/core/init.js][].
 
 ```js
 return context
- |> !# || #.jquery
-  ? # || root // Handle $(expr, $(...))
-  : this.constructor(#) // Handle $(expr, context)
- |> #.find(selector);
+ |> !? || ?.jquery
+  ? ? || root // Handle $(expr, $(...))
+  : this.constructor(?) // Handle $(expr, context)
+ |> ?.find(selector);
 ```
 
 </table>
@@ -438,44 +438,44 @@ performing **partial expression application**.
 
 [proposed unary `?` token]: https://github.com/tc39/proposal-partial-application/
 
-For example, instead of the proposed `example.map(foo(?, 0))`,  
-to mean `example.map(x => foo(x, 0))`,  
-one would write `example.map(+> foo(#, 0))`.  
+For example, instead of the proposed `example.map(foo(?, 0))`,
+to mean `example.map(x => foo(x, 0))`,
+one would write `example.map(+> foo(?, 0))`.
 This would **avoid the garden-path problem** in that,
 when reading the expression from left to right,
 it is immediately apparent that it creates a new function,
 rather than calling `foo` directly.
 
-But additionally, `example.map(+> foo(#, #)`  
-would mean `example.map(x => foo(x, x))`,  
-and `example.map(+> # + 1)`  
-would mean `x => x + 1`.  
+But additionally, `example.map(+> foo(?, ?)`
+would mean `example.map(x => foo(x, x))`,
+and `example.map(+> ? + 1)`
+would mean `x => x + 1`.
 **Neither** of these examples would be possible with the proposed `?` token.
 
 Creating non-unary functions could be done
 by adding numbers to topic references,
-such as `#0` (equivalent to plain `#`), `#1`, `#2`, etc.  
-For instance, `example.sort(+> #0 - #1)`  
+such as `?0` (equivalent to plain `?`), `?1`, `?2`, etc.
+For instance, `example.sort(+> ?0 - ?1)`
 would mean `example.sort((x, y) => x - y)`.
 
 ### Pipe syntax for `catch` and `for`
 Many `catch` and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
-For example, `catch (err) { err.code |> foo(#, 0) |> console.error(#); }`  
-might become `catch |> { #.code |> foo(#, 0) |> console.error(#); }`,  
-and `for (const val of arr) { val.foo() |> bar(#, 0); }`  
-might become `for (arr) |> { #.foo() |> bar(#, 0); }`.
+For example, `catch (err) { err.code |> foo(?, 0) |> console.error(?); }`
+might become `catch |> { ?.code |> foo(?, 0) |> console.error(?); }`,
+and `for (const val of arr) { val.foo() |> bar(?, 0); }`
+might become `for (arr) |> { ?.foo() |> bar(?, 0); }`.
 
 ### “Smart-mix” pipes
 In the future, **tacit function application** might also be added,
-which would resemble **F# pipes**.
-For example, `value |> # + 1 |> foo` would mean `value |> # + 1 |> foo(#)`.
-Tacit function application (F# style) would have to be somehow distinguishable
+which would resemble **F? pipes**.
+For example, `value |> ? + 1 |> foo` would mean `value |> ? + 1 |> foo(?)`.
+Tacit function application (F? style) would have to be somehow distinguishable
 from expressions that use topic references (Hack style).
 
 This proposal would be **forward compatible**
 with such a [“smart mix” of topic expressions,
 which was initially proposed but then withdrawn][smart mix]
 in favor of this simpler Hack-pipes proposal.
-(The F#-pipe proposal, as is, would **not** be forward compatible.)
+(The F?-pipe proposal, as is, would **not** be forward compatible.)

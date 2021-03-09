@@ -13,7 +13,7 @@ contributors: J. S. Choi
 <h1>Introduction</h1>
 <p>This is the formal specification for a proposed Hack-style pipe operator <code>|&gt;</code> in JavaScript. It modifies the original <a href=https://tc39.github.io/ecma262/>ECMAScript specification</a> with several new or revised clauses. See <a href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md>the proposal's explainer</a> for the proposal's background, motivation, and usage examples.</p>
 
-<p>This document presumptively uses `&num;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&num;` could instead be `%`, `@`, or many other tokens.</p>
+<p>This document presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-intro>
 
 <emu-clause id=executable-code-and-execution-contexts>
@@ -29,7 +29,7 @@ contributors: J. S. Choi
 <p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-lexical-environments>original Lexical Environments clause</a>.</p>
 </emu-note>
 
-<p>The <dfn>topic binding</dfn> of a Lexical Environment immutably binds the topic reference `&num;` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that Lexical Environment, at the time of the Lexical Environment's instantiation. The topic of a Lexical Environment conceptually serves as the value that the lexical context is "about".</p>
+<p>The <dfn>topic binding</dfn> of a Lexical Environment immutably binds the topic reference `&quest;` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that Lexical Environment, at the time of the Lexical Environment's instantiation. The topic of a Lexical Environment conceptually serves as the value that the lexical context is "about".</p>
 
 <p>A <dfn>topic-binding environment</dfn> is a Lexical Environment that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its Lexical Environment's nearest outer environment that is a topic-binding environment, as defined by the abstract operator GetTopicEnvironment.</p>
 
@@ -40,7 +40,7 @@ contributors: J. S. Choi
 
 <p>No other Lexical Environments do not establish any topic bindings; in particular, object and global environments are never topic-binding environments.</p>
 
-<p>In addition, |ScriptBody| and |ModuleBody| are associated with early error rules that <strong>forbid</strong> their containing the topic reference `&num;`, <strong>except</strong> where the topic reference is within |PipelineTopicBody|. These early error rules are defined using the static semantic rule Contains, from which |PipelineTopicBody| hides the topic reference.</p>
+<p>In addition, |ScriptBody| and |ModuleBody| are associated with early error rules that <strong>forbid</strong> their containing the topic reference `&quest;`, <strong>except</strong> where the topic reference is within |PipelineTopicBody|. These early error rules are defined using the static semantic rule Contains, from which |PipelineTopicBody| hides the topic reference.</p>
 </emu-note>
 
 </emu-clause>
@@ -113,7 +113,7 @@ Purpose
 *false* | *true*
 </td>
 <td>
-If [[TopicBindingStatus]]'s value is *true*, the Environment Record binds the Environment Record establishes its environment's topic binding (that is, it binds `&num;`) to values. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
+If [[TopicBindingStatus]]'s value is *true*, the Environment Record binds the Environment Record establishes its environment's topic binding (that is, it binds `&quest;`) to values. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
 </td>
 </tr>
 <tr>
@@ -124,7 +124,7 @@ If [[TopicBindingStatus]]'s value is *true*, the Environment Record binds the En
 List of any | ~empty~
 </td>
 <td>
-If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List containing the one element which is the environment's topic value (that is, the value of `&num;` within its program scope). Otherwise, the value of [[TopicValues]] is ~empty~.
+If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List containing the one element which is the environment's topic value (that is, the value of `&quest;` within its program scope). Otherwise, the value of [[TopicValues]] is ~empty~.
 </td>
 </tr>
 </tbody>
@@ -246,20 +246,20 @@ Establish the immutable topic binding of this Environment Record and set the top
 
 <emu-note type=editor>
 <p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-punctuators>original Punctuators clause</a>.</p>
-<p>It presumptively uses `&num;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&num;` could instead be `%`, `@`, or many other tokens.</p>
+<p>It presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-note>
 
 <ins class=block>
 <emu-grammar>
 Punctuator :: one of
-  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `&num;` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `|&gt;` `&num;` `=` `+=` `-=` `*=` `&num;=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
+  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `&quest;` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `|&gt;` `&quest;` `=` `+=` `-=` `*=` `&quest;=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
 </emu-grammar>
 </ins>
 
 <del class=block>
 <emu-grammar>
 Punctuator :: one of
-  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `&num;` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `=` `+=` `-=` `*=` `&num;=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
+  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `&quest;` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `=` `+=` `-=` `*=` `&quest;=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
 </emu-grammar>
 </del>
 
@@ -274,7 +274,7 @@ Punctuator :: one of
 
 <emu-note type=editor>
 <p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-primary-expression>original Primary Expression clause</a>.</p>
-<p>It presumptively uses `&num;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&num;` could instead be `%`, `@`, or many other tokens.</p>
+<p>It presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-note>
 
 <h2>Syntax</h2>
@@ -282,7 +282,7 @@ Punctuator :: one of
 <emu-grammar>
 PrimaryExpression[Yield, Await] :
   `this`
-  <ins>`&num;`</ins>
+  <ins>`&quest;`</ins>
   IdentifierReference[?Yield, ?Await]
   Literal
   ArrayLiteral[?Yield, ?Await]
@@ -302,11 +302,11 @@ PrimaryExpression[Yield, Await] :
 
 <emu-note type=editor>
 <p>This section is a wholly new sub-clause to be inserted between the <a href=https://tc39.github.io/ecma262/#sec-this-keyword>original `this` Keyword clause</a> and the <a href=https://tc39.github.io/ecma262/#sec-identifier-reference>original Identifier Reference clause</a>.</p>
-<p>It presumptively uses `&num;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&num;` could instead be `%`, `@`, or many other tokens.</p>
+<p>It presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-note>
 
 <emu-note>
-<p>The <dfn>topic reference</dfn>, which is the token `&num;`, is a nullary operator that evaluates to the value of the current Lexical Environment's topic. The topic reference acts as if it were a special variable: implicitly bound to the topic value, yet still lexically scoped. But `&num;` is not actually an |IdentifierName| and the topic reference is not a variable, and it cannot be bound by typical assignment; instead, it is immutably bound to a value during the instantiation of certain topic-binding environments.</p>
+<p>The <dfn>topic reference</dfn>, which is the token `&quest;`, is a nullary operator that evaluates to the value of the current Lexical Environment's topic. The topic reference acts as if it were a special variable: implicitly bound to the topic value, yet still lexically scoped. But `&quest;` is not actually an |IdentifierName| and the topic reference is not a variable, and it cannot be bound by typical assignment; instead, it is immutably bound to a value during the instantiation of certain topic-binding environments.</p>
 
 <p>The concept of lexical topic binding is further discussed in <emu-xref href="#sec-lexical-topics">Lexical Topics</emu-xref> and in <emu-xref href="#sec-declarative-environment-records">Declarative Environment Records</emu-xref>.</p>
 </emu-note>
@@ -314,7 +314,7 @@ PrimaryExpression[Yield, Await] :
 <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
 <h1>Runtime Semantics: GetTopicEnvironment</h1>
 <emu-note>
-<p>GetTopicEnvironment finds the Environment Record that currently supplies the topic binding (the binding of `&num;`). That is, it finds the running execution topic's nearest-ancestral topic-binding environment, which is the nearest-ancestral outer environment that has a topic binding status of *true*. It is <strong>never</strong> called when there is no topic environment.</p>
+<p>GetTopicEnvironment finds the Environment Record that currently supplies the topic binding (the binding of `&quest;`). That is, it finds the running execution topic's nearest-ancestral topic-binding environment, which is the nearest-ancestral outer environment that has a topic binding status of *true*. It is <strong>never</strong> called when there is no topic environment.</p>
 </emu-note>
 <p>When the abstract operation GetTopicEnvironment is called, the following steps are performed:</p>
 <emu-alg>
@@ -331,7 +331,7 @@ PrimaryExpression[Yield, Await] :
 
 <emu-note>
 <p>The loop in step&nbsp;2 will always terminate because the List of environments will always end before reaching the global environment. GetTopicEnvironment will never be called when there is no topic-binding environment in the List of environments.</p>
-<p>This is due to how the two syntax nonterminals associated with the global environment or module environments (i.e., |Script| and |Module|) are syntactically forbidden to contain the topic reference `&num;`. Any use of the topic reference within those nonterminals (as detected by the static semantic rule Contains) would trigger early error rules associated with those nonterminals. It is only within nonterminals that hide the topic reference from Contains (i.e., |PipelineTopicBody|) that the topic reference is syntactically permitted.</p>
+<p>This is due to how the two syntax nonterminals associated with the global environment or module environments (i.e., |Script| and |Module|) are syntactically forbidden to contain the topic reference `&quest;`. Any use of the topic reference within those nonterminals (as detected by the static semantic rule Contains) would trigger early error rules associated with those nonterminals. It is only within nonterminals that hide the topic reference from Contains (i.e., |PipelineTopicBody|) that the topic reference is syntactically permitted.</p>
 </emu-note>
 </emu-clause>
 
@@ -354,7 +354,7 @@ PrimaryExpression[Yield, Await] :
 <emu-clause id=sec-topic-references-runtime-semantics-evaluation>
 <h1>Runtime Semantics: Evaluation</h1>
 
-<emu-grammar>PrimaryExpression : `&num;`</emu-grammar>
+<emu-grammar>PrimaryExpression : `&quest;`</emu-grammar>
 <emu-alg>
 1. Let _topicValues_ be GetTopicValues().
 2. Return topicValues_[0].
@@ -388,7 +388,7 @@ PipelineTopicBody[In, Yield, Await] :
 </emu-note>
 
 <emu-note>
-<p>These early errors prohibit any pipeline input expressions or pipeline body expressions from covering comma-separated lists. That is, `(value0, value1) |> foo(&num;, 0)` is an early syntax error. This is in order to avoid confusion regarding which values in the sequences are bound to the topic.</p>
+<p>These early errors prohibit any pipeline input expressions or pipeline body expressions from covering comma-separated lists. That is, `(value0, value1) |> foo(&quest;, 0)` is an early syntax error. This is in order to avoid confusion regarding which values in the sequences are bound to the topic.</p>
 </emu-note>
 
 <emu-grammar>PipeExpression : ConditionalExpression `|&gt;` Pipeline</emu-grammar>
@@ -399,7 +399,7 @@ PipelineTopicBody[In, Yield, Await] :
 
 <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
-1. It is a Syntax Error if _ConditionalExpression_ Contains `&num;` is *false*.
+1. It is a Syntax Error if _ConditionalExpression_ Contains `&quest;` is *false*.
 2. It is a Syntax Error if _ConditionalExpression_ is covering a |YieldExpression|.
 3. It is a Syntax Error if _ConditionalExpression_ is covering a |PipelineTopicListHead|.
 </emu-alg>
@@ -415,7 +415,7 @@ PipelineTopicBody[In, Yield, Await] :
 
 <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
-1. If _symbol_ is `&num;`, return *false*.
+1. If _symbol_ is `&quest;`, return *false*.
 2. For each child node _child_ of this Parse Node, do
   1. If _child_ is an instance of _symbol_, return *true*.
   2. If _child_ is an instance of a nonterminal, then
@@ -520,13 +520,13 @@ AssignmentExpression[In, Yield, Await] :
 <emu-grammar>ScriptBody : StatementList</emu-grammar>
 <ul>
 <li>
-<ins>It is a Syntax Error if |StatementList| Contains `&num;` is *true*.</ins>
+<ins>It is a Syntax Error if |StatementList| Contains `&quest;` is *true*.</ins>
 </li>
 </ul>
 
 <ins class=block>
 <emu-note>
-<p>In general, a top-level program scope, including |Script|, may <strong>not</strong> contain a topic reference `&num;`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
+<p>In general, a top-level program scope, including |Script|, may <strong>not</strong> contain a topic reference `&quest;`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
 </emu-note>
 </ins>
 
@@ -546,13 +546,13 @@ AssignmentExpression[In, Yield, Await] :
 <emu-grammar>ModuleItem : StatementListItem</emu-grammar>
 <ul>
 <li>
-<ins>It is a Syntax Error if |StatementListItem| Contains `&num;` is *true*.</ins>
+<ins>It is a Syntax Error if |StatementListItem| Contains `&quest;` is *true*.</ins>
 </li>
 </ul>
 
 <ins class=block>
 <emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including iteration statements, may <strong>not</strong> contain a topic reference `&num;`.</p>
+<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including iteration statements, may <strong>not</strong> contain a topic reference `&quest;`.</p>
 <p>However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
 </emu-note>
 </ins>
