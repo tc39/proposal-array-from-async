@@ -463,9 +463,9 @@ Many `catch` and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
 For example, `catch (err) { err.code |> foo(?, 0) |> console.error(?); }`\
-might become `catch |> { ?.code |> foo(?, 0) |> console.error(?); }`,\
+might become `catch |> ?.code |> foo(?, 0) |> console.error(?);`,\
 and `for (const val of arr) { val.foo() |> bar(?, 0); }`\
-might become `for (arr) |> { ?.foo() |> bar(?, 0); }`.
+might become `for (arr) |> ?.foo() |> bar(?, 0);`.
 
 ### “Smart-mix” pipes
 In the future, **tacit function application** might also be added,
