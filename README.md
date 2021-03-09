@@ -68,7 +68,7 @@ The `|>` operator then does some degree of magic to “pipe” `value`
 from the lefthand side into the righthand side.
 
 ## Why the Hack pipe operator
-There are **two competing proposals** for the pipe operator: Hack pipes and F? pipes.
+There are **two competing proposals** for the pipe operator: Hack pipes and F# pipes.
 The proponents of each haven’t been convinced by the others yet.
 The two pipe proposals just differ slightly on what the “magic” is,
 and thus on precisely how you spell your code when using `|>`.
@@ -99,19 +99,19 @@ so you can pipe to any code you want **without any special rules**:
 * etc.
 
 **Con:** If **all** you’re doing is piping through **already-defined unary functions**,
-Hack pipes are **slightly** more verbose than F? pipes,
+Hack pipes are **slightly** more verbose than F# pipes,
 since you need to **actually write** the function-call syntax
 by adding a `(?)` to it.
 
-### Alternative proposal: F? pipes
-In the [**F? language**’s pipe syntax][F? pipes],
+### Alternative proposal: F# pipes
+In the [**F# language**’s pipe syntax][F# pipes],
 the RHS of the pipe is an expression that must resolve to a function,
 which is then called with the lefthand side’s value as its sole argument.
 That is, you write `value |> one |> two |> three` to pipe `value`
 through the three functions.
 `left |> right` becomes `right(left)`.
 
-[F? pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
+[F# pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
 
 **Pro:** The restriction that the RHS *must* resolve to a function
 lets you write very terse pipes
@@ -139,9 +139,9 @@ they need to be handled as **special syntax cases**:
 `value |> await |> one` to simulate `one(await value)`, etc.
 
 ### Hack pipes favor more-common use cases
-Both Hack pipes and F? pipes put a **syntax tax** on different cases.
+Both Hack pipes and F# pipes put a **syntax tax** on different cases.
 Hack pipes put a syntax tax only on unary functions.
-F? pipes put a syntax tax on everything besides unary functions.
+F# pipes put a syntax tax on everything besides unary functions.
 
 The case of “unary function” is in general be **less common**
 than “**everything besides** unary functions”,
@@ -159,7 +159,7 @@ The syntax tax of Hack pipes on unary function calls
 **isn’t a special case**:
 it’s just **writing ordinary code** in **the way you normally would** without a pipe.
 
-On the other hand, **F? pipes require** you to **distinguish**
+On the other hand, **F# pipes require** you to **distinguish**
 between “code that resolves to an unary function”
 versus **“anything else”** –
 and to remember to add the arrow-function wrapper around the latter case.
@@ -169,7 +169,7 @@ is **invalid syntax** and will **fail early**.
 There is no need to recognize that `someFunction + 1`
 will not evaluate into a unary function.
 
-But with F? pipes, `value |> someFunction + 1` is **still valid syntax** –
+But with F# pipes, `value |> someFunction + 1` is **still valid syntax** –
 it’ll just **fail late** at **runtime**,
 because `someFunction + 1` isn’t callable.
 You can avoid having to make this recognition
@@ -469,14 +469,14 @@ might become `for (arr) |> { ?.foo() |> bar(?, 0); }`.
 
 ### “Smart-mix” pipes
 In the future, **tacit function application** might also be added,
-which would resemble **F? pipes**.\
+which would resemble **F# pipes**.\
 For example, `value |> ? + 1 |> foo`\
 would mean `value |> ? + 1 |> foo(?)`.\
-Tacit function application (F? style) would have to be somehow distinguishable
+Tacit function application (F# style) would have to be somehow distinguishable
 from expressions that use topic references (Hack style).
 
 This proposal would be **forward compatible**
 with such a [“smart mix” of topic expressions,
 which was initially proposed but then withdrawn][smart mix]
 in favor of this simpler Hack-pipes proposal.
-(The F?-pipe proposal, as is, would **not** be forward compatible.)
+(The F#-pipe proposal, as is, would **not** be forward compatible.)
