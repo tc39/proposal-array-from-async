@@ -413,8 +413,10 @@ From [jquery/src/core/init.js][].
 ```js
 return context
  |> !? || ?.jquery
-  ? ? || root // Handle $(expr, $(...))
-  : this.constructor(?) // Handle $(expr, context)
+  // Handle $(expr, $(...))
+  ? ? || root
+  // Handle $(expr, context)
+  : this.constructor(?)
  |> ?.find(selector);
 ```
 
