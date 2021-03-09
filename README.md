@@ -430,13 +430,13 @@ If Hack pipes are added to JavaScript,
 then they could also elegantly handle
 **partial function application** in the future.
 
-Instead of using a special syntax for partial function application,
-such as with the [proposed unary `?` token][],
+Instead of the [proposed special syntax for partial function application],
 there could be a **topic-function** operator `+>`
 that would combine Hack pipes `|>` with arrow functions `=>`,
-performing **partial expression application**.
+performing **partial expression application**,
+and which would use the same general rules as `|>`.
 
-[proposed unary `?` token]: https://github.com/tc39/proposal-partial-application/
+[proposed special syntax for partial function application]: https://github.com/tc39/proposal-partial-application/
 
 For example, instead of the proposed `example.map(foo(?, 0))`,\
 to mean `example.map(x => foo(x, 0))`,\
