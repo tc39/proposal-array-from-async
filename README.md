@@ -111,7 +111,7 @@ That is, you write `value |> one |> two |> three` to pipe `value`
 through the three functions.
 `left |> right` becomes `right(left)`.
 
-[F# pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
+[F# pipes]: https://github.com/tc39/proposal-pipeline-operator/
 
 **Pro:** The restriction that the RHS *must* resolve to a function
 lets you write very terse pipes
@@ -135,8 +135,10 @@ and thus can’t be handled by the arrow-function workaround
 from the previous paragraph.
 If you want to integrate them into a pipe expression
 (rather than requiring the pipe to be parenthesis-wrapped and prefixed with `await`),
-they need to be handled as **special syntax cases**:
+[`await` and `yield` need to be handled as **special syntax cases**][enhanced F# pipes]:
 `value |> await |> one` to simulate `one(await value)`, etc.
+
+[enhanced F# pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
 
 ### Hack pipes favor more-common use cases
 Both Hack pipes and F# pipes put a **syntax tax** on different cases.
@@ -486,4 +488,4 @@ This proposal would be **forward compatible**
 with such a [“smart mix” of topic expressions,
 which was initially proposed but then withdrawn][smart mix]
 in favor of this simpler Hack-pipes proposal.
-(The F#-pipe proposal, as is, would **not** be forward compatible.)
+(The F#-pipe proposals, as is, would **not** be forward compatible.)
