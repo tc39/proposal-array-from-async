@@ -119,14 +119,14 @@ lets you write very terse pipes
 
 **Con:** The restriction means that **any operations**
 that are performed by **other syntax**
-must be done by **wrapping** the operation in an **arrow function**:
-`value |> x=>x[0]`,
-`value |> x=>x.foo()`,
-`value |> x=>x+1`,
-`value |> x=>new Foo(x)`
-etc.
+must be done by **wrapping** the operation in an **arrow function**:\
+`value |> x=>x[0]`,\
+`value |> x=>x.foo()`,\
+`value |> x=>x+1`,\
+`value |> x=>new Foo(x)`,\
+etc.\
 Even calling a **named function requires wrapping**
-if you need to pass **more than one argument**:
+if you need to pass **more than one argument**:\
 `value |> x=>f(1, x)`.
 
 **Con:** The **`yield` and `await`** operations are scoped
@@ -198,8 +198,8 @@ than all operators **other than**:
 * the generator operators `yield` and `yield *`;
 * and the comma operator `,`.
 
-For example, `value => value |> ? == null |> foo(?, 0)`
-would group into `value => (value |> (? == null) |> foo(?, 0))`,
+For example, `value => value |> ? == null |> foo(?, 0)`\
+would group into `value => (value |> (? == null) |> foo(?, 0))`,\
 which is equivalent to `value => foo(value == null, 0)`.
 
 There are three syntactic restrictions
@@ -438,39 +438,40 @@ performing **partial expression application**.
 
 [proposed unary `?` token]: https://github.com/tc39/proposal-partial-application/
 
-For example, instead of the proposed `example.map(foo(?, 0))`,
-to mean `example.map(x => foo(x, 0))`,
-one would write `example.map(+> foo(?, 0))`.
+For example, instead of the proposed `example.map(foo(?, 0))`,\
+to mean `example.map(x => foo(x, 0))`,\
+one would write `example.map(+> foo(?, 0))`.\
 This would **avoid the garden-path problem** in that,
 when reading the expression from left to right,
 it is immediately apparent that it creates a new function,
 rather than calling `foo` directly.
 
-But additionally, `example.map(+> foo(?, ?)`
-would mean `example.map(x => foo(x, x))`,
-and `example.map(+> ? + 1)`
-would mean `x => x + 1`.
+But additionally, `example.map(+> foo(?, ?)`\
+would mean `example.map(x => foo(x, x))`,\
+and `example.map(+> ? + 1)`\
+would mean `x => x + 1`.\
 **Neither** of these examples would be possible with the proposed `?` token.
 
 Creating non-unary functions could be done
 by adding numbers to topic references,
-such as `?0` (equivalent to plain `?`), `?1`, `?2`, etc.
-For instance, `example.sort(+> ?0 - ?1)`
+such as `?0` (equivalent to plain `?`), `?1`, `?2`, etc.\
+For instance, `example.sort(+> ?0 - ?1)`\
 would mean `example.sort((x, y) => x - y)`.
 
 ### Pipe syntax for `catch` and `for`
 Many `catch` and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
-For example, `catch (err) { err.code |> foo(?, 0) |> console.error(?); }`
-might become `catch |> { ?.code |> foo(?, 0) |> console.error(?); }`,
-and `for (const val of arr) { val.foo() |> bar(?, 0); }`
+For example, `catch (err) { err.code |> foo(?, 0) |> console.error(?); }`\
+might become `catch |> { ?.code |> foo(?, 0) |> console.error(?); }`,\
+and `for (const val of arr) { val.foo() |> bar(?, 0); }`\
 might become `for (arr) |> { ?.foo() |> bar(?, 0); }`.
 
 ### “Smart-mix” pipes
 In the future, **tacit function application** might also be added,
-which would resemble **F? pipes**.
-For example, `value |> ? + 1 |> foo` would mean `value |> ? + 1 |> foo(?)`.
+which would resemble **F? pipes**.\
+For example, `value |> ? + 1 |> foo`\
+would mean `value |> ? + 1 |> foo(?)`.\
 Tacit function application (F? style) would have to be somehow distinguishable
 from expressions that use topic references (Hack style).
 
