@@ -358,10 +358,10 @@ From [underscore.js][].
 ```js
 return obj
  |> ? == null
-	? 0
-	: isArrayLike(?)
-	? ?.length
-	: _.keys(?).length;
+    ? 0
+    : isArrayLike(?)
+    ? ?.length
+    : _.keys(?).length;
 ```
 
 <tr>
