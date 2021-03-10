@@ -291,8 +291,8 @@ function listCacheHas (key) {
 
 ```js
 return _.filter(obj,
-_.negate(cb(pred)),
-context
+  _.negate(cb(pred)),
+  context
 );
 ```
 From [underscore.js][].
