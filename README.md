@@ -145,7 +145,7 @@ Both Hack pipes and F# pipes put a **syntax tax** on different cases.
 Hack pipes put a syntax tax only on unary functions.
 F# pipes put a syntax tax on everything besides unary functions.
 
-The case of “unary function” is in general be **less common**
+The case of “unary function” is in general **less common**
 than “**everything besides** unary functions”,
 so it makes more sense to put a tax on the former rather than the latter.
 
