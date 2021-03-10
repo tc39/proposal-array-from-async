@@ -212,23 +212,11 @@ such as with `value |> (sideEffect(), ?)`.
 This is especially useful for quick debugging
 with `value |> (console.log(?), ?)`.
 
-There are two syntactic restrictions
-that help **prevent unintentional errors early**,
-at compilation time:
-
-1. A pipeline’s body **must** use its topic reference.
-   `value |> foo + 1` is an early syntax error,
-   because it does not contain `?`.
-   This design is because omission of the topic reference from a pipeline body
-   is almost certainly an accidental error.
-
-2. A `yield` expression **must** have parentheses.
-   `value |> yield ? |> ? + 1` is an early syntax error,
-   which can be fixed into `value |> (yield ?) |> ? + 1`.
-   This design is because the `yield` operator has a very loose [precedence][],
-   and it is likely that omitting the parentheses
-   (equivalent to `value |> (yield ? |> ? + 1)`)
-   is an accidental error.
+A pipeline’s body **must** use its topic reference.
+`value |> foo + 1` is an early syntax error,
+because it does not contain `?`.
+This design is because omission of the topic reference from a pipeline body
+is almost certainly an accidental programmer error.
 
 There are no other special rules.
 

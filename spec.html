@@ -388,32 +388,21 @@ PipelineTopicBody[In, Yield, Await] :
 </emu-note>
 
 <emu-note>
-<p>These <emu-xref href="#early-error">early errors</emu-xref> are designed to prevent unintentional programmer errors:</p>
-
-<p>A pipeline’s body must use its topic reference.
+<p><p>A pipeline’s body must use its topic reference.
 `value |&gt; foo + 1` is an early error,
 because it does not contain `&quest;`.
 This design is because omission of the topic reference from a pipeline body
-is almost certainly an accidental error.
+is almost certainly an accidental programmer error.
 In order to interpose a side effect
 in the middle of a pipeline expression,
 without modifying the data being piped through,
 a comma expression may be used instead,
 such as with `value |&gt; (sideEffect(), &quest;)`.</p>
-
-<p>In addition, a `yield` expression must be wrapped in parentheses.
-`value |&gt; yield &quest; |&gt; &quest; + 1` is an early error,
-which can be fixed into `value |&gt; (yield &quest;) |&gt; &quest; + 1`.
-This design is because the `yield` operator has a very loose precedence,
-and it is likely that omitting the parentheses
-(equivalent to `value |&gt; (yield &quest; |&gt; &quest; + 1)`)
-is an accidental error.</p>
 </emu-note>
 
 <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
 1. It is a Syntax Error if _ConditionalExpression_ Contains `&quest;` is *false*.
-2. It is a Syntax Error if _ConditionalExpression_ is covering a |YieldExpression|.
 </emu-alg>
 </emu-clause>
 
