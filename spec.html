@@ -19,37 +19,14 @@ contributors: J. S. Choi
 <emu-clause id=executable-code-and-execution-contexts>
 <h1>Executable Code and Execution Contexts</h1>
 
-<emu-clause id=sec-lexical-environments>
-<h1>Lexical Environments</h1>
-
-<emu-clause id=sec-lexical-topics>
-<h1><ins>Lexical Topics</ins></h1>
-
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-lexical-environments>original Lexical Environments clause</a>.</p>
-</emu-note>
-
-<p>The <dfn>topic binding</dfn> of a Lexical Environment immutably binds the topic reference `&quest;` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that Lexical Environment, at the time of the Lexical Environment's instantiation. The topic of a Lexical Environment conceptually serves as the value that the lexical context is "about".</p>
-
-<p>A <dfn>topic-binding environment</dfn> is a Lexical Environment that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its Lexical Environment's nearest outer environment that is a topic-binding environment, as defined by the abstract operator GetTopicEnvironment.</p>
-
-<emu-note>
-<p>The <strong>only</strong> Lexical Environments that are topic-binding environments are declarative environments that are associated with <strong>|PipelineTopicBody|</strong> and which were created with the <strong>TopicEnvironmentInstantiation</strong> abstract operation.</p>
-
-<p>In addition, |PipelineTopicBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
-
-<p>No other Lexical Environments do not establish any topic bindings; in particular, object and global environments are never topic-binding environments.</p>
-
-<p>In addition, |ScriptBody| and |ModuleBody| are associated with early error rules that <strong>forbid</strong> their containing the topic reference `&quest;`, <strong>except</strong> where the topic reference is within |PipelineTopicBody|. These early error rules are defined using the static semantic rule Contains, from which |PipelineTopicBody| hides the topic reference.</p>
-</emu-note>
-
-</emu-clause>
-
 <emu-clause id=sec-environment-records>
 <h1>Environment Records</h1>
 
+<emu-clause id=sec-the-environment-record-type-hierarchy>
+<h1>The Environment Record Type Hierarchy</h1>
+
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-environment-records>original Environment Records clause</a>.</p>
+<p>This section augments the <a href=https://tc39.github.io/ecma262/https://tc39.es/ecma262/#sec-the-environment-record-type-hierarchy>original Environment Records clause</a>.</p>
 </emu-note>
 
 <emu-table id=table-15 caption="Abstract Methods of Environment Records">
@@ -70,7 +47,7 @@ Purpose
 <ins>HasTopicBinding()</ins>
 </td>
 <td>
-<ins>Determine the status of an Environment Record's topic binding. Return *true* if it establishes a topic binding and *false* if it does not.</ins>
+<ins>Determine whether an Environment Record is a topic-binding environment. Return *true* if it establishes a topic binding and *false* if it does not.</ins>
 </td>
 </tr>
 </tbody>
@@ -113,7 +90,7 @@ Purpose
 *false* | *true*
 </td>
 <td>
-If [[TopicBindingStatus]]'s value is *true*, the Environment Record binds the Environment Record establishes its environment's topic binding (that is, it binds `&quest;`) to values. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
+If [[TopicBindingStatus]]'s value is *true*, the declarative Environment Record is a topic-binding environment. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
 </td>
 </tr>
 <tr>
@@ -132,7 +109,7 @@ If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List cont
 </emu-table>
 
 <emu-note type=editor>
-<p>[[TopicValues]] is a List in order to be forward compatible with future extensions that would use multiple topic values, e.g., topic functions.</p>
+<p>[[TopicValues]] is a List in order to be forward compatible with future extensions that would use multiple <emu-xref href="#sec-topic-bindings">topic values</emu-xref>, e.g., <a href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md#pipe-functions>"pipe functions".</a></p>
 </emu-note>
 
 <p>Declarative Environment Records support all of the abstract methods of Environment Records listed in <emu-xref href="#table-15"></emu-xref>. In addition, declarative Environment Records support the methods listed in <emu-xref href="#table-62"></emu-xref>.</p>
@@ -155,7 +132,7 @@ Purpose
 BindTopicValues(V)
 </td>
 <td>
-Establish the immutable topic binding of this Environment Record and set the topic binding's value. _V_ is a List containing the one element which is the topic value and is a value of any ECMAScript language type. Afterward, the value returned by the Environment Record's HasTopicBinding method is *true*. This method cannot be called more than once on any single Environment Record.
+Establish the immutable topic binding of this Environment Record and set the topic binding's value. _V_ is a List containing the one element which is the topic value and is a value of any ECMAScript language type. Afterward, the Environment Record is a topic-binding environment, and the value returned by the Environment Record's HasTopicBinding method is *true*. This method cannot be called more than once on any single Environment Record.
 </td>
 </tr>
 </tbody>
@@ -164,7 +141,7 @@ Establish the immutable topic binding of this Environment Record and set the top
 </ins>
 
 <emu-note type=editor>
-<p>BindTopicValues() accepts a List argument rather than a single-value argument in order to be forward compatible with future extensions that would use multiple topic values, e.g., topic functions.</p>
+<p>BindTopicValues() accepts a List argument rather than a single-value argument in order to be forward compatible with future extensions that would use multiple <emu-xref href="#sec-topic-bindings">topic values</emu-xref>, e.g., <a href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md#pipe-functions>"pipe functions".</a>.</p>
 </emu-note>
 
 <p>The behaviour of the concrete <ins>and additional</ins> specification methods for declarative Environment Records is defined by the following algorithms.</p>
@@ -232,10 +209,34 @@ Establish the immutable topic binding of this Environment Record and set the top
 1. Return *false*.
 </emu-alg>
 </emu-clause>
+
 </emu-clause>
 
 </emu-clause>
+
+<emu-clause id=sec-topic-bindings>
+<h1><ins>Topic Bindings</ins></h1>
+
+<emu-note type=editor>
+<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-environment-records>original Environment Records clause</a>.</p>
+</emu-note>
+
+<p>The <dfn>topic binding</dfn> of a declarative Environment Record immutably binds the topic reference `&quest;` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that declarative Environment Record, at the time of the Environment Record's instantiation. The topic of a declarative Environment Record conceptually serves as the value that its lexical context is "about".</p>
+
+<p>A <dfn>topic-binding environment</dfn> is a declarative Environment Record that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its LexicalEnvironment's nearest outer Environment Record that is also a topic-binding environment (or *null* if no such Environment Record exists), as defined by the abstract operator GetTopicEnvironment.</p>
+
+<emu-note>
+<p>The <strong>only</strong> Environment Records that are topic-binding environments are declarative environments that are associated with <strong>|PipelineTopicBody|</strong> and which were created with the <strong>TopicEnvironmentInstantiation</strong> abstract operation.</p>
+
+<p>In addition, |PipelineTopicBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
+
+<p>In addition, |ScriptBody| and |ModuleBody| are associated with early error rules that <strong>forbid</strong> their containing the topic reference `&quest;`, <strong>except</strong> where the topic reference is within |PipelineTopicBody|. These early error rules are defined using the static semantic rule Contains, from which |PipelineTopicBody| hides the topic reference.</p>
+</emu-note>
+
 </emu-clause>
+
+</emu-clause>
+
 </emu-clause>
 
 <emu-clause id=sec-ecmascript-language-lexical-grammar>
@@ -306,9 +307,9 @@ PrimaryExpression[Yield, Await] :
 </emu-note>
 
 <emu-note>
-<p>The <dfn>topic reference</dfn>, which is the token `&quest;`, is a nullary operator that evaluates to the value of the current Lexical Environment's topic. The topic reference acts as if it were a special variable: implicitly bound to the topic value, yet still lexically scoped. But `&quest;` is not actually an |IdentifierName| and the topic reference is not a variable, and it cannot be bound by typical assignment; instead, it is immutably bound to a value during the instantiation of certain topic-binding environments.</p>
+<p>The <dfn>topic reference</dfn>, which is the token `&quest;`, is a nullary operator that evaluates to the current Environment Record's topic value. The topic reference acts as if it were a special variable: implicitly bound to the topic value, yet still lexically scoped. But `&quest;` is not actually an |IdentifierName| and the topic reference is not a variable, and it cannot be bound by typical assignment; instead, it is immutably bound to a value during the instantiation of certain topic-binding environments.</p>
 
-<p>The concept of lexical topic binding is further discussed in <emu-xref href="#sec-lexical-topics">Lexical Topics</emu-xref> and in <emu-xref href="#sec-declarative-environment-records">Declarative Environment Records</emu-xref>.</p>
+<p>The concept of topic bindings is further discussed in <emu-xref href="#sec-topic-bindings">Topic Bindings</emu-xref> and in <emu-xref href="#sec-declarative-environment-records">Declarative Environment Records</emu-xref>.</p>
 </emu-note>
 
 <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
@@ -318,13 +319,13 @@ PrimaryExpression[Yield, Await] :
 </emu-note>
 <p>When the abstract operation GetTopicEnvironment is called, the following steps are performed:</p>
 <emu-alg>
-1. Let _lex_ be the running execution context's Lexical Environment.
+1. Let _envRec_ be the running execution context's LexicalEnvironment.
 2. Repeat,
   1. Let _envRec_ be _lex_'s Environment Record.
   2. Let _status_ be _envRec_.HasTopicBinding().
   3. If _status_ is *true*, return _envRec_.
   4. Assert: _lex_ is not a global environment.
-  4. Let _outer_ be the value of _lex_'s outer environment reference.
+  5. Let _outer_ be the value of _lex_.[[OuterEnv]].
   6. Set _lex_ to _outer_.
 3. Return _lex_.
 </emu-alg>
@@ -388,10 +389,10 @@ PipelineTopicBody[In, Yield, Await] :
 </emu-note>
 
 <emu-note>
-<p><p>A pipeline’s body must use its topic reference.
+<p><p>A |PipelineTopicBody| must use its topic reference at least once.
 `value |&gt; foo + 1` is an early error,
 because it does not contain `&quest;`.
-This design is because omission of the topic reference from a pipeline body
+This design is because omission of the topic reference from a |PipelineTopicBody|
 is almost certainly an accidental programmer error.
 In order to interpose a side effect
 in the middle of a pipeline expression,
@@ -432,11 +433,11 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <p>This section is a wholly new sub-clause.</p>
 </emu-note>
 <emu-note>
-<p>This abstract operation constructs, instantiates, then returns a new declarative Lexical Environment for a pipeline body. It creates an immutable topic binding in that declarative environment using the given _topicValues_.</p>
+<p>This abstract operation constructs, instantiates, then returns a new declarative Environment Record for a |PipelineTopicBody|. It creates an immutable topic binding in that declarative environment using the given _topicValues_.</p>
 </emu-note>
 <p>TopicPipelineInstantiation is performed as follows using arguments _env_ and _topicValues_.</p>
 <ul>
-<li>_env_ is the Lexical Environment in which the topic binding is to be created.</li>
+<li>_env_ is the declarative Environment Record in which the topic binding is to be created.</li>
 <li>_topicValues_ is a List of values: _env_'s primary topic reference will be bound to the first value.</li>
 </ul>
 
@@ -456,12 +457,12 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 
 <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>
 <emu-alg>
-1. Let _outerEnv_ be the running execution context's Lexical Environment.
-2. Let _pipelineBodyEnv_ be New Declarative Environment(_oldEnv_).
+1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
+2. Let _pipelineBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
 3. Perform TopicEnvironmentInstantiation(_inputValues_, _pipelineBodyEnv_).
-4. Set the running execution context's Lexical Environment to _pipelineBodyEnv_.
+4. Set the running execution context's LexicalEnvironment to _pipelineBodyEnv_.
 5. Let _pipelineValue_ be the result of evaluating _ConditionalExpression_.
-6. Set the running execution context's Lexical Environment to _outerEnv_.
+6. Set the running execution context's LexicalEnvironment to _outerEnv_.
 7. Return a List containing the one element which is _pipelineValue_.
 </emu-alg>
 
