@@ -315,40 +315,35 @@ PrimaryExpression[Yield, Await] :
 <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
 <h1>Runtime Semantics: GetTopicEnvironment</h1>
 <emu-note>
-<p>GetTopicEnvironment finds the Environment Record that currently supplies the topic binding (the binding of `&quest;`). That is, it finds the running execution topic's nearest-ancestral topic-binding environment, which is the nearest-ancestral outer environment that has a topic binding status of *true*. It is <strong>never</strong> called when there is no topic environment.</p>
+<p>GetTopicEnvironment finds the running execution context's innermost topic-binding environment (i.e., the Environment Record that supplies the current topic binding) or *null* if the running execution context has no topic binding.</p>
 </emu-note>
 <p>When the abstract operation GetTopicEnvironment is called, the following steps are performed:</p>
 <emu-alg>
 1. Let _envRec_ be the running execution context's LexicalEnvironment.
 2. Repeat,
-  1. Let _envRec_ be _lex_'s Environment Record.
-  2. Let _status_ be _envRec_.HasTopicBinding().
-  3. If _status_ is *true*, return _envRec_.
-  4. Assert: _lex_ is not a global environment.
-  5. Let _outer_ be the value of _lex_.[[OuterEnv]].
-  6. Set _lex_ to _outer_.
-3. Return _lex_.
+  1. Let _status_ be _envRec_.HasTopicBinding().
+  2. If _status_ is *true*, return _envRec_.
+  3. If _envRec_ is a global Environment Record, return *null*.
+  4. Let _outer_ be the value of _envRec_.[[OuterEnv]].
+  5. Set _envRec_ to _outer_.
+3. Return _envRec_.
 </emu-alg>
-
-<emu-note>
-<p>The loop in step&nbsp;2 will always terminate because the List of environments will always end before reaching the global environment. GetTopicEnvironment will never be called when there is no topic-binding environment in the List of environments.</p>
-<p>This is due to how the two syntax nonterminals associated with the global environment or module environments (i.e., |Script| and |Module|) are syntactically forbidden to contain the topic reference `&quest;`. Any use of the topic reference within those nonterminals (as detected by the static semantic rule Contains) would trigger early error rules associated with those nonterminals. It is only within nonterminals that hide the topic reference from Contains (i.e., |PipelineTopicBody|) that the topic reference is syntactically permitted.</p>
-</emu-note>
 </emu-clause>
 
 <emu-clause id=sec-gettopicvalues aoid=GetTopicValues>
 <h1>Runtime Semantics: GetTopicValues</h1>
 <emu-note>
-<p>GetTopicValues gets the values of the topic environment’s current topic binding. It is <strong>never</strong> called when there is no topic environment.</p>
+<p>GetTopicValues gets the values of the topic environment's current topic binding.</p>
 </emu-note>
 <p>When the abstract operation GetTopicEnvironment is called the following steps are performed:</p>
 <emu-alg>
-1. Let _envRec_ be GetTopicEnvironment().
-2. Assert: _envRec_ is a declarative Environment Record.
-3. Assert: _envRec_.HasTopicBinding() is true.
-4. Let _topicValues_ be _envRec_.[[TopicValues]].
-5. Assert: _topicValues_ has at least one element.
-6. Return topicValues.
+1. Let _topicEnv_ be GetTopicEnvironment().
+2. If _topicEnv_ is *null*, throw a *ReferenceError* exception.
+3. Assert: _topicEnv_ is a declarative Environment Record.
+4. Assert: _topicEnv_.HasTopicBinding() is true.
+5. Let _topicValues_ be _envRec_.[[TopicValues]].
+6. Assert: _topicValues_ has at least one element.
+7. Return _topicValues_.
 </emu-alg>
 </emu-clause>
 
