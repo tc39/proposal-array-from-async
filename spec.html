@@ -229,8 +229,6 @@ Establish the immutable topic binding of this Environment Record and set the top
 <p>The <strong>only</strong> Environment Records that are topic-binding environments are declarative environments that are associated with <strong>|PipelineTopicBody|</strong> and which were created with the <strong>TopicEnvironmentInstantiation</strong> abstract operation.</p>
 
 <p>In addition, |PipelineTopicBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
-
-<p>In addition, |ScriptBody| and |ModuleBody| are associated with early error rules that <strong>forbid</strong> their containing the topic reference `&quest;`, <strong>except</strong> where the topic reference is within |PipelineTopicBody|. These early error rules are defined using the static semantic rule Contains, from which |PipelineTopicBody| hides the topic reference.</p>
 </emu-note>
 
 </emu-clause>
@@ -499,62 +497,4 @@ AssignmentExpression[In, Yield, Await] :
 </emu-grammar>
 
 </emu-clause>
-</emu-clause>
-
-<emu-clause id=sec-ecmascript-language-scripts-and-modules>
-<h1>ECMAScript Language: Scripts and Modules</h1>
-
-<emu-clause id=sec-scripts>
-<h1>Scripts</h1>
-
-<emu-clause id=sec-scripts-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-scripts-static-semantics-early-errors>original Scripts, Static Semantics: Early Errors clause</a>.</p>
-</emu-note>
-
-<emu-grammar>ScriptBody : StatementList</emu-grammar>
-<ul>
-<li>
-<ins>It is a Syntax Error if |StatementList| Contains `&quest;` is *true*.</ins>
-</li>
-</ul>
-
-<ins class=block>
-<emu-note>
-<p>In general, a top-level program scope, including |Script|, may <strong>not</strong> contain a topic reference `&quest;`. However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-</ins>
-
-</emu-clause>
-</emu-clause>
-
-<emu-clause id=sec-modules>
-<h1>Modules</h1>
-
-<emu-clause id=sec-modules-static-semantics-early-errors>
-<h1>Static Semantics: Early Errors</h1>
-
-<emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-scripts-static-semantics-early-errors>original Modules, Static Semantics: Early Errors clause</a>.</p>
-</emu-note>
-
-<emu-grammar>ModuleItem : StatementListItem</emu-grammar>
-<ul>
-<li>
-<ins>It is a Syntax Error if |StatementListItem| Contains `&quest;` is *true*.</ins>
-</li>
-</ul>
-
-<ins class=block>
-<emu-note>
-<p>Syntax nonterminals that establish new lexical bindings within new inner program scopes, including iteration statements, may <strong>not</strong> contain a topic reference `&quest;`.</p>
-<p>However, such topic-forbidding nonterminals may also contain topic-binding nonterminals such as |ConditionalExpression| in <emu-grammar>PipelineTopicBody : ConditionalExpression</emu-grammar>, which would, in turn, hide their own inner topic references from the Contains abstract operation. Within those topic-binding nonterminals, such topic references would therefore not trigger the early error above.</p>
-</emu-note>
-</ins>
-
-</emu-clause>
-</emu-clause>
-
 </emu-clause>
