@@ -328,12 +328,10 @@ PrimaryExpression[Yield, Await] :
 </emu-alg>
 </emu-clause>
 
-<emu-clause id=sec-gettopicvalues aoid=GetTopicValues>
-<h1>Runtime Semantics: GetTopicValues</h1>
-<emu-note>
-<p>GetTopicValues gets the values of the topic environment's current topic binding.</p>
-</emu-note>
-<p>When the abstract operation GetTopicEnvironment is called the following steps are performed:</p>
+<emu-clause id=sec-topic-references-runtime-semantics-evaluation>
+<h1>Runtime Semantics: Evaluation</h1>
+
+<emu-grammar>PrimaryExpression : `&quest;`</emu-grammar>
 <emu-alg>
 1. Let _topicEnv_ be GetTopicEnvironment().
 2. If _topicEnv_ is *null*, throw a *ReferenceError* exception.
@@ -341,17 +339,7 @@ PrimaryExpression[Yield, Await] :
 4. Assert: _topicEnv_.HasTopicBinding() is true.
 5. Let _topicValues_ be _envRec_.[[TopicValues]].
 6. Assert: _topicValues_ has at least one element.
-7. Return _topicValues_.
-</emu-alg>
-</emu-clause>
-
-<emu-clause id=sec-topic-references-runtime-semantics-evaluation>
-<h1>Runtime Semantics: Evaluation</h1>
-
-<emu-grammar>PrimaryExpression : `&quest;`</emu-grammar>
-<emu-alg>
-1. Let _topicValues_ be GetTopicValues().
-2. Return topicValues_[0].
+7. Return _topicValues_[0].
 </emu-alg>
 </emu-clause>
 
