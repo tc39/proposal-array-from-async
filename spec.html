@@ -431,7 +431,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <p>TopicEnvironmentInstantiation is performed as follows using arguments _env_ and _topicValues_.</p>
 <ul>
 <li>_env_ is the declarative Environment Record in which the topic binding is to be created.</li>
-<li>_topicValues_ is a List of values: _env_'s primary topic reference will be bound to the first value.</li>
+<li>_topicValues_ is a List of values: _env_'s topic reference will be bound to the first value.</li>
 </ul>
 
 <emu-alg>
@@ -456,7 +456,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 4. Set the running execution context's LexicalEnvironment to _pipelineBodyEnv_.
 5. Let _pipelineValue_ be the result of evaluating _ConditionalExpression_.
 6. Set the running execution context's LexicalEnvironment to _outerEnv_.
-7. Return a List containing the one element which is _pipelineValue_.
+7. Return _pipelineValue_.
 </emu-alg>
 
 </emu-clause>
@@ -468,9 +468,8 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <emu-alg>
 1. Let _inputRef_ be the result of evaluating _ConditionalExpression_.
 2. Let _inputValues_ be a List containing the one element which is the result of ? GetValue(_inputRef_).
-3. Let _pipelineOutputValues_ be ? PipelineEvaluation of _Pipeline_ with argument _inputValues_.
-4. Assert: _pipelineOutputValues_ is a List containing one element.
-5. Return _pipelineOutputValues_[0].
+3. Let _pipelineOutputValue_ be ? PipelineEvaluation of _Pipeline_ with argument _inputValues_.
+4. Return _pipelineOutputValue_.
 </emu-alg>
 </emu-clause>
 
