@@ -419,7 +419,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <emu-grammar>PipeExpression : ConditionalExpression `|&gt;` Pipeline</emu-grammar>
 <emu-alg>
 1. Let _inputRef_ be the result of evaluating _ConditionalExpression_.
-2. Let _inputValues_ be a List containing the one element which is the result of ? GetValue(_inputRef_).
+2. Let _inputValues_ be « ? GetValue(_inputRef_) ».
 3. Let _pipelineOutputValue_ be ? PipelineEvaluation of _Pipeline_ with argument _inputValues_.
 4. Return _pipelineOutputValue_.
 </emu-alg>
