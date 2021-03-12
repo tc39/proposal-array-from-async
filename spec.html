@@ -360,7 +360,7 @@ PipelineBody[In, Yield, Await] :
 <emu-note>
 <p><p>A |PipelineBody| must use its topic reference at least once.
 `value |&gt; foo + 1` is an early error,
-because it does not contain `&quest;`.
+because its |PipelineBody| does not contain `&quest;`.
 This design is because omission of the topic reference from a |PipelineBody|
 is almost certainly an accidental programmer error.
 In order to interpose a side effect
