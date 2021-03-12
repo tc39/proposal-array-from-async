@@ -216,7 +216,7 @@ Establish the immutable topic binding of this Environment Record and set the top
 <emu-note>
 <p>The <strong>only</strong> Environment Records that are topic-binding environments are declarative Environment Records that are associated with |PipelineBody| and which were created with its PipelineEvaluation operation.</p>
 
-<p>In addition, |PipelineBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineBody : ConditionalExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
+<p>In addition, |PipelineBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineBody : PipeExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
 </emu-note>
 
 </emu-clause>
@@ -348,7 +348,7 @@ PipeExpression[In, Yield, Await] :
   ConditionalExpression[?In, ?Yield, ?Await] `|&gt;` PipelineBody[?In, ?Yield, ?Await]
 
 PipelineBody[In, Yield, Await] :
-  ConditionalExpression[?In, ?Yield, ?Await]
+  PipeExpression[?In, ?Yield, ?Await]
 </emu-grammar>
 
 <emu-clause id=sec-pipe-operator-static-semantics-early-errors>
@@ -370,9 +370,9 @@ a comma expression may be used instead,
 such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 </emu-note>
 
-<emu-grammar>PipelineBody : ConditionalExpression</emu-grammar>
+<emu-grammar>PipelineBody : PipeExpression</emu-grammar>
 <emu-alg>
-1. It is a Syntax Error if _ConditionalExpression_ Contains `&quest;` is *false*.
+1. It is a Syntax Error if _PipeExpression_ Contains `&quest;` is *false*.
 </emu-alg>
 </emu-clause>
 
@@ -384,7 +384,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <p>This section is a wholly new sub-clause.</p>
 </emu-note>
 
-<emu-grammar>PipelineBody : ConditionalExpression</emu-grammar>
+<emu-grammar>PipelineBody : PipeExpression</emu-grammar>
 <emu-alg>
 1. If _symbol_ is `&quest;`, return *false*.
 2. For each child node _child_ of this Parse Node, do
@@ -400,13 +400,13 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <h1>Runtime Semantics: PipelineEvaluation</h1>
 <p>With parameter _inputValues_.</p>
 
-<emu-grammar>PipelineBody : ConditionalExpression</emu-grammar>
+<emu-grammar>PipelineBody : PipeExpression</emu-grammar>
 <emu-alg>
 1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
 2. Let _pipelineBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
 3. Perform ! _pipelineBodyEnv_.BindTopicValues(_inputValues_).
 4. Set the running execution context's LexicalEnvironment to _pipelineBodyEnv_.
-5. Let _pipelineValue_ be the result of evaluating _ConditionalExpression_.
+5. Let _pipelineValue_ be the result of evaluating _PipeExpression_.
 6. Set the running execution context's LexicalEnvironment to _outerEnv_.
 7. Return _pipelineValue_.
 </emu-alg>
