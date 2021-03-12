@@ -82,24 +82,13 @@ Purpose
 <tbody>
 <tr>
 <td>
-[[TopicBindingStatus]]
-</td>
-<td>
-*false* | *true*
-</td>
-<td>
-If [[TopicBindingStatus]]'s value is *true*, the declarative Environment Record is a topic-binding environment. If the value is *false*, the Environment Record has no topic binding. [[TopicBindingStatus]]'s default value is *false*. Its value may be changed from *false* to *true* but never vice versa.
-</td>
-</tr>
-<tr>
-<td>
 [[TopicValues]]
 </td>
 <td>
-List of any | ~empty~
+List of any
 </td>
 <td>
-If the value of [[TopicBindingStatus]] is *true*, [[TopicValues]] is a List containing the one element which is the environment's topic value (that is, the value of `&quest;` within its program scope). Otherwise, the value of [[TopicValues]] is ~empty~.
+If the declarative Environment Record is a topic-binding environment, then [[TopicValues]] is a List containing the one element which is the environment's topic value (that is, the value of `&quest;` within its program scope). Otherwise, the value of [[TopicValues]] is an empty List.
 </td>
 </tr>
 </tbody>
@@ -150,10 +139,11 @@ Establish the immutable topic binding of this Environment Record and set the top
 <p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>.</p>
 </emu-note>
 
-<p>The concrete Environment Record method HasTopicBinding for declarative Environment Records returns the value of the record's field [[TopicBindingStatus]], which is *false* by default. The value may instead be *true* if its BindTopicValues method has been called.</p>
+<p>The concrete Environment Record method HasTopicBinding for declarative Environment Records returns whether the Environment Record is a topic-binding environment. The value is *true* only if its BindTopicValues method has been called.</p>
 <emu-alg>
-1. Let _envRec_ be the function Environment Record for which the method was invoked.
-2. Return _envRec_.[[TopicBindingStatus]].
+1. Let _envRec_ be the declarative Environment Record for which the method was invoked.
+2. If _envRec_.[[TopicValues]] is an empty List, then return *true*.
+3. Return *false*.
 </emu-alg>
 </emu-clause>
 
@@ -162,13 +152,13 @@ Establish the immutable topic binding of this Environment Record and set the top
 <emu-note type=editor>
 <p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>.</p>
 </emu-note>
-<p>The method BindTopicValues for declarative Environment Records is guaranteed to be called only when the Environment Records do not yet have established topic bindings.</p>
+<p>The method BindTopicValues for declarative Environment Records may only be called on an Environment Records when it is not yet a topic-binding environment, after which it does become a topic-binding environment.</p>
 <emu-alg>
 1. <ins>Assert: _V_ is a List.</ins>
 2. Let _envRec_ be the declarative Environment Record for which the method was invoked.
-3. Assert: _envRec_.[[TopicBindingStatus]] is *false*.
+3. Assert: _envRec_.HasTopicBinding() is *false*.
 4. Set _envRec_.[[TopicValues]] to _V_.
-5. Set _envRec_.[[TopicBindingStatus]] to *true*.
+5. Assert: _envRec_.HasTopicBinding() is *true*.
 6. Return NormalCompletion(~empty~).
 </emu-alg>
 </emu-clause>
@@ -425,7 +415,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 2. Let _envRec_ be env's Environment Record.
 3. Assert: _envRec_ is a declarative Environment Record.
 4. Assert: _envRec_.HasTopicBinding() is *false*.
-5. Assert: _envRec_.[[TopicValues]] is ~empty~.
+5. Assert: _envRec_.[[TopicValues]] is an empty List.
 6. Perform ! _envRec_.BindTopicValues(_topicValues_).
 </emu-alg>
 </emu-clause>
