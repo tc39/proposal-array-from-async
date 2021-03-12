@@ -214,7 +214,7 @@ Establish the immutable topic binding of this Environment Record and set the top
 <p>A <dfn>topic-binding environment</dfn> is a declarative Environment Record that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its LexicalEnvironment's nearest outer Environment Record that is also a topic-binding environment (or *null* if no such Environment Record exists), as defined by the abstract operator GetTopicEnvironment.</p>
 
 <emu-note>
-<p>The <strong>only</strong> Environment Records that are topic-binding environments are declarative environments that are associated with <strong>|PipelineBody|</strong> and which were created with the <strong>TopicEnvironmentInstantiation</strong> abstract operation.</p>
+<p>The <strong>only</strong> Environment Records that are topic-binding environments are declarative Environment Records that are associated with |PipelineBody| and which were created with its PipelineEvaluation operation.</p>
 
 <p>In addition, |PipelineBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineBody : ConditionalExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
 </emu-note>
@@ -396,30 +396,6 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 </emu-alg>
 </emu-clause>
 
-<emu-clause id=sec-pipe-operator-runtime-semantics-TopicEnvironmentInstantiation aoid=TopicEnvironmentInstantiation>
-<h1>Runtime Semantics: TopicEnvironmentInstantiation</h1>
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause.</p>
-</emu-note>
-<emu-note>
-<p>This abstract operation constructs, instantiates, then returns a new declarative Environment Record for a |PipelineBody|. It creates an immutable topic binding in that declarative environment using the given _topicValues_.</p>
-</emu-note>
-<p>TopicEnvironmentInstantiation is performed as follows using arguments _env_ and _topicValues_.</p>
-<ul>
-<li>_env_ is the declarative Environment Record in which the topic binding is to be created.</li>
-<li>_topicValues_ is a List of values: _env_'s topic reference will be bound to the first value.</li>
-</ul>
-
-<emu-alg>
-1. Assert: _topicValues_ is a List.
-2. Let _envRec_ be env's Environment Record.
-3. Assert: _envRec_ is a declarative Environment Record.
-4. Assert: _envRec_.HasTopicBinding() is *false*.
-5. Assert: _envRec_.[[TopicValues]] is an empty List.
-6. Perform ! _envRec_.BindTopicValues(_topicValues_).
-</emu-alg>
-</emu-clause>
-
 <emu-clause id=sec-pipe-operator-runtime-semantics-pipelineevaluation aoid=PipelineEvaluation>
 <h1>Runtime Semantics: PipelineEvaluation</h1>
 <p>With parameter _inputValues_.</p>
@@ -428,7 +404,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <emu-alg>
 1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
 2. Let _pipelineBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
-3. Perform TopicEnvironmentInstantiation(_inputValues_, _pipelineBodyEnv_).
+3. Perform ! _pipelineBodyEnv_.BindTopicValues(_inputValues_).
 4. Set the running execution context's LexicalEnvironment to _pipelineBodyEnv_.
 5. Let _pipelineValue_ be the result of evaluating _ConditionalExpression_.
 6. Set the running execution context's LexicalEnvironment to _outerEnv_.
