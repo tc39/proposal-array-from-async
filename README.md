@@ -47,13 +47,13 @@ and editing the code later to insert or delete more function calls is trivial,
 since you just have to put your cursor in one spot and start typing
 or delete one **contiguous run of characters** with a clear separator.
 
-The benefits of method chaining are so attractive
-that some popular libraries contort their code structure
-*specifically* to allow more method chaining.
-The most prominent example is [jQuery][],
-*still* the most popular JS library in the world:
-its core design is a single über-object with dozens of methods on it,
-all of which return the same object type so you can continue chaining.)
+The benefits of method chaining are **so attractive**
+that some **popular libraries contort** their code structure
+*specifically* to allow **more method chaining**.
+The most prominent example is **[jQuery][]**, which is
+*still* the most popular JS library in the world.
+jQuery’s core design is a single über-object with dozens of methods on it,
+all of which return the same object type so you can continue chaining.
 
 [jQuery]: https://jquery.com/
 
