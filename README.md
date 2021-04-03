@@ -466,6 +466,18 @@ might become `catch |> ?.code |> foo(?, 0) |> console.error(?);`,\
 and `for (const val of arr) { val.foo() |> bar(?, 0); }`\
 might become `for (arr) |> ?.foo() |> bar(?, 0);`.
 
+### Optional pipes
+A short-circuiting optional-pipe operator `|?>` could also be useful,
+much in the way `?.` is useful for optional method calls.
+
+(This would probably require that
+the placeholder token for the topic reference
+be something other than `?`.
+We will use `%` in these examples.)
+
+For example, `value |> % ?? await foo(%) |> % ?? % + 1`\
+might become `value |?> await foo(%) |?> % + 1`.
+
 ### Tacit unary function application
 In the future, **tacit unary function application** could also be added,
 which would resemble F# pipes.
