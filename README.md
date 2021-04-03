@@ -235,6 +235,84 @@ There are no other special rules.
 <td>
 
 ```js
+Object.keys( grunt.config( "uglify.all.files" ) )[ 0 ]
+```
+From [jquery/build/tasks/sourceMap.js][].
+
+<td>
+
+```js
+"uglify.all.files" |> grunt.config(?) |> Object.keys(?)[0]
+```
+
+<tr>
+<td>
+
+```js
+const json = await npmFetch.json(npa(pkgs[0]).escapedName, opts);
+```
+From [node/deps/npm/lib/unpublish.js][].
+
+<td>
+
+```js
+const json = pkgs[0]
+ |> npa(?).escapedName
+ |> await npmFetch.json(?, opts);
+```
+
+<tr>
+<td>
+
+```js
+console.log(
+  chalk.dim(
+    `$ ${Object.keys(envars)
+      .map(envar => `${envar}=${envars[envar]}`)
+      .join(' ')}`,
+    'node',
+    args.join(' ')
+  )
+);
+```
+From [react/scripts/jest/jest-cli.js][].
+
+<td>
+
+```js
+envars
+ |> Object.keys(?)
+ |> ?.map(envar => `${envar}=${envars[envar]}`)
+ |> ?.join(' ')
+ |> `$ ${?}`
+ |> chalk.dim(?, 'node', args.join(' '))
+ |> console.log(?);
+```
+
+<tr>
+<td>
+
+```js
+const entries = Object.entries(require('shared/ReactSymbols')).filter(
+  ([key]) => key !== 'REACT_ASYNC_MODE_TYPE',
+);
+expectToBeUnique(entries);
+```
+From [react/scripts/jest/jest-cli.js][].
+
+<td>
+
+```js
+require('shared/ReactSymbols')
+ |> Object.entries(?)
+ |> ?.filter(([key]) => key !== 'REACT_ASYNC_MODE_TYPE')
+ |> expectToBeUnique(?);
+```
+
+<tr>
+<td>
+
+```js
 parsed = buildFragment(
   [ data ], context, scripts
 );
@@ -257,12 +335,32 @@ return data
 <td>
 
 ```js
+return this.set('Link', link + Object.keys(links).map(function(rel){
+  return '<' + links[rel] + '>; rel="' + rel + '"';
+}).join(', '));
+```
+From [express/lib/response.js][].
+
+<td>
+
+```js
+return links
+ |> Object.keys(?)
+ |> ?.map(rel => '<' + links[rel] + '>; rel="' + rel + '"')
+ |> ?.join(', ')
+ |> this.set('Link', ?);
+```
+
+<tr>
+<td>
+
+```js
 function listCacheHas (key) {
   return assocIndexOf(this.__data__, key)
     > -1;
 }
 ```
-From [lodash.js version 4.17.20][].
+From [lodash.js][].
 
 <td>
 
@@ -412,10 +510,15 @@ return context
 
 </table>
 
+[node/deps/npm/lib/unpublish.js]: https://github.com/nodejs/node/blob/v16.x/deps/npm/lib/unpublish.js
+[node/deps/v8/test/mjsunit/regress/regress-crbug-158185.js]: https://github.com/nodejs/node/blob/v16.x/deps/v8/test/mjsunit/regress/regress-crbug-158185.js
+[express/lib/response.js]: https://github.com/expressjs/express/blob/5.0/lib/response.js
+[react/scripts/jest/jest-cli.js]: https://github.com/facebook/react/blob/17.0.2/scripts/jest/jest-cli.js
+[jquery/build/tasks/sourceMap.js]: https://github.com/jquery/jquery/blob/2.2-stable/build/tasks/sourcemap.js
 [jquery/src/core/parseHTML.js]: https://github.com/jquery/jquery/blob/2.2-stable/src/core/parseHTML.js
 [jquery/src/core/init.js]: https://github.com/jquery/jquery/blob/2.2-stable/src/core/init.js
 [underscore.js]: https://underscorejs.org/docs/underscore-esm.html
-[lodash.js version 4.17.20]: https://www.runpkg.com/?lodash@4.17.20/lodash.js
+[lodash.js]: https://www.runpkg.com/?lodash@4.17.20/lodash.js
 
 ## Possible future extensions
 
