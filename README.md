@@ -455,11 +455,13 @@ For instance, `example.sort(+> ?0 - ?1)`\
 would mean `example.sort((x, y) => x - y)`.\
 (`?0` would be equivalent to plain `?`.)
 
-### Pipe syntax for `catch` and `for`
-Many `catch` and `for` statements could become pithier
+### Pipe syntax for `if`, `catch`, and `for`
+Many `if`, `catch`, and `for` statements could become pithier
 if they gained “pipe syntax” that bound the topic reference.
 
-For example, `catch (err) { err.code |> foo(?, 0) |> console.error(?); }`\
+For example, `const result = foo(); if (result) bar(result);`\
+might become `if (foo()) |> bar(?)`,\
+`catch (err) { err.code |> foo(?, 0) |> console.error(?); }`\
 might become `catch |> ?.code |> foo(?, 0) |> console.error(?);`,\
 and `for (const val of arr) { val.foo() |> bar(?, 0); }`\
 might become `for (arr) |> ?.foo() |> bar(?, 0);`.
