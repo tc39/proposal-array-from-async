@@ -424,35 +424,64 @@ If Hack pipes are added to JavaScript,
 then they could also elegantly handle
 **partial function application** in the future.
 
-Instead of the [proposed special syntax for partial function application][PFA],
-there could be a **topic-function** operator `+>`
-that would combine Hack pipes `|>` with arrow functions `=>`,
-and which would use the same general rules as `|>`.
+There is **already** a [proposed special syntax
+for partial function application (PFA)][PFA].
+Both proposals address a similar problem –
+piping values into placeholders—in different ways.
+The current PFA proposal’s design integrates well with F# pipes,
+rather than Hack pipes, and both sides
+are optimized for different use cases.
 
 [PFA]: https://github.com/tc39/proposal-partial-application/
 
-For example, instead of the proposed `example.map(foo(?, 0))`,\
-to mean `example.map(x => foo(x, 0))`,\
-one would write `example.map(+> foo(?, 0))`.\
-This would **avoid the garden-path problem** in that,
-when reading the expression from left to right,
-it is immediately apparent that it creates a new function,
-rather than calling `foo` directly.
+| Hack pipes                 | Current PFA (with F# pipes) |
+| -------------------------- | --------------------------- |
+|`x \|> ? + 1`               |`x \|> y=> y + 1`            |
+|`x \|> f(?, 0)`             |`x \|> f(?, 0)`              |
+|`a.map(x=> x + 1)`          |`a.map(x => x + 1)`          |
+|`a.map(x=> f(x, 0))`        |`a.map(f(?, 0))`             |
+|`a.sort((x,y)=> x - y)`     |`a.sort((x,y)=> x - y)`      |
+|`a.sort((x,y)=> f(x, y, 0))`|`a.sort(f(?, ?, 0))`         |
 
-But pipe functions wouldn’t just do partial function application;
-they could also do **partial expression application**.
-For example, `example.map(+> ?.foo(0)`\
-would mean `example.map(x => x.foo(0))`,\
-and `example.map(+> ? + 1)`\
-would mean `example.map(x => x + 1)`.\
+The PFA proposal could instead adopt Hack-pipe topic references.
+It would essentially combine the Hack pipe `|>`
+with the arrow function `=>`
+into a **topic-function** operator `+>`,
+which would use the same general rules as `|>`.
+`+>` would be a prefix operator would create a function
+that binds its arguments to the topic reference `?`.
+
+| Hack pipe functions        | Current PFA                 |
+| -------------------------- | --------------------------- |
+|`a.map(+> ? + 1)`           |`a.map(x => x + 1)`          |
+|`a.map(+> f(?, 0))`         |`a.map(f(?, 0))`             |
+|`a.sort(+> ?0 - ?1)`        |`a.sort((x,y)=> x - y)`      |
+|`a.sort(+> f(?0, ?1, 0))`   |`a.sort(f(?, ?, 0))`         |
+
+For example, instead of the proposed `a.map(f(?, 0))`,\
+to mean `a.map(x => f(x, 0))`,\
+one would write `a.map(+> f(?, 0))`.\
+This would **avoid** the current PFA proposal’s
+**garden-path problem** in that,
+when reading the expression from left to right,
+the `+>` makes it immediately apparent
+that the expression is creating a new function from `f`,
+rather than calling `f` directly.
+
+But pipe functions wouldn’t shorten only partial function application;
+they are also more flexible, allowing for **partial expression application**.
+For example, `a.map(+> ?.foo(0)`\
+would mean `a.map(x=> x.foo(0))`,\
+and `a.map(+> ? + 1)`\
+would mean `a.map(x=> x + 1)`.\
 **Neither** of these examples would be possible with
-the [currently proposed syntax for partial function application][PFA].
+the current PFA proposal.
 
 Creating non-unary functions could be done
 by adding numbers to topic references,
 such as `?0`, `?1`, `?2`, etc.\
-For instance, `example.sort(+> ?0 - ?1)`\
-would mean `example.sort((x, y) => x - y)`.\
+For instance, `a.sort(+> ?0 - ?1)`\
+would mean `a.sort((x,y)=> x - y)`.\
 (`?0` would be equivalent to plain `?`.)
 
 ### Pipe syntax for `if`, `catch`, and `for`
