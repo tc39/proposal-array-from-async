@@ -466,16 +466,19 @@ might become `catch |> ?.code |> foo(?, 0) |> console.error(?);`,\
 and `for (const val of arr) { val.foo() |> bar(?, 0); }`\
 might become `for (arr) |> ?.foo() |> bar(?, 0);`.
 
-### “Smart-mix” pipes
-In the future, **tacit function application** might also be added,
-which would resemble **F# pipes**.\
-For example, `value |> ? + 1 |> foo`\
-would mean `value |> ? + 1 |> foo(?)`.\
-Tacit function application (F# style) would have to be somehow distinguishable
-from expressions that use topic references (Hack style).
+### Tacit unary function application
+In the future, **tacit unary function application** could also be added,
+which would resemble F# pipes.
 
-This proposal would be **forward compatible**
-with such a [“smart mix” of topic expressions,
-which was initially proposed but then withdrawn][smart mix]
-in favor of this simpler Hack-pipes proposal.
-(The F#-pipe proposals, as is, would **not** be forward compatible.)
+This could be done with another pipe operator `|>>`,
+similarly to how Clojure has multiple pipe operators `->`, `->>`, and `as->`.
+For example, `value |> ? + 1 |>> foo`\
+would mean `value |> ? + 1 |>> foo(?)`.
+There was an [informal proposal for such a “split mix” of two pipe operators][split mix].
+
+Alternatively, if tacit unary function application (F# style)
+could become somehow distinguishable
+from expressions that use topic references (Hack style),
+then tacit function application could be built into a “smart” `|>`.
+(There was a [formal proposal for such a “smart” pipe operator][smart mix],
+but it was complicated and has been withdrawn in favor of this simpler proposal.)
