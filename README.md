@@ -626,3 +626,5 @@ from expressions that use topic references (Hack style),
 then tacit function application could be built into a “smart” `|>`.
 (There was a [formal proposal for such a “smart” pipe operator][smart mix],
 but it was complicated and has been withdrawn in favor of this simpler proposal.)
+
+[split mix]: https://github.com/tc39/proposal-pipeline-operator/wiki#proposal-3-split-mix
