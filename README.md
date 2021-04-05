@@ -365,9 +365,13 @@ require('shared/ReactSymbols')
 
 ```js
 return this.set('Link',
-  link + Object.keys(links).map(function (rel) {
-    return '<' + links[rel] + '>; rel="' + rel + '"'
-  }).join(', ')
+  link
+  + Object.keys(links)
+    .map(function (rel) {
+      return '<' + links[rel] + '>; rel="'
+      + rel + '"'
+    })
+    .join(', ')
 );
 ```
 From [express/lib/response.js][].
@@ -378,7 +382,8 @@ From [express/lib/response.js][].
 return links
  |> Object.keys(?)
  |> ?.map(function (rel) {
-    return '<' + links[rel] + '>; rel="' + rel + '"'
+    return '<' + links[rel] + '>; rel="'
+    + rel + '"'
   })
  |> ?.join(', ')
  |> this.set('Link', ?);
