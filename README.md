@@ -223,6 +223,7 @@ There are no other special rules.
 [precedence]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 ## Real-world examples
+Only minor formatting changes have been made to the status-quo examples.
 
 <table>
 <thead>
@@ -235,21 +236,31 @@ There are no other special rules.
 <td>
 
 ```js
-Object.keys( grunt.config( "uglify.all.files" ) )[ 0 ]
+Object.keys(
+  grunt.config(
+    'uglify.all.files'
+  )
+)[ 0 ]
 ```
 From [jquery/build/tasks/sourceMap.js][].
 
 <td>
 
 ```js
-"uglify.all.files" |> grunt.config(?) |> Object.keys(?)[0]
+'uglify.all.files'
+ |> grunt.config(?)
+ |> Object.keys(?)[0]
 ```
 
 <tr>
 <td>
 
 ```js
-const json = await npmFetch.json(npa(pkgs[0]).escapedName, opts);
+const json =
+  await npmFetch.json(
+    npa(pkgs[0]).escapedName,
+    opts,
+  );
 ```
 From [node/deps/npm/lib/unpublish.js][].
 
@@ -259,96 +270,6 @@ From [node/deps/npm/lib/unpublish.js][].
 const json = pkgs[0]
  |> npa(?).escapedName
  |> await npmFetch.json(?, opts);
-```
-
-<tr>
-<td>
-
-```js
-console.log(
-  chalk.dim(
-    `$ ${Object.keys(envars)
-      .map(envar => `${envar}=${envars[envar]}`)
-      .join(' ')}`,
-    'node',
-    args.join(' ')
-  )
-);
-```
-From [react/scripts/jest/jest-cli.js][].
-
-<td>
-
-```js
-envars
- |> Object.keys(?)
- |> ?.map(envar => `${envar}=${envars[envar]}`)
- |> ?.join(' ')
- |> `$ ${?}`
- |> chalk.dim(?, 'node', args.join(' '))
- |> console.log(?);
-```
-
-<tr>
-<td>
-
-```js
-const entries = Object.entries(require('shared/ReactSymbols')).filter(
-  ([key]) => key !== 'REACT_ASYNC_MODE_TYPE',
-);
-expectToBeUnique(entries);
-```
-From [react/scripts/jest/jest-cli.js][].
-
-<td>
-
-```js
-require('shared/ReactSymbols')
- |> Object.entries(?)
- |> ?.filter(([key]) => key !== 'REACT_ASYNC_MODE_TYPE')
- |> expectToBeUnique(?);
-```
-
-<tr>
-<td>
-
-```js
-parsed = buildFragment(
-  [ data ], context, scripts
-);
-return jQuery.merge(
-  [], parsed.childNodes
-);
-```
-From [jquery/src/core/parseHTML.js][].
-
-<td>
-
-```js
-return data
- |> buildFragment([?], context, scripts)
- |> ?.childNodes
- |> jQuery.merge([], ?);
-```
-
-<tr>
-<td>
-
-```js
-return this.set('Link', link + Object.keys(links).map(function(rel){
-  return '<' + links[rel] + '>; rel="' + rel + '"';
-}).join(', '));
-```
-From [express/lib/response.js][].
-
-<td>
-
-```js
-return links
- |> Object.keys(?)
- |> ?.map(rel => '<' + links[rel] + '>; rel="' + rel + '"')
- |> ?.join(', ')
- |> this.set('Link', ?);
 ```
 
 <tr>
@@ -390,6 +311,109 @@ return pred
  |> cb(?)
  |> _.negate(?)
  |> _.filter(obj, ?, context);
+```
+
+<tr>
+<td>
+
+```js
+parsed = buildFragment(
+  [ data ], context, scripts
+);
+return jQuery.merge(
+  [], parsed.childNodes
+);
+```
+From [jquery/src/core/parseHTML.js][].
+
+<td>
+
+```js
+return data
+ |> buildFragment([?], context, scripts)
+ |> ?.childNodes
+ |> jQuery.merge([], ?);
+```
+
+<tr>
+<td>
+
+```js
+const entries =
+  Object.entries(
+    require('shared/ReactSymbols')
+  ).filter(([key]) =>
+    key !== 'REACT_ASYNC_MODE_TYPE',
+  );
+expectToBeUnique(entries);
+```
+From [react/scripts/jest/jest-cli.js][].
+
+<td>
+
+```js
+require('shared/ReactSymbols')
+ |> Object.entries(?)
+ |> ?.filter(([key]) =>
+    key !== 'REACT_ASYNC_MODE_TYPE'
+  )
+ |> expectToBeUnique(?);
+```
+
+<tr>
+<td>
+
+```js
+return this.set('Link',
+  link + Object.keys(links).map(function (rel) {
+    return '<' + links[rel] + '>; rel="' + rel + '"'
+  }).join(', ')
+);
+```
+From [express/lib/response.js][].
+
+<td>
+
+```js
+return links
+ |> Object.keys(?)
+ |> ?.map(function (rel) {
+    return '<' + links[rel] + '>; rel="' + rel + '"'
+  })
+ |> ?.join(', ')
+ |> this.set('Link', ?);
+```
+
+<tr>
+<td>
+
+```js
+console.log(
+  chalk.dim(
+    `$ ${Object.keys(envars)
+      .map(envar =>
+        `${envar}=${envars[envar]}`
+      )
+      .join(' ')}`,
+    'node',
+    args.join(' ')
+  )
+);
+```
+From [react/scripts/jest/jest-cli.js][].
+
+<td>
+
+```js
+envars
+ |> Object.keys(?)
+ |> ?.map(envar =>
+    `${envar}=${envars[envar]}`
+  )
+ |> ?.join(' ')
+ |> `$ ${?}`
+ |> chalk.dim(?, 'node', args.join(' '))
+ |> console.log(?);
 ```
 
 <tr>
@@ -462,8 +486,7 @@ jQuery.merge(
   this, jQuery.parseHTML(
     match[1],
     context && context.nodeType
-      ? context.ownerDocument
-        || context
+      ? context.ownerDocument || context
       : document,
     true
   )
