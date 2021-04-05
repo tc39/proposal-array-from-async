@@ -236,20 +236,20 @@ Only minor formatting changes have been made to the status-quo examples.
 <td>
 
 ```js
-Object.keys(
+var minLoc = Object.keys(
   grunt.config(
     'uglify.all.files'
   )
-)[ 0 ]
+)[0];
 ```
 From [jquery/build/tasks/sourceMap.js][].
 
 <td>
 
 ```js
-'uglify.all.files'
+var minLoc = 'uglify.all.files'
  |> grunt.config(?)
- |> Object.keys(?)[0]
+ |> Object.keys(?)[0];
 ```
 
 <tr>
