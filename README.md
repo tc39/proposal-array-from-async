@@ -390,7 +390,7 @@ return links
     return '<' + links[rel] + '>; rel="'
       + rel + '"';
   })
- |> ?.join(', ')
+ |> link + ?.join(', ')
  |> this.set('Link', ?);
 ```
 
