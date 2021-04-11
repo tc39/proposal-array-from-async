@@ -243,7 +243,7 @@ Only minor formatting changes have been made to the status-quo examples.
 ```js
 var minLoc = Object.keys(
   grunt.config(
-    'uglify.all.files'
+    'uglify.all.files',
   )
 )[0];
 ```
@@ -304,7 +304,7 @@ function listCacheHas (key) {
 ```js
 return _.filter(obj,
   _.negate(cb(pred)),
-  context
+  context,
 );
 ```
 From [underscore.js][].
@@ -323,10 +323,10 @@ return pred
 
 ```js
 parsed = buildFragment(
-  [ data ], context, scripts
+  [ data ], context, scripts,
 );
 return jQuery.merge(
-  [], parsed.childNodes
+  [], parsed.childNodes,
 );
 ```
 From [jquery/src/core/parseHTML.js][].
@@ -346,7 +346,7 @@ return data
 ```js
 const entries =
   Object.entries(
-    require('shared/ReactSymbols')
+    require('shared/ReactSymbols'),
   ).filter(([key]) =>
     key !== 'REACT_ASYNC_MODE_TYPE',
   );
@@ -360,7 +360,7 @@ From [react/scripts/jest/jest-cli.js][].
 require('shared/ReactSymbols')
  |> Object.entries(?)
  |> ?.filter(([key]) =>
-    key !== 'REACT_ASYNC_MODE_TYPE'
+    key !== 'REACT_ASYNC_MODE_TYPE',
   )
  |> expectToBeUnique(?);
 ```
@@ -374,9 +374,9 @@ return this.set('Link',
   + Object.keys(links)
     .map(function (rel) {
       return '<' + links[rel] + '>; rel="'
-      + rel + '"'
+        + rel + '"';
     })
-    .join(', ')
+    .join(', '),
 );
 ```
 From [express/lib/response.js][].
@@ -388,7 +388,7 @@ return links
  |> Object.keys(?)
  |> ?.map(function (rel) {
     return '<' + links[rel] + '>; rel="'
-    + rel + '"'
+      + rel + '"';
   })
  |> ?.join(', ')
  |> this.set('Link', ?);
@@ -402,11 +402,11 @@ console.log(
   chalk.dim(
     `$ ${Object.keys(envars)
       .map(envar =>
-        `${envar}=${envars[envar]}`
-      )
-      .join(' ')}`,
+        `${envar}=${envars[envar]}`,
+      ).join(' ')
+    }`,
     'node',
-    args.join(' ')
+    args.join(' '),
   )
 );
 ```
@@ -418,7 +418,7 @@ From [react/scripts/jest/jest-cli.js][].
 envars
  |> Object.keys(?)
  |> ?.map(envar =>
-    `${envar}=${envars[envar]}`
+    `${envar}=${envars[envar]}`,
   )
  |> ?.join(' ')
  |> `$ ${?}`
@@ -454,7 +454,7 @@ match
 ```js
 var result = srcFn.apply(self, args);
 if (_.isObject(result)) return result;
-  return self;
+return self;
 ```
 From [underscore.js][].
 
@@ -498,7 +498,7 @@ jQuery.merge(
     context && context.nodeType
       ? context.ownerDocument || context
       : document,
-    true
+    true,
   )
 );
 ```
