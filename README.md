@@ -209,13 +209,6 @@ For example, `value => value |> ? == null |> foo(?, 0)`\
 would group into `value => (value |> (? == null) |> foo(?, 0))`,\
 which is equivalent to `value => foo(value == null, 0)`.
 
-If you need to interpose a side effect
-in the middle of a pipeline expression,
-without modifying the data being piped through,
-you could use a comma expression instead,
-such as with `value |> (sideEffect(), ?)`.
-This is especially useful for quick debugging
-with `value |> (console.log(?), ?)`.
 
 A pipeline’s body **must** use its topic reference.
 `value |> foo + 1` is an early syntax error,
@@ -224,6 +217,14 @@ This design is because omission of the topic reference from a pipeline body
 is almost certainly an accidental programmer error.
 
 There are no other special rules.
+
+(If you need to interpose a side effect
+in the middle of a pipeline expression,
+without modifying the data being piped through,
+you could use a comma expression instead,
+such as with `value |> (sideEffect(), ?)`.
+This is especially useful for quick debugging
+with `value |> (console.log(?), ?)`.)
 
 [precedence]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
