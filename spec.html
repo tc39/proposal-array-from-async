@@ -372,7 +372,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 
 <emu-grammar>PipeBody : PipeExpression</emu-grammar>
 <emu-alg>
-1. It is a Syntax Error if _PipeExpression_ Contains `&quest;` is *false*.
+1. It is a Syntax Error if |PipeBody| Contains `&quest;` is *false*.
 </emu-alg>
 </emu-clause>
 
@@ -406,7 +406,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 2. Let _PipeBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
 3. Perform ! _PipeBodyEnv_.BindTopicValues(_inputValues_).
 4. Set the running execution context's LexicalEnvironment to _PipeBodyEnv_.
-5. Let _pipeBodyValue_ be the result of evaluating _PipeExpression_.
+5. Let _pipeBodyValue_ be the result of evaluating |PipeBody|.
 6. Set the running execution context's LexicalEnvironment to _outerEnv_.
 7. Return _pipeBodyValue_.
 </emu-alg>
@@ -420,7 +420,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <emu-alg>
 1. Let _inputRef_ be the result of evaluating _ConditionalExpression_.
 2. Let _inputValues_ be « ? GetValue(_inputRef_) ».
-3. Let _outputValue_ be ? PipeBodyEvaluation of _PipeBody_ with argument _inputValues_.
+3. Let _outputValue_ be ? PipeBodyEvaluation of |PipeBody| with argument _inputValues_.
 4. Return _outputValue_.
 </emu-alg>
 </emu-clause>
