@@ -150,6 +150,60 @@ between each transformation on the data.
 
 </details>
 
+## What about temporary variables
+
+One could argue that using **temporary variables**
+should be the only way to untangle deeply nested code.
+Explicitly naming every step’s variable
+causes something like method chaining to happen.
+
+<details>
+<summary>Real-world example, continued</summary>
+
+For example, using our previous modified
+[real-world example from React][react/scripts/jest/jest-cli.js]:
+
+```js
+envars
+ |> Object.keys(?)
+ |> ?.map(envar =>
+    `${envar}=${envars[envar]}`,
+  )
+ |> ?.join(' ')
+ |> `$ ${?}`
+ |> chalk.dim(?, 'node', args.join(' '))
+ |> console.log(?);
+```
+
+…a version using temporary variables would look like this:
+
+```js
+const envarKeys = Object.keys(envars)
+const envarPairs = envarKeys.map(envar =>
+  `${envar}=${envars[envar]}`,
+);
+const envarString = envarPairs.join(' ');
+const consoleText = `$ ${envarString}`;
+const coloredConsoleText = chalk.dim(consoleText, 'node', args.join(' '));
+console.log(consoleText);
+```
+
+</details>
+
+But there are reasons why we encounter deeply nested expressions
+in each other’s code all the time,
+rather than lines of temporary variables.
+And there is a reason why the method chaining and [fluent interfaces][]
+of jQuery, Mocha, and so on are popular.
+
+It is often simply too tedious and wordy to write
+code with a long sequence of temporary, single-use variables.
+It is arguably even tedious and visually noisy for a human to read, too.
+
+If naming is one of the most difficult tasks in programming,
+then programmers will inevitably do their best to avoid naming
+when its benefit is relatively small.
+
 ## Why the Hack pipe operator
 There are **two competing proposals** for the pipe operator: Hack pipes and F# pipes.
 The proponents of each haven’t been convinced by the others yet.
