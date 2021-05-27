@@ -214,9 +214,9 @@ Establish the immutable topic binding of this Environment Record and set the top
 <p>A <dfn>topic-binding environment</dfn> is a declarative Environment Record that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its LexicalEnvironment's nearest outer Environment Record that is also a topic-binding environment (or *null* if no such Environment Record exists), as defined by the abstract operator GetTopicEnvironment.</p>
 
 <emu-note>
-<p>The <strong>only</strong> Environment Records that are topic-binding environments are declarative Environment Records that are associated with |PipelineBody| and which were created with its PipelineEvaluation operation.</p>
+<p>The <strong>only</strong> Environment Records that are topic-binding environments are declarative Environment Records that are associated with |PipeBody| and which were created with its PipelineEvaluation operation.</p>
 
-<p>In addition, |PipelineBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of <emu-grammar>PipelineBody : PipeExpression</emu-grammar>, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
+<p>In addition, |PipeBody| <strong>hides</strong> its own inner topic references from the static semantic rule Contains. Within the scope of |PipeBody|, such topic references would <strong>not</strong> trigger early error rules during program compilation. Instead, they would be evaluated at runtime into the values of the <strong>newly instantiated</strong> topic-binding environments' topic bindings.</p>
 </emu-note>
 
 </emu-clause>
@@ -345,9 +345,9 @@ PrimaryExpression[Yield, Await] :
 <emu-grammar type=definition>
 PipeExpression[In, Yield, Await] :
   ConditionalExpression[?In, ?Yield, ?Await]
-  ConditionalExpression[?In, ?Yield, ?Await] `|&gt;` PipelineBody[?In, ?Yield, ?Await]
+  ConditionalExpression[?In, ?Yield, ?Await] `|&gt;` PipeBody[?In, ?Yield, ?Await]
 
-PipelineBody[In, Yield, Await] :
+PipeBody[In, Yield, Await] :
   PipeExpression[?In, ?Yield, ?Await]
 </emu-grammar>
 
@@ -358,10 +358,10 @@ PipelineBody[In, Yield, Await] :
 </emu-note>
 
 <emu-note>
-<p><p>A |PipelineBody| must use its topic reference at least once.
+<p><p>A |PipeBody| must use its topic reference at least once.
 `value |&gt; foo + 1` is an early error,
-because its |PipelineBody| does not contain `&quest;`.
-This design is because omission of the topic reference from a |PipelineBody|
+because its |PipeBody| does not contain `&quest;`.
+This design is because omission of the topic reference from a |PipeBody|
 is almost certainly an accidental programmer error.
 In order to interpose a side effect
 in the middle of a pipeline expression,
@@ -370,7 +370,7 @@ a comma expression may be used instead,
 such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 </emu-note>
 
-<emu-grammar>PipelineBody : PipeExpression</emu-grammar>
+<emu-grammar>PipeBody : PipeExpression</emu-grammar>
 <emu-alg>
 1. It is a Syntax Error if _PipeExpression_ Contains `&quest;` is *false*.
 </emu-alg>
@@ -384,7 +384,7 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <p>This section is a wholly new sub-clause.</p>
 </emu-note>
 
-<emu-grammar>PipelineBody : PipeExpression</emu-grammar>
+<emu-grammar>PipeBody : PipeExpression</emu-grammar>
 <emu-alg>
 1. If _symbol_ is `&quest;`, return *false*.
 2. For each child node _child_ of this Parse Node, do
@@ -400,12 +400,12 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <h1>Runtime Semantics: PipelineEvaluation</h1>
 <p>With parameter _inputValues_.</p>
 
-<emu-grammar>PipelineBody : PipeExpression</emu-grammar>
+<emu-grammar>PipeBody : PipeExpression</emu-grammar>
 <emu-alg>
 1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
-2. Let _pipelineBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
-3. Perform ! _pipelineBodyEnv_.BindTopicValues(_inputValues_).
-4. Set the running execution context's LexicalEnvironment to _pipelineBodyEnv_.
+2. Let _PipeBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
+3. Perform ! _PipeBodyEnv_.BindTopicValues(_inputValues_).
+4. Set the running execution context's LexicalEnvironment to _PipeBodyEnv_.
 5. Let _pipelineValue_ be the result of evaluating _PipeExpression_.
 6. Set the running execution context's LexicalEnvironment to _outerEnv_.
 7. Return _pipelineValue_.
@@ -416,11 +416,11 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <emu-clause id=sec-pipe-operator-runtime-semantics-evaluation>
 <h1>Runtime Semantics: Evaluation</h1>
 
-<emu-grammar>PipeExpression : ConditionalExpression `|&gt;` Pipeline</emu-grammar>
+<emu-grammar>PipeExpression : ConditionalExpression `|&gt;` PipeBody</emu-grammar>
 <emu-alg>
 1. Let _inputRef_ be the result of evaluating _ConditionalExpression_.
 2. Let _inputValues_ be « ? GetValue(_inputRef_) ».
-3. Let _pipelineOutputValue_ be ? PipelineEvaluation of _Pipeline_ with argument _inputValues_.
+3. Let _pipelineOutputValue_ be ? PipelineEvaluation of _PipeBody_ with argument _inputValues_.
 4. Return _pipelineOutputValue_.
 </emu-alg>
 </emu-clause>
