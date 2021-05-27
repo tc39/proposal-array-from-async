@@ -37,36 +37,118 @@ and editing the code afterwards can be fraught
 as you have to find the correct **place to insert** new arguments
 among many difficult-to-distinguish parentheses.
 
+<details>
+<summary>Real-world example</summary>
+
+Consider this [real-world code from React][react/scripts/jest/jest-cli.js].
+
+```js
+console.log(
+  chalk.dim(
+    `$ ${Object.keys(envars)
+      .map(envar =>
+        `${envar}=${envars[envar]}`,
+      ).join(' ')
+    }`,
+    'node',
+    args.join(' '),
+  )
+);
+```
+
+This code is made of **deeply nested expressions**.
+In order to read its flow of data, a human’s eyes must first:
+
+1. Find the initial data (the innermost expression, `envars`).
+2. And then scan back and forth repeatedly from inside out
+   for each data transformation,
+   each one either an easily missed prefix operator on the left
+   or a suffix operators on the right:
+
+   1. `Object.keys()` (left side),
+   2. `.map()` (right side),
+   3. `.join()` (right side),
+   4. A template literal (both sides),
+   5. `chalk.dim()` (left side), then
+   6. `console.log()` (left side).
+
+</details>
+
 The second style, **chaining**, is **only** usable
 if the value has the functions designated as **methods** for its class.
 This **limits** its applicability,
 but **when** it applies,
 it’s generally more usable and **easier** to read and write:
-execution flows **left to right**;
-all the arguments for a given function are **grouped** with the function name;
+execution flows **left to right**.
+The deeply nested expressions are **untangled**.
+All the arguments for a given function are **grouped** with the function name;
 and editing the code later to insert or delete more function calls is trivial,
 since you just have to put your cursor in one spot and start typing
 or delete one **contiguous run of characters** with a clear separator.
 
-The benefits of method chaining are **so attractive**
+Indeed, the benefits of method chaining are **so attractive**
 that some **popular libraries contort** their code structure
 *specifically* to allow **more method chaining**.
 The most prominent example is **[jQuery][]**, which is
 *still* the most popular JS library in the world.
 jQuery’s core design is a single über-object with dozens of methods on it,
-all of which return the same object type so you can continue chaining.
+all of which return the same object type so that you can continue chaining.
+There is even a name for this style of programming:
+[fluent interfaces][].
 
 [jQuery]: https://jquery.com/
+[fluent interfaces]: https://en.wikipedia.org/wiki/Fluent_interface
 
 The pipe operator attempts to marry the **convenience** and ease of **method chaining**
-with the wide **applicability** of **function nesting**.
+with the wide **applicability** of **expression nesting**.
 
 The general structure of all the pipe operators is
-`value |> ` <var>one</var> `|>` <var>two</var> `|>` <var>three</var>,
-where <var>one</var>, <var>two</var>, and <var>three</var>
-are all expressions that take the value as an argument.
+`value |> ` <var>e1</var> `|>` <var>e2</var> `|>` <var>e3</var>,
+where <var>e1</var>, <var>e2</var>, e3 <var>three</var>
+are all expressions that take consecutive values as their parameters.
 The `|>` operator then does some degree of magic to “pipe” `value`
 from the lefthand side into the righthand side.
+
+<details>
+<summary>Real-world example, continued</summary>
+
+Continuing this deeply nested [real-world code from React][react/scripts/jest/jest-cli.js]:
+
+```js
+console.log(
+  chalk.dim(
+    `$ ${Object.keys(envars)
+      .map(envar =>
+        `${envar}=${envars[envar]}`,
+      ).join(' ')
+    }`,
+    'node',
+    args.join(' '),
+  )
+);
+```
+
+…we can untangle it as such using a pipe operator
+and a placeholder token (`?`) standing in for the previous step’s value:
+
+```js
+envars
+ |> Object.keys(?)
+ |> ?.map(envar =>
+    `${envar}=${envars[envar]}`,
+  )
+ |> ?.join(' ')
+ |> `$ ${?}`
+ |> chalk.dim(?, 'node', args.join(' '))
+ |> console.log(?);
+```
+
+Now, the human reader can rapidly find the initial data
+(what had been the most innermost expression, `envars`),
+then linearly read from left to right
+between each transformation on the data.
+
+</details>
 
 ## Why the Hack pipe operator
 There are **two competing proposals** for the pipe operator: Hack pipes and F# pipes.
@@ -113,6 +195,40 @@ through the three functions.
 `left |> right` becomes `right(left)`.
 
 [F# pipes]: https://github.com/tc39/proposal-pipeline-operator/
+
+<details>
+<summary>Real-world example, continued</summary>
+
+For example, using our previous modified
+[real-world example from React][react/scripts/jest/jest-cli.js]:
+
+```js
+envars
+ |> Object.keys(?)
+ |> ?.map(envar =>
+    `${envar}=${envars[envar]}`,
+  )
+ |> ?.join(' ')
+ |> `$ ${?}`
+ |> chalk.dim(?, 'node', args.join(' '))
+ |> console.log(?);
+```
+
+…a version using F# pipes instead of Hack pipes would look like this:
+
+```js
+envars
+ |> Object.keys
+ |> x => x.map(envar =>
+    `${envar}=${envars[envar]}`,
+  )
+ |> x => x.join(' ')
+ |> x => `$ ${x}`
+ |> x => chalk.dim(x, 'node', args.join(' '))
+ |> console.log;
+```
+
+</details>
 
 **Pro:** The restriction that the RHS *must* resolve to a function
 lets you write very terse pipes
