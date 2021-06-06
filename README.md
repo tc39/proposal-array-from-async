@@ -749,7 +749,7 @@ are optimized for different use cases.
 | -------------------------- | --------------------------- |
 |`x \|> ? + 1`               |`x \|> y=> y + 1`            |
 |`x \|> f(?, 0)`             |`x \|> f(?, 0)`              |
-|`a.map(x=> x + 1)`          |`a.map(x => x + 1)`          |
+|`a.map(x=> x + 1)`          |`a.map(x=> x + 1)`           |
 |`a.map(x=> f(x, 0))`        |`a.map(f(?, 0))`             |
 |`a.sort((x,y)=> x - y)`     |`a.sort((x,y)=> x - y)`      |
 |`a.sort((x,y)=> f(x, y, 0))`|`a.sort(f(?, ?, 0))`         |
@@ -764,13 +764,13 @@ that binds its arguments to the topic reference `?`.
 
 | Hack pipe functions        | Current PFA                 |
 | -------------------------- | --------------------------- |
-|`a.map(+> ? + 1)`           |`a.map(x => x + 1)`          |
+|`a.map(+> ? + 1)`           |`a.map(x=> x + 1)`           |
 |`a.map(+> f(?, 0))`         |`a.map(f(?, 0))`             |
 |`a.sort(+> ?0 - ?1)`        |`a.sort((x,y)=> x - y)`      |
 |`a.sort(+> f(?0, ?1, 0))`   |`a.sort(f(?, ?, 0))`         |
 
 For example, instead of the proposed `a.map(f(?, 0))`,\
-to mean `a.map(x => f(x, 0))`,\
+to mean `a.map(x=> f(x, 0))`,\
 one would write `a.map(+> f(?, 0))`.\
 This would **avoid** the current PFA proposal’s
 **garden-path problem** in that,
