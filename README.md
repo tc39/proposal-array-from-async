@@ -242,13 +242,15 @@ by adding a `(?)` to it.
 
 ### Alternative proposal: F# pipes
 In the [**F# language**’s pipe syntax][F# pipes],
-the RHS of the pipe is an expression that must resolve to a function,
-which is then called with the lefthand side’s value as its sole argument.
+the RHS of the pipe is an expression that must **evaluate into a function**,
+which is then **tacitly called** with the lefthand side’s value as its **sole argument**.
 That is, you write `value |> one |> two |> three` to pipe `value`
 through the three functions.
 `left |> right` becomes `right(left)`.
+This is called [tacit programming or point-free style][tacit].
 
 [F# pipes]: https://github.com/tc39/proposal-pipeline-operator/
+[tacit]: https://en.wikipedia.org/wiki/Tacit_programming
 
 <details>
 <summary>Real-world example, continued</summary>
@@ -286,11 +288,11 @@ envars
 
 **Pro:** The restriction that the RHS *must* resolve to a function
 lets you write very terse pipes
-**when** the operation you want to perform is **already a named function**.
+**when** the operation you want to perform is **already a unary function**.
 
 **Con:** The restriction means that **any operations**
 that are performed by **other syntax**
-must be done by **wrapping** the operation in an **arrow function**:\
+must be done by **wrapping** the operation in a unary **arrow function**:\
 `value |> x=>x[0]`,\
 `value |> x=>x.foo()`,\
 `value |> x=>x+1`,\
