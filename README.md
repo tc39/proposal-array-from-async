@@ -384,7 +384,8 @@ The **pipe operator** `|>` is an associative **infix operator**.
 It evaluates its lefthand-side expression (the **pipe head**),
 immutably **binds** the resulting value to the topic reference,
 then evaluates its righthand-side expression (the **pipe body**) with that binding,
-which in turn becomes the value of the whole **pipe expression** (also called a **pipeline**).
+which in turn becomes the value of the whole **pipe expression**
+(also called a **pipeline**).
 
 The pipe operator’s [precedence][] is **looser**
 than all operators **other than**:

@@ -11,9 +11,17 @@ contributors: J. S. Choi
 
 <emu-intro id=introduction>
 <h1>Introduction</h1>
-<p>This is the formal specification for a proposed Hack-style pipe operator <code>|&gt;</code> in JavaScript. It modifies the original <a href=https://tc39.github.io/ecma262/>ECMAScript specification</a> with several new or revised clauses. See <a href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md>the proposal's explainer</a> for the proposal's background, motivation, and usage examples.</p>
+<p>This is the formal specification for a proposed Hack-style pipe
+operator <code>|&gt;</code> in JavaScript. It modifies the original <a
+href=https://tc39.github.io/ecma262/>ECMAScript specification</a> with
+several new or revised clauses. See <a
+href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.
+md>the proposal's explainer</a> for the proposal's background,
+motivation, and usage examples.</p>
 
-<p>This document presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
+<p>This document presumptively uses `&quest;` as the placeholder token
+for the topic reference. This choice of token is not a final decision;
+`&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-intro>
 
 <emu-clause id=executable-code-and-execution-contexts>
@@ -26,10 +34,14 @@ contributors: J. S. Choi
 <h1>The Environment Record Type Hierarchy</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/https://tc39.es/ecma262/#sec-the-environment-record-type-hierarchy>original Environment Records clause</a>.</p>
+<p>This section augments the <a
+href=https://tc39.github.io/ecma262/https://tc39.es/ecma262/#sec-the-
+environment-record-type-hierarchy>original Environment Records
+clause</a>.</p>
 </emu-note>
 
-<emu-table id=table-15 caption="Abstract Methods of Environment Records">
+<emu-table id=table-15 caption="Abstract Methods of Environment
+Records">
 <table>
 <thead>
 <tr>
@@ -44,10 +56,14 @@ Purpose
 <tbody>
 <tr>
 <td>
-<ins><emu-xref href="#sec-declarative-environment-records-hastopicbinding">HasTopicBinding()</emu-xref></ins>
+<ins><emu-xref
+href="#sec-declarative-environment-records-hastopicbinding">
+HasTopicBinding()</emu-xref></ins>
 </td>
 <td>
-<ins>Determine whether an Environment Record is a topic-binding environment. Return *true* if it establishes a topic binding and *false* if it does not.</ins>
+<ins>Determine whether an Environment Record is a topic-binding
+environment. Return *true* if it establishes a topic binding and *false*
+if it does not.</ins>
 </td>
 </tr>
 </tbody>
@@ -58,13 +74,17 @@ Purpose
 <h1>Declarative Environment Records</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>.</p>
+<p>This section augments the <a
+href=https://tc39.github.io/ecma262/#sec-declarative-environment-records
+>original Declarative Environment Records clause</a>.</p>
 </emu-note>
 
 <ins class=block>
-<p>Declarative Environment Records have the additional state fields listed in <emu-xref href="#table-61"></emu-xref>.</p>
+<p>Declarative Environment Records have the additional state fields
+listed in <emu-xref href="#table-61"></emu-xref>.</p>
 
-<emu-table id=table-61 caption="Additional Fields of Declarative Environment Records">
+<emu-table id=table-61 caption="Additional Fields of Declarative
+Environment Records">
 <table>
 <thead>
 <tr>
@@ -88,7 +108,11 @@ Purpose
 List of any
 </td>
 <td>
-If the declarative Environment Record is a topic-binding environment, then [[TopicValues]] is a List containing the one element which is the environment's topic value (that is, the value of `&quest;` within its program scope). Otherwise, the value of [[TopicValues]] is an empty List.
+If the declarative Environment Record is a topic-binding environment,
+then [[TopicValues]] is a List containing the one element which is the
+environment's topic value (that is, the value of `&quest;` within its
+program scope). Otherwise, the value of [[TopicValues]] is an empty
+List.
 </td>
 </tr>
 </tbody>
@@ -96,12 +120,20 @@ If the declarative Environment Record is a topic-binding environment, then [[Top
 </emu-table>
 
 <emu-note type=editor>
-<p>[[TopicValues]] is a List in order to be forward compatible with future extensions that would use multiple <emu-xref href="#sec-topic-bindings">topic values</emu-xref>, e.g., <a href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md#pipe-functions>"pipe functions".</a></p>
+<p>[[TopicValues]] is a List in order to be forward compatible with
+future extensions that would use multiple <emu-xref
+href="#sec-topic-bindings">topic values</emu-xref>, e.g., <a
+href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.
+md#pipe-functions>"pipe functions".</a></p>
 </emu-note>
 
-<p>Declarative Environment Records support all of the abstract methods of Environment Records listed in <emu-xref href="#table-15"></emu-xref>. In addition, declarative Environment Records support the methods listed in <emu-xref href="#table-62"></emu-xref>.</p>
+<p>Declarative Environment Records support all of the abstract methods
+of Environment Records listed in <emu-xref href="#table-15"></emu-xref>.
+In addition, declarative Environment Records support the methods listed
+in <emu-xref href="#table-62"></emu-xref>.</p>
 
-<emu-table id=table-62 caption="Additional Methods of Declarative Environment Records">
+<emu-table id=table-62 caption="Additional Methods of Declarative
+Environment Records">
 <table>
 <thead>
 <tr>
@@ -119,7 +151,13 @@ Purpose
 BindTopicValues(V)
 </td>
 <td>
-Establish the immutable topic binding of this Environment Record and set the topic binding's value. _V_ is a List containing the one element which is the topic value and is a value of any ECMAScript language type. Afterward, the Environment Record is a topic-binding environment, and the value returned by the Environment Record's HasTopicBinding method is *true*. This method cannot be called more than once on any single Environment Record.
+Establish the immutable topic binding of this Environment Record and set
+the topic binding's value. _V_ is a List containing the one element
+which is the topic value and is a value of any ECMAScript language type.
+Afterward, the Environment Record is a topic-binding environment, and
+the value returned by the Environment Record's HasTopicBinding method is
+*true*. This method cannot be called more than once on any single
+Environment Record.
 </td>
 </tr>
 </tbody>
@@ -127,22 +165,35 @@ Establish the immutable topic binding of this Environment Record and set the top
 </emu-table>
 
 <emu-note type=editor>
-<p>BindTopicValues() accepts a List argument rather than a single-value argument in order to be forward compatible with future extensions that would use multiple <emu-xref href="#sec-topic-bindings">topic values</emu-xref>, e.g., <a href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md#pipe-functions>"pipe functions"</a>.</p>
+<p>BindTopicValues() accepts a List argument rather than a single-value
+argument in order to be forward compatible with future extensions that
+would use multiple <emu-xref href="#sec-topic-bindings">topic
+values</emu-xref>, e.g., <a
+href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.
+md#pipe-functions>"pipe functions"</a>.</p>
 </emu-note>
 
 </ins>
 
-<p>The behaviour of the concrete <ins>and additional</ins> specification methods for declarative Environment Records is defined by the following algorithms.</p>
+<p>The behaviour of the concrete <ins>and additional</ins> specification
+methods for declarative Environment Records is defined by the following
+algorithms.</p>
 
 <emu-clause id=sec-declarative-environment-records-hastopicbinding>
 <h1><ins>HasTopicBinding ( )</ins></h1>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>.</p>
+<p>This section is a wholly new sub-clause of the <a
+href=https://tc39.github.io/ecma262/#sec-declarative-environment-records
+>original Declarative Environment Records clause</a>.</p>
 </emu-note>
 
-<p>The concrete Environment Record method HasTopicBinding for declarative Environment Records returns whether the Environment Record is a topic-binding environment. The value is *true* only if its BindTopicValues method has been called.</p>
+<p>The concrete Environment Record method HasTopicBinding for
+declarative Environment Records returns whether the Environment Record
+is a topic-binding environment. The value is *true* only if its
+BindTopicValues method has been called.</p>
 <emu-alg>
-1. Let _envRec_ be the declarative Environment Record for which the method was invoked.
+1. Let _envRec_ be the declarative Environment Record for which the
+   method was invoked.
 2. If _envRec_.[[TopicValues]] is an empty List, then return *true*.
 3. Return *false*.
 </emu-alg>
@@ -151,12 +202,18 @@ Establish the immutable topic binding of this Environment Record and set the top
 <emu-clause id=sec-declarative-environment-records-bindtopicvalues>
 <h1><ins>BindTopicValues ( _V_ )</ins></h1>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-declarative-environment-records>original Declarative Environment Records clause</a>.</p>
+<p>This section is a wholly new sub-clause of the <a
+href=https://tc39.github.io/ecma262/#sec-declarative-environment-records
+>original Declarative Environment Records clause</a>.</p>
 </emu-note>
-<p>The method BindTopicValues for declarative Environment Records may only be called on an Environment Records when it is not yet a topic-binding environment, after which it does become a topic-binding environment.</p>
+<p>The method BindTopicValues for declarative Environment Records may
+only be called on an Environment Records when it is not yet a
+topic-binding environment, after which it does become a topic-binding
+environment.</p>
 <emu-alg>
 1. <ins>Assert: _V_ is a List.</ins>
-2. Let _envRec_ be the declarative Environment Record for which the method was invoked.
+2. Let _envRec_ be the declarative Environment Record for which the
+   method was invoked.
 3. Assert: _envRec_.HasTopicBinding() is *false*.
 4. Set _envRec_.[[TopicValues]] to _V_.
 5. Assert: _envRec_.HasTopicBinding() is *true*.
@@ -172,7 +229,9 @@ Establish the immutable topic binding of this Environment Record and set the top
 <h1><ins>HasTopicBinding ( )</ins></h1>
 
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-object-environment-records>original Object Environment Records clause</a>.</p>
+<p>This section is a wholly new sub-clause of the <a
+href=https://tc39.github.io/ecma262/#sec-object-environment-records>
+original Object Environment Records clause</a>.</p>
 </emu-note>
 
 <p>Regular object Environment Records never have topic bindings.</p>
@@ -190,7 +249,9 @@ Establish the immutable topic binding of this Environment Record and set the top
 <h1><ins>HasTopicBinding ( )</ins></h1>
 
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-object-environment-records>original Global Environment Records clause</a>.</p>
+<p>This section is a wholly new sub-clause of the <a
+href=https://tc39.github.io/ecma262/#sec-object-environment-records>
+original Global Environment Records clause</a>.</p>
 </emu-note>
 
 <p>Global Environment Records never have topic bindings.</p>
@@ -207,15 +268,31 @@ Establish the immutable topic binding of this Environment Record and set the top
 <h1><ins>Topic Bindings</ins></h1>
 
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause of the <a href=https://tc39.github.io/ecma262/#sec-environment-records>original Environment Records clause</a>.</p>
+<p>This section is a wholly new sub-clause of the <a
+href=https://tc39.github.io/ecma262/#sec-environment-records>original
+Environment Records clause</a>.</p>
 </emu-note>
 
-<p>The <dfn>topic binding</dfn> of a declarative Environment Record immutably binds the topic reference `&quest;` to one value of any ECMAScript language type (called the <dfn>topic value</dfn> or simply the <dfn>topic</dfn>), within that declarative Environment Record, at the time of the Environment Record's instantiation. The topic of a declarative Environment Record conceptually serves as the value that its lexical context is "about".</p>
+<p>The <dfn>topic binding</dfn> of a declarative Environment Record
+immutably binds the topic reference `&quest;` to one value of any
+ECMAScript language type (called the <dfn>topic value</dfn> or simply
+the <dfn>topic</dfn>), within that declarative Environment Record, at
+the time of the Environment Record's instantiation. The topic of a
+declarative Environment Record conceptually serves as the value that its
+lexical context is "about".</p>
 
-<p>A <dfn>topic-binding environment</dfn> is a declarative Environment Record that establishes a topic binding. The <dfn>topic environment</dfn> of the running execution context is its LexicalEnvironment's nearest outer Environment Record that is also a topic-binding environment (or *null* if no such Environment Record exists), as defined by the abstract operator GetTopicEnvironment.</p>
+<p>A <dfn>topic-binding environment</dfn> is a declarative Environment
+Record that establishes a topic binding. The <dfn>topic
+environment</dfn> of the running execution context is its
+LexicalEnvironment's nearest outer Environment Record that is also a
+topic-binding environment (or *null* if no such Environment Record
+exists), as defined by the abstract operator GetTopicEnvironment.</p>
 
 <emu-note>
-<p>An Environment Record is a topic-binding environment <strong>only</strong> when it is a declarative Environment Record that is associated with a |PipeBody| and which was created with its PipeBodyEvaluation operation.</p>
+<p>An Environment Record is a topic-binding environment
+<strong>only</strong> when it is a declarative Environment Record that
+is associated with a |PipeBody| and which was created with its
+PipeBodyEvaluation operation.</p>
 </emu-note>
 
 </emu-clause>
@@ -231,21 +308,33 @@ Establish the immutable topic binding of this Environment Record and set the top
 <h1>Punctuators</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-punctuators>original Punctuators clause</a>.</p>
-<p>It presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
+<p>This section augments the <a
+href=https://tc39.github.io/ecma262/#sec-punctuators>original
+Punctuators clause</a>.</p>
+<p>It presumptively uses `&quest;` as the placeholder token for the
+topic reference. This choice of token is not a final decision; `&quest;`
+could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-note>
 
 <ins class=block>
 <emu-grammar>
 OtherPunctuator :: one of
-  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `&quest;` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `|&gt;` `&quest;` `=` `+=` `-=` `*=` `&quest;=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
+  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=`
+`==` `!=` `===` `!==` `+` `-` `*` `&quest;` `**` `++` `--` `&lt;&lt;`
+`&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?`
+`:` `|&gt;` `&quest;` `=` `+=` `-=` `*=` `&quest;=` `**=` `&lt;&lt;=`
+`&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
 </emu-grammar>
 </ins>
 
 <del class=block>
 <emu-grammar>
 OtherPunctuator :: one of
-  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=` `==` `!=` `===` `!==` `+` `-` `*` `&quest;` `**` `++` `--` `&lt;&lt;` `&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?` `:` `=` `+=` `-=` `*=` `&quest;=` `**=` `&lt;&lt;=` `&gt;&gt;=` `&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
+  `{` `(` `)` `[` `]` `.` `...` `;` `,` `&lt;` `&gt;` `&lt;=` `&gt;=`
+`==` `!=` `===` `!==` `+` `-` `*` `&quest;` `**` `++` `--` `&lt;&lt;`
+`&gt;&gt;` `&gt;&gt;&gt;` `&amp;` `|` `^` `!` `~` `&amp;&amp;` `||` `?`
+`:` `=` `+=` `-=` `*=` `&quest;=` `**=` `&lt;&lt;=` `&gt;&gt;=`
+`&gt;&gt;&gt;=` `&amp;=` `|=` `^=` `=&gt;`
 </emu-grammar>
 </del>
 
@@ -259,8 +348,12 @@ OtherPunctuator :: one of
 <h1>Primary Expression</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-primary-expression>original Primary Expression clause</a>.</p>
-<p>It presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
+<p>This section augments the <a
+href=https://tc39.github.io/ecma262/#sec-primary-expression>original
+Primary Expression clause</a>.</p>
+<p>It presumptively uses `&quest;` as the placeholder token for the
+topic reference. This choice of token is not a final decision; `&quest;`
+could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-note>
 
 <h2>Syntax</h2>
@@ -287,22 +380,42 @@ PrimaryExpression[Yield, Await] :
 <h1><ins>Topic Reference</ins></h1>
 
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause to be inserted between the <a href=https://tc39.github.io/ecma262/#sec-this-keyword>original `this` Keyword clause</a> and the <a href=https://tc39.github.io/ecma262/#sec-identifier-reference>original Identifier Reference clause</a>.</p>
-<p>It presumptively uses `&quest;` as the placeholder token for the topic reference. This choice of token is not a final decision; `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
+<p>This section is a wholly new sub-clause to be inserted between the <a
+href=https://tc39.github.io/ecma262/#sec-this-keyword>original `this`
+Keyword clause</a> and the <a
+href=https://tc39.github.io/ecma262/#sec-identifier-reference>original
+Identifier Reference clause</a>.</p>
+<p>It presumptively uses `&quest;` as the placeholder token for the
+topic reference. This choice of token is not a final decision; `&quest;`
+could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-note>
 
 <emu-note>
-<p>The <dfn>topic reference</dfn>, which is the token `&quest;`, is a nullary operator that evaluates to the current Environment Record's topic value. The topic reference acts as if it were a special variable: implicitly bound to the topic value, yet still lexically scoped. But `&quest;` is not actually an |IdentifierName| and the topic reference is not a variable, and it cannot be bound by typical assignment; instead, it is immutably bound to a value during the instantiation of any topic-binding environment.</p>
+<p>The <dfn>topic reference</dfn>, which is the token `&quest;`, is a
+nullary operator that evaluates to the current Environment Record's
+topic value. The topic reference acts as if it were a special variable:
+implicitly bound to the topic value, yet still lexically scoped. But
+`&quest;` is not actually an |IdentifierName| and the topic reference is
+not a variable, and it cannot be bound by typical assignment; instead,
+it is immutably bound to a value during the instantiation of any
+topic-binding environment.</p>
 
-<p>The concept of topic bindings is further discussed in <emu-xref href="#sec-topic-bindings">Topic Bindings</emu-xref> and in <emu-xref href="#sec-declarative-environment-records">Declarative Environment Records</emu-xref>.</p>
+<p>The concept of topic bindings is further discussed in <emu-xref
+href="#sec-topic-bindings">Topic Bindings</emu-xref> and in <emu-xref
+href="#sec-declarative-environment-records">Declarative Environment
+Records</emu-xref>.</p>
 </emu-note>
 
 <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
 <h1>Runtime Semantics: GetTopicEnvironment</h1>
 <emu-note>
-<p>GetTopicEnvironment finds the running execution context's innermost topic-binding environment (i.e., the Environment Record that supplies the current topic binding) or *null* if the running execution context has no topic binding.</p>
+<p>GetTopicEnvironment finds the running execution context's innermost
+topic-binding environment (i.e., the Environment Record that supplies
+the current topic binding) or *null* if the running execution context
+has no topic binding.</p>
 </emu-note>
-<p>When the abstract operation GetTopicEnvironment is called, the following steps are performed:</p>
+<p>When the abstract operation GetTopicEnvironment is called, the
+following steps are performed:</p>
 <emu-alg>
 1. Let _envRec_ be the running execution context's LexicalEnvironment.
 2. Repeat,
@@ -337,7 +450,11 @@ PrimaryExpression[Yield, Await] :
 <emu-clause id=sec-pipe-operator>
 <h1><ins>Pipe Operator</ins></h1>
 <emu-note type=editor>
-<p>This section is a wholly new sub-clause to be inserted between the <a href=https://tc39.github.io/ecma262/#sec-conditional-operator>original Conditional Operator (`?` `:`) clause</a> and the <a href=https://tc39.github.io/ecma262/#sec-assignment-operators>original Assignment Operators clause</a>.</p>
+<p>This section is a wholly new sub-clause to be inserted between the <a
+href=https://tc39.github.io/ecma262/#sec-conditional-operator>original
+Conditional Operator (`?` `:`) clause</a> and the <a
+href=https://tc39.github.io/ecma262/#sec-assignment-operators>original
+Assignment Operators clause</a>.</p>
 </emu-note>
 
 <h2>Syntax</h2>
@@ -395,7 +512,8 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 </emu-alg>
 </emu-clause>
 
-<emu-clause id=sec-pipe-operator-runtime-semantics-PipeBodyEvaluation aoid=PipeBodyEvaluation>
+<emu-clause id=sec-pipe-operator-runtime-semantics-PipeBodyEvaluation
+aoid=PipeBodyEvaluation>
 <h1>Runtime Semantics: PipeBodyEvaluation</h1>
 <p>With parameter _inputValues_.</p>
 
@@ -404,7 +522,8 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
 2. Let _PipeBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
 3. Perform ! _PipeBodyEnv_.BindTopicValues(_inputValues_).
-4. Set the running execution context's LexicalEnvironment to _PipeBodyEnv_.
+4. Set the running execution context's LexicalEnvironment to
+   _PipeBodyEnv_.
 5. Let _pipeBodyValue_ be the result of evaluating |PipeBody|.
 6. Set the running execution context's LexicalEnvironment to _outerEnv_.
 7. Return _pipeBodyValue_.
@@ -415,11 +534,13 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <emu-clause id=sec-pipe-operator-runtime-semantics-evaluation>
 <h1>Runtime Semantics: Evaluation</h1>
 
-<emu-grammar>PipeExpression : ConditionalExpression `|&gt;` PipeBody</emu-grammar>
+<emu-grammar>PipeExpression : ConditionalExpression `|&gt;`
+PipeBody</emu-grammar>
 <emu-alg>
 1. Let _inputRef_ be the result of evaluating _ConditionalExpression_.
 2. Let _inputValues_ be « ? GetValue(_inputRef_) ».
-3. Let _outputValue_ be ? PipeBodyEvaluation of |PipeBody| with argument _inputValues_.
+3. Let _outputValue_ be ? PipeBodyEvaluation of |PipeBody| with argument
+_inputValues_.
 4. Return _outputValue_.
 </emu-alg>
 </emu-clause>
@@ -430,7 +551,9 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <h1>Assignment Operators</h1>
 
 <emu-note type=editor>
-<p>This section augments the <a href=https://tc39.github.io/ecma262/#sec-assignment-operators>original Assignment Operators clause</a>.</p>
+<p>This section augments the <a
+href=https://tc39.github.io/ecma262/#sec-assignment-operators>original
+Assignment Operators clause</a>.</p>
 </emu-note>
 
 <h2>Syntax</h2>
