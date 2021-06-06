@@ -381,10 +381,10 @@ We plan to [bikeshed what actual token to use][token bikeshedding]
 later, if TC39 advances this proposal.
 
 The **pipe operator** `|>` is an associative **infix operator**.
-It evaluates its lefthand-side expression (the **head**),
+It evaluates its lefthand-side expression (the **pipe head**),
 immutably binds the resulting value to the topic reference,
-then evaluates its righthand-side expression (the **body**) with that binding,
-which in turn becomes the value of the whole **pipeline** expression.
+then evaluates its righthand-side expression (the **pipe body**) with that binding,
+which in turn becomes the value of the whole **pipe expression** (also called a **pipeline**).
 
 The pipe operator’s [precedence][] is **looser**
 than all operators **other than**:
@@ -397,16 +397,16 @@ For example, `value => value |> ? == null |> foo(?, 0)`\
 would group into `value => (value |> (? == null) |> foo(?, 0))`,\
 which is equivalent to `value => foo(value == null, 0)`.
 
-A pipeline’s body **must** use its topic reference.
+A pipe body **must** use its topic reference.
 `value |> foo + 1` is an early syntax error,
 because it does not contain `?`.
-This design is because omission of the topic reference from a pipeline body
+This design is because omission of the topic reference from a pipe expression’s body
 is almost certainly an accidental programmer error.
 
 There are no other special rules.
 
 (If you need to interpose a side effect
-in the middle of a pipeline expression,
+in the middle of a chain of pipe expressions,
 without modifying the data being piped through,
 you could use a comma expression instead,
 such as with `value |> (sideEffect(), ?)`.
