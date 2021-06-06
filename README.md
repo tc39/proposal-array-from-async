@@ -185,7 +185,7 @@ const envarPairs = envarKeys.map(envar =>
 const envarString = envarPairs.join(' ');
 const consoleText = `$ ${envarString}`;
 const coloredConsoleText = chalk.dim(consoleText, 'node', args.join(' '));
-console.log(consoleText);
+console.log(coloredConsoleText);
 ```
 
 </details>
