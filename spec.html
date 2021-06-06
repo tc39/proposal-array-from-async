@@ -430,16 +430,18 @@ following steps are performed:</p>
 
 <emu-clause id=sec-topic-references-runtime-semantics-evaluation>
 <h1>Runtime Semantics: Evaluation</h1>
+<emu-note>
+<p>A topic reference will always be evaluated in a topic-binding environment. This is enforced by an early error for |ScriptBody| and an early error for |ModuleItemList|.</p>
+</emu-note>
 
 <emu-grammar>PrimaryExpression : `&quest;`</emu-grammar>
 <emu-alg>
 1. Let _topicEnv_ be GetTopicEnvironment().
-2. If _topicEnv_ is *null*, throw a *ReferenceError* exception.
-3. Assert: _topicEnv_ is a declarative Environment Record.
-4. Assert: _topicEnv_.HasTopicBinding() is true.
-5. Let _topicValues_ be _envRec_.[[TopicValues]].
-6. Assert: _topicValues_ has at least one element.
-7. Return _topicValues_[0].
+2. Assert: _topicEnv_ is a declarative Environment Record.
+3. Assert: _topicEnv_.HasTopicBinding() is true.
+4. Let _topicValues_ be _envRec_.[[TopicValues]].
+5. Assert: _topicValues_ has at least one element.
+6. Return _topicValues_[0].
 </emu-alg>
 </emu-clause>
 
@@ -570,4 +572,55 @@ AssignmentExpression[In, Yield, Await] :
 </emu-grammar>
 
 </emu-clause>
+</emu-clause>
+
+<emu-clause id="sec-ecmascript-language-scripts-and-modules">
+<h1>ECMAScript Language: Scripts and Modules</h1>
+
+<emu-clause id="sec-scripts">
+<h1>Scripts</h1>
+
+<emu-note type=editor>
+<p>This section augments the <a
+href=https://tc39.github.io/ecma262/#sec-scripts>original
+Scripts clause</a>.</p>
+</emu-note>
+
+<emu-clause id="sec-scripts-static-semantics-early-errors">
+<h1>Static Semantics: Early Errors</h1>
+
+<emu-grammar>Script : ScriptBody</emu-grammar>
+<ul>
+<li>
+<ins>It is a Syntax Error if |ScriptBody| Contains |TopicReference| is *true*.</ins>
+</li>
+</ul>
+</emu-clause>
+
+</emu-clause>
+
+<emu-clause id="sec-modules">
+<h1>Modules</h1>
+
+<emu-clause id="sec-module-semantics">
+<h1>Module Semantics</h1>
+
+<emu-note type=editor>
+<p>This section augments the <a
+href=https://tc39.github.io/ecma262/#sec-module-semantics>original
+Module Semantics clause</a>.</p>
+</emu-note>
+
+<emu-clause id="sec-module-semantics-static-semantics-early-errors">
+<h1>Static Semantics: Early Errors</h1>
+<emu-grammar>ModuleBody : ModuleItemList</emu-grammar>
+<ul>
+<li>
+<ins>It is a Syntax Error if |ModuleItemList| Contains |TopicReference| is *true*.</ins>
+</li>
+</ul>
+</emu-clause>
+
+</emu-clause>
+
 </emu-clause>
