@@ -382,7 +382,7 @@ later, if TC39 advances this proposal.
 
 The **pipe operator** `|>` is an associative **infix operator**.
 It evaluates its lefthand-side expression (the **pipe head**),
-immutably binds the resulting value to the topic reference,
+immutably **binds** the resulting value to the topic reference,
 then evaluates its righthand-side expression (the **pipe body**) with that binding,
 which in turn becomes the value of the whole **pipe expression** (also called a **pipeline**).
 
@@ -398,17 +398,21 @@ would group into `value => (value |> (? == null) |> foo(?, 0))`,\
 which is equivalent to `value => foo(value == null, 0)`.
 
 A pipe body **must** use its topic reference.
-`value |> foo + 1` is an early syntax error,
+`value |> foo + 1` is a **syntax error**,
 because it does not contain `?`.
 This design is because omission of the topic reference from a pipe expression’s body
 is almost certainly an accidental programmer error.
 
+Likewise, a topic reference **must** be in a pipe body.
+Using a topic reference outside of a pipe body
+is also a **syntax error**.
+
 There are no other special rules.
 
-(If you need to interpose a side effect
+(If you need to interpose a **side effect**
 in the middle of a chain of pipe expressions,
 without modifying the data being piped through,
-you could use a comma expression instead,
+you could use a **comma expression** instead,
 such as with `value |> (sideEffect(), ?)`.
 This is especially useful for quick debugging
 with `value |> (console.log(?), ?)`.)
