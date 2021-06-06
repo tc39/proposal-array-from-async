@@ -24,6 +24,53 @@ for the topic reference. This choice of token is not a final decision;
 `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-intro>
 
+<emu-clause id="sec-syntax-directed-operations">
+  <h1>Syntax-Directed Operations</h1>
+
+  <emu-clause id="sec-syntax-directed-operations-contains">
+    <h1>Contains</h1>
+
+    <emu-note type=editor>
+    <p>This section augments the <a
+    href=https://tc39.github.io/ecma262/https://tc39.es/ecma262/#sec-syntax-directed-operations-contains
+    >original Contains
+    clause</a>.</p>
+    </emu-note>
+
+    <emu-clause id="sec-static-semantics-contains" type="sdo" aoid="Contains">
+      <h1>Static Semantics: Contains</h1>
+      <p>With parameter _symbol_.</p>
+      <ins class=block>
+        <emu-grammar>PipeBody : PipeExpression</emu-grammar>
+
+        <emu-alg>
+        1. If _symbol_ is `&quest;`, return *false*.
+        2. For each child node _child_ of this Parse Node, do
+          1. If _child_ is an instance of _symbol_, return *true*.
+          2. If _child_ is an instance of a nonterminal, then
+            1. Let _contained_ be the result of _child_ Contains _symbol_.
+            2. If _contained_ is *true*, return *true*.
+        2. Return *false*.
+        </emu-alg>
+
+        <emu-note>
+          <p>Several early error rules for |ScriptBody| and for
+          |ModuleItemList|, as well as by a step in CreateDynamicFunction,
+          use the Contains operation to check for any unbound topic
+          reference.</p>
+
+          <p>|PipeBody| hides any inner topic reference from these rules,
+          preventing them from triggering these rules during program
+          compilation.</p>
+
+          <p>These rules guarantee that every topic reference must be
+          present within a topic-binding environment created by |PipeBody|.</p>
+        </emu-note>
+      </ins>
+    </emu-clause>
+  </emu-clause>
+</emu-clause>
+
 <emu-clause id=executable-code-and-execution-contexts>
 <h1>Executable Code and Execution Contexts</h1>
 
@@ -431,7 +478,10 @@ following steps are performed:</p>
 <emu-clause id=sec-topic-references-runtime-semantics-evaluation>
 <h1>Runtime Semantics: Evaluation</h1>
 <emu-note>
-<p>A topic reference will always be evaluated in a topic-binding environment. This is enforced by an early error for |ScriptBody| and an early error for |ModuleItemList|.</p>
+<p>A topic reference will always be evaluated in a topic-binding
+environment. This is enforced by early error rules for |ScriptBody| and
+for |ModuleItemList|, as well as by a step in CreateDynamicFunction.
+They use the Contains operation to check for any unbound topic reference.</p>
 </emu-note>
 
 <emu-grammar>PrimaryExpression : `&quest;`</emu-grammar>
@@ -491,26 +541,6 @@ such as with `value |&gt; (sideEffect(), &quest;)`.</p>
 <emu-grammar>PipeBody : PipeExpression</emu-grammar>
 <emu-alg>
 1. It is a Syntax Error if |PipeBody| Contains `&quest;` is *false*.
-</emu-alg>
-</emu-clause>
-
-<emu-clause id=sec-pipe-operator-static-semantics-contains>
-<h1>Static Semantics: Contains</h1>
-<p>With parameter _symbol_.</p>
-<emu-see-also-para op="Contains"></emu-see-also-para>
-<emu-note type=editor>
-<p>This section is a wholly new sub-clause.</p>
-</emu-note>
-
-<emu-grammar>PipeBody : PipeExpression</emu-grammar>
-<emu-alg>
-1. If _symbol_ is `&quest;`, return *false*.
-2. For each child node _child_ of this Parse Node, do
-  1. If _child_ is an instance of _symbol_, return *true*.
-  2. If _child_ is an instance of a nonterminal, then
-    1. Let _contained_ be the result of _child_ Contains _symbol_.
-    2. If _contained_ is *true*, return *true*.
-2. Return *false*.
 </emu-alg>
 </emu-clause>
 
