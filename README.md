@@ -1,6 +1,9 @@
 # Hack pipe operator for JavaScript
 ECMAScript Stage-0 Proposal. J. S. Choi, 2021.
 
+* **[Specification][]**
+* **Babel plugin**: [Planned for v7.15][Babel]. See [Babel documentation][].
+
 This explainer was adapted from an [essay by Tab Atkins][] with permission.
 
 (This document presumptively uses `?`
@@ -8,6 +11,9 @@ as the placeholder token for the topic reference.
 This [choice of token is not a final decision][token bikeshedding];
 `?` could instead be `%`, `@`, `#`, or many other tokens.)
 
+[specification]: http://jschoi.org/21/es-hack-pipes/
+[Babel]: https://github.com/babel/babel/tree/feat-7.15.0/hack-pipes
+[Babel documentation]: https://deploy-preview-2541--babel.netlify.app/docs/en/babel-plugin-proposal-pipeline-operator
 [essay by Tab Atkins]: https://gist.github.com/tabatkins/1261b108b9e6cdab5ad5df4b8021bcb5
 [token bikeshedding]: https://github.com/tc39/proposal-pipeline-operator/issues/91
 
@@ -358,7 +364,7 @@ but then you’re paying the tax 100% of the time
 and effectively just writing more-verbose Hack pipes anyway.
 
 ## Description
-(A [formal draft specification](http://jschoi.org/21/es-hack-pipes/) is available.)
+(A [formal draft specification][specification] is available.)
 
 The **topic reference** `?` is a **nullary operator**.
 It acts as an immutable **placeholder** for a **topic value**.
