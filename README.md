@@ -325,6 +325,10 @@ will **always** be **popular**.
 Those two cases **on their own** equal or exceed
 unary function calling in frequency,
 even without **all the other syntax** that Hack pipes can do without a tax.
+Furthermore, **math operations** are already very common,
+but they would become even more common if TC39 standardized **[operator overloading][]**.
+
+[operator overloading]: https://github.com/tc39/proposal-operator-overloading
 
 ### Hack pipes may be simpler to use
 The syntax tax of Hack pipes on unary function calls
