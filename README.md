@@ -157,7 +157,6 @@ between each transformation on the data.
 </details>
 
 ## What about temporary variables
-
 One could argue that using **temporary variables**
 should be the only way to untangle deeply nested code.
 Explicitly naming every step’s variable
@@ -390,7 +389,6 @@ than all operators **other than**:
 For example, `value => value |> ? == null |> foo(?, 0)`\
 would group into `value => (value |> (? == null) |> foo(?, 0))`,\
 which is equivalent to `value => foo(value == null, 0)`.
-
 
 A pipeline’s body **must** use its topic reference.
 `value |> foo + 1` is an early syntax error,
