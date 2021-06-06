@@ -319,7 +319,7 @@ If you want to integrate them into a pipe expression
 [enhanced F# pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
 
 ### Hack pipes favor more-common use cases
-Both Hack pipes and F# pipes put a **syntax tax** on different cases.
+Both Hack pipes and F# pipes each put a **syntax tax** on different cases.
 Hack pipes put a syntax tax only on unary functions.
 F# pipes put a syntax tax on everything besides unary functions.
 
@@ -329,13 +329,20 @@ so it makes more sense to put a tax on the former rather than the latter.
 
 In particular, **method** calling and **non-unary function** calling
 will **always** be **popular**.
-Those two cases **on their own** equal or exceed
+Those two cases **alone** equal or exceed
 unary function calling in frequency,
-even without **all the other syntax** that Hack pipes can do without a tax.
-Furthermore, **math operations** are already very common,
-but they would become even more common if TC39 standardized **[operator overloading][]**.
+let alone other syntaxes such as **array/object literals** and **math operations**.
 
-[operator overloading]: https://github.com/tc39/proposal-operator-overloading
+Several other proposed syntaxes,
+such as **[extension][]** calling, **[do expressions][]**, and **[record/tuple literals][]**,
+will also likely become common in the future.
+And math operations would become even more common
+if TC39 standardized **[operator overloading][]**.
+
+[extension]: https://github.com/tc39/proposal-extensions/
+[do expressions]: https://github.com/tc39/proposal-do-expressions/
+[record/tuple literals]: https://github.com/tc39/proposal-record-tuple/
+[operator overloading]: https://github.com/tc39/proposal-operator-overloading/
 
 ### Hack pipes may be simpler to use
 The syntax tax of Hack pipes on unary function calls
