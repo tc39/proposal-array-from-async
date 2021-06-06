@@ -32,6 +32,8 @@ there are currently two fundamental ways to do so:
 
 That is, `three(two(one(value)))` versus `value.one().two().three()`.
 
+
+### Deep nesting is hard to read
 The first style, **nesting**, is generally applicable –
 it works for any function and any value.
 However, it’s **difficult** to read as the nesting increases:
@@ -80,6 +82,7 @@ In order to read its flow of data, a human’s eyes must first:
 
 </details>
 
+### Method chaining is limited
 The second style, **chaining**, is **only** usable
 if the value has the functions designated as **methods** for its class.
 This **limits** its applicability,
@@ -105,6 +108,7 @@ There is even a name for this style of programming:
 [jQuery]: https://jquery.com/
 [fluent interfaces]: https://en.wikipedia.org/wiki/Fluent_interface
 
+### Pipes combine both worlds
 The pipe operator attempts to marry the **convenience** and ease of **method chaining**
 with the wide **applicability** of **expression nesting**.
 
@@ -156,7 +160,7 @@ between each transformation on the data.
 
 </details>
 
-## What about temporary variables
+### Temporary variables are often tedious
 One could argue that using **temporary variables**
 should be the only way to untangle deeply nested code.
 Explicitly naming every step’s variable
