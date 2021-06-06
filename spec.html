@@ -567,7 +567,7 @@ contributors: J. S. Choi
       <ul>
         <li>
           <ins>It is a Syntax Error if |ScriptBody| Contains
-          |TopicReference| is *true*.</ins>
+          `&quest;` is *true*.</ins>
         </li>
       </ul>
     </emu-clause>
@@ -591,7 +591,7 @@ contributors: J. S. Choi
         <ul>
           <li>
             <ins>It is a Syntax Error if |ModuleItemList| Contains
-            |TopicReference| is *true*.</ins>
+            &quest; is *true*.</ins>
           </li>
         </ul>
       </emu-clause>
@@ -664,11 +664,12 @@ contributors: J. S. Choi
             1. If _parameters_ is a List of errors, throw a *SyntaxError* exception.
             1. Let _body_ be ParseText(! StringToCodePoints(_bodyString_), _bodySym_).
             1. If _body_ is a List of errors, throw a *SyntaxError* exception.
-            1. <ins>If _body_ Contains |TopicReference| is *true*, throw a *SyntaxError* exception.</ins>
             1. NOTE: The parameters and body are parsed separately to ensure that each is valid alone. For example, `new Function("/*", "*/ ) {")` is not legal.
             1. NOTE: If this step is reached, _sourceText_ must match _exprSym_ (although the reverse implication does not hold). The purpose of the next two steps is to enforce any Early Error rules which apply to _exprSym_ directly.
             1. Let _expr_ be ParseText(_sourceText_, _exprSym_).
             1. If _expr_ is a List of errors, throw a *SyntaxError* exception.
+            1. <ins>NOTE: The dynamic function must not contain an unbound topic reference.</ins>
+            1. <ins>If _expr_ Contains &quest; is *true*, throw a *SyntaxError* exception.</ins>
             1. Let _proto_ be ? GetPrototypeFromConstructor(_newTarget_, _fallbackProto_).
             1. Let _realmF_ be the current Realm Record.
             1. Let _scope_ be _realmF_.[[GlobalEnv]].
