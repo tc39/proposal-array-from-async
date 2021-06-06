@@ -624,3 +624,95 @@ Module Semantics clause</a>.</p>
 </emu-clause>
 
 </emu-clause>
+
+<emu-clause id="sec-fundamental-objects">
+  <h1>Fundamental Objects</h1>
+
+  <emu-clause id="sec-function-objects">
+    <h1>Function Objects</h1>
+
+    <emu-clause id="sec-function-constructor">
+      <h1>The Function Constructor</h1>
+
+      <emu-clause id="sec-function-p1-p2-pn-body">
+        <h1>Function ( _p1_, _p2_, &hellip; , _pn_, _body_ )</h1>
+
+        <emu-clause id="sec-createdynamicfunction" aoid="CreateDynamicFunction">
+          <h1>CreateDynamicFunction ( _constructor_, _newTarget_, _kind_, _args_ )</h1>
+          <emu-alg>
+            1. Assert: The execution context stack has at least two elements.
+            1. Let _callerContext_ be the second to top element of the execution context stack.
+            1. Let _callerRealm_ be _callerContext_'s Realm.
+            1. Let _calleeRealm_ be the current Realm Record.
+            1. Perform ? HostEnsureCanCompileStrings(_callerRealm_, _calleeRealm_).
+            1. If _newTarget_ is *undefined*, set _newTarget_ to _constructor_.
+            1. If _kind_ is ~normal~, then
+              1. Let _exprSym_ be the grammar symbol |FunctionExpression|.
+              1. Let _bodySym_ be the grammar symbol |FunctionBody[~Yield, ~Await]|.
+              1. Let _parameterSym_ be the grammar symbol |FormalParameters[~Yield, ~Await]|.
+              1. Let _fallbackProto_ be *"%Function.prototype%"*.
+            1. Else if _kind_ is ~generator~, then
+              1. Let _exprSym_ be the grammar symbol |GeneratorExpression|.
+              1. Let _bodySym_ be the grammar symbol |GeneratorBody|.
+              1. Let _parameterSym_ be the grammar symbol |FormalParameters[+Yield, ~Await]|.
+              1. Let _fallbackProto_ be *"%GeneratorFunction.prototype%"*.
+            1. Else if _kind_ is ~async~, then
+              1. Let _exprSym_ be the grammar symbol |AsyncFunctionExpression|.
+              1. Let _bodySym_ be the grammar symbol |AsyncFunctionBody|.
+              1. Let _parameterSym_ be the grammar symbol |FormalParameters[~Yield, +Await]|.
+              1. Let _fallbackProto_ be *"%AsyncFunction.prototype%"*.
+            1. Else,
+              1. Assert: _kind_ is ~asyncGenerator~.
+              1. Let _exprSym_ be the grammar symbol |AsyncGeneratorExpression|.
+              1. Let _bodySym_ be the grammar symbol |AsyncGeneratorBody|.
+              1. Let _parameterSym_ be the grammar symbol |FormalParameters[+Yield, +Await]|.
+              1. Let _fallbackProto_ be *"%AsyncGeneratorFunction.prototype%"*.
+            1. Let _argCount_ be the number of elements in _args_.
+            1. Let _P_ be the empty String.
+            1. If _argCount_ = 0, let _bodyArg_ be the empty String.
+            1. Else if _argCount_ = 1, let _bodyArg_ be _args_[0].
+            1. Else,
+              1. Assert: _argCount_ &gt; 1.
+              1. Let _firstArg_ be _args_[0].
+              1. Set _P_ to ? ToString(_firstArg_).
+              1. Let _k_ be 1.
+              1. Repeat, while _k_ &lt; _argCount_ - 1,
+                1. Let _nextArg_ be _args_[_k_].
+                1. Let _nextArgString_ be ? ToString(_nextArg_).
+                1. Set _P_ to the string-concatenation of _P_, *","* (a comma), and _nextArgString_.
+                1. Set _k_ to _k_ + 1.
+              1. Let _bodyArg_ be _args_[_k_].
+            1. Let _bodyString_ be the string-concatenation of 0x000A (LINE FEED), ? ToString(_bodyArg_), and 0x000A (LINE FEED).
+            1. Let _prefix_ be the prefix associated with _kind_ in <emu-xref href="#table-dynamic-function-sourcetext-prefixes"></emu-xref>.
+            1. Let _sourceString_ be the string-concatenation of _prefix_, *" anonymous("*, _P_, 0x000A (LINE FEED), *") {"*, _bodyString_, and *"}"*.
+            1. Let _sourceText_ be ! StringToCodePoints(_sourceString_).
+            1. Let _parameters_ be ParseText(! StringToCodePoints(_P_), _parameterSym_).
+            1. If _parameters_ is a List of errors, throw a *SyntaxError* exception.
+            1. Let _body_ be ParseText(! StringToCodePoints(_bodyString_), _bodySym_).
+            1. If _body_ is a List of errors, throw a *SyntaxError* exception.
+            1. <ins>If _body_ Contains |TopicReference| is *true*, throw a *SyntaxError* exception.</ins>
+            1. NOTE: The parameters and body are parsed separately to ensure that each is valid alone. For example, `new Function("/*", "*/ ) {")` is not legal.
+            1. NOTE: If this step is reached, _sourceText_ must match _exprSym_ (although the reverse implication does not hold). The purpose of the next two steps is to enforce any Early Error rules which apply to _exprSym_ directly.
+            1. Let _expr_ be ParseText(_sourceText_, _exprSym_).
+            1. If _expr_ is a List of errors, throw a *SyntaxError* exception.
+            1. Let _proto_ be ? GetPrototypeFromConstructor(_newTarget_, _fallbackProto_).
+            1. Let _realmF_ be the current Realm Record.
+            1. Let _scope_ be _realmF_.[[GlobalEnv]].
+            1. Let _privateScope_ be *null*.
+            1. Let _F_ be ! OrdinaryFunctionCreate(_proto_, _sourceText_, _parameters_, _body_, ~non-lexical-this~, _scope_, _privateScope_).
+            1. Perform SetFunctionName(_F_, *"anonymous"*).
+            1. If _kind_ is ~generator~, then
+              1. Let _prototype_ be ! OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%).
+              1. Perform DefinePropertyOrThrow(_F_, *"prototype"*, PropertyDescriptor { [[Value]]: _prototype_, [[Writable]]: *true*, [[Enumerable]]: *false*, [[Configurable]]: *false* }).
+            1. Else if _kind_ is ~asyncGenerator~, then
+              1. Let _prototype_ be ! OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%).
+              1. Perform DefinePropertyOrThrow(_F_, *"prototype"*, PropertyDescriptor { [[Value]]: _prototype_, [[Writable]]: *true*, [[Enumerable]]: *false*, [[Configurable]]: *false* }).
+            1. Else if _kind_ is ~normal~, perform MakeConstructor(_F_).
+            1. NOTE: Functions whose _kind_ is ~async~ are not constructible and do not have a [[Construct]] internal method or a *"prototype"* property.
+            1. Return _F_.
+          </emu-alg>
+        </emu-clause>
+      </emu-clause>
+    </emu-clause>
+  </emu-clause>
+</emu-clause>
