@@ -18,7 +18,7 @@ contributors: J. S. Choi
   href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md>the proposal's explainer</a> for the proposal's background,
   motivation, and usage examples.</p>
 
-  <p>This document presumptively uses `&quest;` as the placeholder token
+  <p>This document presumptively uses `&quest;` as the token
   for the topic reference. This choice of token is not a final decision;
   `&quest;` could instead be `%`, `@`, `#`, or many other tokens.</p>
 </emu-intro>
@@ -477,12 +477,7 @@ contributors: J. S. Choi
         `value |&gt; foo + 1` is an early error,
         because its |PipeBody| does not contain `&quest;`.
         This design is because omission of the topic reference from a |PipeBody|
-        is almost certainly an accidental programmer error.
-        In order to interpose a side effect
-        in the middle of a chain of pipe operations,
-        without modifying the data being piped through,
-        a comma expression may be used instead,
-        such as with `value |&gt; (sideEffect(), &quest;)`.</p>
+        is almost certainly an accidental programmer error.</p>
       </emu-note>
 
       <emu-grammar>PipeBody : PipeExpression</emu-grammar>
@@ -613,6 +608,12 @@ contributors: J. S. Choi
 
         <emu-clause id="sec-createdynamicfunction" aoid="CreateDynamicFunction">
           <h1>CreateDynamicFunction ( _constructor_, _newTarget_, _kind_, _args_ )</h1>
+          <emu-note type=editor>
+            <p>This section augments the <a
+            href=https://tc39.github.io/ecma262/#sec-createdynamicfunction>original
+            CreateDynamicFunction clause</a>.</p>
+          </emu-note>
+
           <emu-alg>
             1. Assert: The execution context stack has at least two elements.
             1. Let _callerContext_ be the second to top element of the execution context stack.
