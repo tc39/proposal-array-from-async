@@ -30,14 +30,15 @@ contributors: J. S. Choi
     <h1>Contains</h1>
 
     <emu-note type=editor>
-    <p>This section augments the <a
-    href=https://tc39.github.io/ecma262/https://tc39.es/ecma262/#sec-syntax-directed-operations-contains>original Contains
-    clause</a>.</p>
+      <p>This section augments the <a
+      href=https://tc39.github.io/ecma262/https://tc39.es/ecma262/#sec-syntax-directed-operations-contains>original Contains
+      clause</a>.</p>
     </emu-note>
 
     <emu-clause id="sec-static-semantics-contains" type="sdo" aoid="Contains">
       <h1>Static Semantics: Contains</h1>
       <p>With parameter _symbol_.</p>
+
       <ins class=block>
         <emu-grammar>PipeBody : PipeExpression</emu-grammar>
 
@@ -418,10 +419,10 @@ contributors: J. S. Choi
       <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
         <h1>Runtime Semantics: GetTopicEnvironment</h1>
         <emu-note>
-        <p>GetTopicEnvironment finds the running execution context's innermost
-        topic-binding environment (i.e., the Environment Record that supplies
-        the current topic binding) or *null* if the running execution context
-        has no topic binding.</p>
+          <p>GetTopicEnvironment finds the running execution context's innermost
+          topic-binding environment (i.e., the Environment Record that supplies
+          the current topic binding) or *null* if the running execution context
+          has no topic binding.</p>
         </emu-note>
         <p>When the abstract operation GetTopicEnvironment is called, the
         following steps are performed:</p>
@@ -440,10 +441,10 @@ contributors: J. S. Choi
       <emu-clause id=sec-topic-references-runtime-semantics-evaluation>
         <h1>Runtime Semantics: Evaluation</h1>
         <emu-note>
-        <p>A topic reference will always be evaluated in a topic-binding
-        environment. This is enforced by early error rules for |ScriptBody| and
-        for |ModuleItemList|, as well as by a step in CreateDynamicFunction.
-        They use the Contains operation to check for any unbound topic reference.</p>
+          <p>A topic reference will always be evaluated in a topic-binding
+          environment. This is enforced by early error rules for |ScriptBody| and
+          for |ModuleItemList|, as well as by a step in CreateDynamicFunction.
+          They use the Contains operation to check for any unbound topic reference.</p>
         </emu-note>
 
         <emu-grammar>PrimaryExpression : `&quest;`</emu-grammar>
@@ -483,7 +484,7 @@ contributors: J. S. Choi
     <emu-clause id=sec-pipe-operator-static-semantics-early-errors>
       <h1>Static Semantics: Early Errors</h1>
       <emu-note type=editor>
-      <p>This section is a wholly new sub-clause.</p>
+        <p>This section is a wholly new sub-clause.</p>
       </emu-note>
 
       <emu-note>
@@ -592,6 +593,7 @@ contributors: J. S. Choi
         <p>This section augments the <a
         href=https://tc39.github.io/ecma262/#sec-module-semantics>original
         Module Semantics clause</a>.</p>
+
       </emu-note>
 
       <emu-clause id="sec-module-semantics-static-semantics-early-errors">
@@ -626,6 +628,7 @@ contributors: J. S. Choi
             <p>This section augments the <a
             href=https://tc39.github.io/ecma262/#sec-createdynamicfunction>original
             CreateDynamicFunction clause</a>.</p>
+
           </emu-note>
 
           <emu-alg>
