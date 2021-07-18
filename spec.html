@@ -72,6 +72,46 @@ contributors: J. S. Choi
       </ins>
     </emu-clause>
   </emu-clause>
+
+  <emu-clause id="sec-syntax-directed-operations-miscellaneous">
+    <h1>Miscellaneous</h1>
+
+    <emu-clause id="sec-static-semantics-assignmenttargettype" type="sdo" aoid="AssignmentTargetType">
+      <h1>Static Semantics: AssignmentTargetType</h1>
+
+      <emu-note type=editor>
+        <p>This section augments the <a
+        href=https://tc39.github.io/ecma262/https://tc39.es/ecma262/#sec-static-semantics-assignmenttargettype>original AssignmentTargetType
+        clause</a>.</p>
+
+        <p>It presumptively uses `&quest;` as the placeholder token for the
+        topic reference. This choice of token is not a final decision; `&quest;`
+        could instead be `%`, `@`, `#`, or many other tokens.</p>
+      </emu-note>
+
+      <emu-grammar>
+        PrimaryExpression :
+          `this`
+          <ins>`&quest;`</ins>
+          Literal
+          ArrayLiteral
+          ObjectLiteral
+          FunctionExpression
+          ClassExpression
+          GeneratorExpression
+          AsyncFunctionExpression
+          AsyncGeneratorExpression
+          RegularExpressionLiteral
+          TemplateLiteral
+
+        <ins>PipeExpression :
+          ConditionalExpression `|&gt;` PipeBody</ins>
+      </emu-grammar>
+      <emu-alg>
+        1. Return ~invalid~.
+      </emu-alg>
+    </emu-clause>
+  </emu-clause>
 </emu-clause>
 
 <emu-clause id=executable-code-and-execution-contexts>
