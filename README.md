@@ -12,7 +12,7 @@ This [choice of token is not a final decision][token bikeshedding];
 `?` could instead be `%`, `@`, `#`, or many other tokens.)
 
 [specification]: http://jschoi.org/21/es-hack-pipes/
-[Babel]: https://github.com/babel/babel/tree/feat-7.15.0/hack-pipes
+[Babel]: https://github.com/babel/babel/pull/13413
 [Babel documentation]: https://deploy-preview-2541--babel.netlify.app/docs/en/babel-plugin-proposal-pipeline-operator
 [essay by Tab Atkins]: https://gist.github.com/tabatkins/1261b108b9e6cdab5ad5df4b8021bcb5
 [token bikeshedding]: https://github.com/tc39/proposal-pipeline-operator/issues/91
