@@ -771,7 +771,7 @@ return context
 
 ## Possible future extensions
 
-### Pipe functions
+### Hack-pipe functions
 If Hack pipes are added to JavaScript,
 then they could also elegantly handle
 **partial function application** in the future
