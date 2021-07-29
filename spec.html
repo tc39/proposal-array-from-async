@@ -26,6 +26,80 @@ contributors: J. S. Choi
 <emu-clause id="sec-syntax-directed-operations">
   <h1>Syntax-Directed Operations</h1>
 
+  <emu-clause id="sec-syntax-directed-operations-function-name-inference">
+    <h1>Function Name Inference</h1>
+
+    <emu-clause id="sec-static-semantics-isfunctiondefinition" type="sdo" aoid="IsFunctionDefinition">
+      <h1>Static Semantics: IsFunctionDefinition</h1>
+
+      <emu-note type=editor>
+        <p>This section augments the <a
+        href=https://tc39.es/ecma262/#sec-static-semantics-isfunctiondefinition>original IsFunctionDefinition
+        clause</a>.</p>
+
+        <p>It presumptively uses `&quest;` as the placeholder token for the
+        topic reference. This choice of token is not a final decision; `&quest;`
+        could instead be `%`, `@`, `#`, or many other tokens.</p>
+      </emu-note>
+
+      <emu-grammar>
+        PrimaryExpression :
+          `this`
+          <ins>`&quest;`</ins>
+          IdentifierReference
+          Literal
+          ArrayLiteral
+          ObjectLiteral
+          RegularExpressionLiteral
+          TemplateLiteral
+
+        <ins>PipeExpression :
+          ConditionalExpression `|&gt;` PipeBody</ins>
+      </emu-grammar>
+      <emu-alg>
+        1. Return *false*.
+      </emu-alg>
+    </emu-clause>
+
+    <emu-clause id="sec-static-semantics-isidentifierref" oldids="sec-semantics-static-semantics-isidentifierref,sec-static-semantics-static-semantics-isidentifierref" type="sdo" aoid="IsIdentifierRef">
+      <h1>Static Semantics: IsIdentifierRef</h1>
+
+      <emu-note type=editor>
+        <p>This section augments the <a
+        href=https://tc39.es/ecma262/#sec-static-semantics-isidentifierref>original IsIdentifierRef
+        clause</a>.</p>
+
+        <p>It presumptively uses `&quest;` as the placeholder token for the
+        topic reference. This choice of token is not a final decision; `&quest;`
+        could instead be `%`, `@`, `#`, or many other tokens.</p>
+      </emu-note>
+
+      <emu-grammar>PrimaryExpression : IdentifierReference</emu-grammar>
+      <emu-alg>
+        1. Return *true*.
+      </emu-alg>
+      <emu-grammar>
+        PrimaryExpression :
+          `this`
+          <ins>`&quest;`</ins>
+          Literal
+          ArrayLiteral
+          ObjectLiteral
+          FunctionExpression
+          ClassExpression
+          GeneratorExpression
+          AsyncFunctionExpression
+          AsyncGeneratorExpression
+          RegularExpressionLiteral
+          TemplateLiteral
+          CoverParenthesizedExpressionAndArrowParameterList
+      </emu-grammar>
+      <emu-alg>
+        1. Return *false*.
+      </emu-alg>
+    </emu-clause>
+  </emu-clause>
+
   <emu-clause id="sec-syntax-directed-operations-contains">
     <h1>Contains</h1>
 
