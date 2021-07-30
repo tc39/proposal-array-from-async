@@ -21,17 +21,18 @@ This [choice of token is not a final decision][token bikeshedding];
 In the State of JS 2020 survey, the **fourth top answer** to
 [“What do you feel is currently missing from
 JavaScript?”](https://2020.stateofjs.com/en-US/opinions/?missing_from_js)
-was the **pipe operator**.
+was a **pipe operator**. Why?
 
 When we perform **consecutive operations** (e.g., function calls)
 on a **value** in JavaScript,
-there are currently two fundamental ways to do so:
+there are currently two fundamental styles:
 * passing the value as an argument to the operation
   (**nesting** the operations if there are multiple operations),
 * or calling the function as a method on the value
   (**chaining** more method calls if there are multiple methods).
 
 That is, `three(two(one(value)))` versus `value.one().two().three()`.
+However, these styles differ much in readability, fluency, and applicability.
 
 ### Deep nesting is hard to read
 The first style, **nesting**, is generally applicable –
@@ -84,29 +85,37 @@ In order to read its flow of data, a human’s eyes must first:
    5. `chalk.dim()` (left side), then
    6. `console.log()` (left side).
 
+As a result of deeply nesting many expressions
+(some of which use **prefix** operators,
+some of which use **postfix** operators,
+and some of which use **circumfix** operators),
+we must check **both left and right sides**
+to find the **head** of **each expression**.
+
 </details>
 
 ### Method chaining is limited
-The second style, **chaining**, is **only** usable
+The second style, **method chaining**, is **only** usable
 if the value has the functions designated as **methods** for its class.
-This **limits** its applicability, but **when** it applies,
-it’s generally more usable and **easier** to read and write:
+This **limits** its applicability.
+But **when** it applies, thanks to its postfix structure,
+it is generally more usable and **easier** to read and write.
 Code execution flows **left to right**.
-The deeply nested expressions are **untangled**.
-All the arguments for a given function are **grouped** with the function name.
+Deeply nested expressions are **untangled**.
+All arguments for a function call are **grouped** with the function’s name.
 And editing the code later to **insert or delete** more method calls is trivial,
 since we would just have to put our cursor in one spot,
 then start typing or deleting one **contiguous** run of characters.
 
 Indeed, the benefits of method chaining are **so attractive**
 that some **popular libraries contort** their code structure
-*specifically* to allow **more method chaining**.
-The most prominent example is **[jQuery][]**, which is
-*still* the most popular JS library in the world.
+specifically to allow **more method chaining**.
+The most prominent example is **[jQuery][]**, which
+still remains the **most popular JS library** in the world.
 jQuery’s core design is a single über-object with dozens of methods on it,
-all of which return the same object type so that we can continue chaining.
+all of which return the same object type so that we can **continue chaining**.
 There is even a name for this style of programming:
-[fluent interfaces][].
+**[fluent interfaces][]**.
 
 [jQuery]: https://jquery.com/
 [fluent interfaces]: https://en.wikipedia.org/wiki/Fluent_interface
@@ -218,7 +227,7 @@ It is often simply too **tedious and wordy** to **write**
 code with a long sequence of temporary, single-use variables.
 It is arguably even tedious and visually noisy for a human to **read**, too.
 
-If [naming is one of the **most difficult tasks** in programming][naming hard],
+If [**naming** is one of the **most difficult tasks** in programming][naming hard],
 then programmers will **inevitably avoid naming** variables
 when they perceive their benefit to be relatively small.
 
@@ -226,13 +235,21 @@ when they perceive their benefit to be relatively small.
 
 ## Why the Hack pipe operator
 There are **two competing proposals** for the pipe operator: Hack pipes and F# pipes.
-The two pipe proposals just differ slightly on what the “magic” is,
-and thus on precisely how we spell our code when using `|>`.
 (There **was** a [third proposal for a “smart mix” of the first two proposals][smart mix],
 but it has been withdrawn,
 since its syntax is strictly a superset of one of the proposals’.)
 
 [smart mix]: https://github.com/js-choi/proposal-smart-pipelines/
+
+The two pipe proposals just differ **slightly** on what the “magic” is,
+when we spell our code when using `|>`.
+
+**Both** proposals **reuse** existing language concepts:
+Hack pipes are based on the concept of the **expression**,
+while F# pipes are based on the concept of the **unary function**.
+
+Piping **expressions** and piping **unary functions**
+correspondingly have **small** and nearly **symmetrical trade-offs**.
 
 ### This proposal: Hack pipes
 In the **Hack language**’s pipe syntax,
@@ -245,25 +262,38 @@ to pipe `value` through the three functions.
 and the placeholder can go anywhere any normal variable identifier could go,
 so we can pipe to any code we want **without any special rules**:
 
-* `value |> one(%)` for function calls,
-* `value |> one(1, %)` for multi-argument function calls,
-* `value |> %.foo()` for method calls
-  (or `value |> obj.foo(%)`, for the other side),
+* `value |> foo(%)` for unary function calls,
+* `value |> foo(1, %)` for n-ary function calls,
+* `value |> %.foo()` for method calls,
 * `value |> % + 1` for arithmetic,
+* `value |> [%, 0]` for array literals,
+* `value |> {foo: %}` for object literals,
+* `` value |> `${%}` `` for template literals,
 * `value |> new Foo(%)` for constructing objects,
 * `value |> await %` for awaiting promises,
+* `value |> (yield %)` for yielding generator values,
 * `value |> import(%)` for calling function-like keywords,
 * etc.
 
-**Con:** If **all** we’re doing is piping through **already-defined unary functions**,
-Hack pipes are **slightly** more verbose than F# pipes,
-since we need to **actually write** the function-call syntax
-by adding a `(%)` to it.
+**Con:** Piping through **unary functions**
+is **slightly more verbose** with Hack pipes than with F# pipes.
+This includes unary functions
+that were created by **[function-currying][] libraries** like [Ramda][],
+as well as [unary arrow functions
+that perform **complex destructuring** on their arguments][destruct]:
+Hack pipes would be slightly more verbose
+with an **explicit** function call suffix `(%)`.
+
+[function-currying]: https://en.wikipedia.org/wiki/Currying
+[Ramda]: https://ramdajs.com/
+[destruct]: https://github.com/js-choi/proposal-hack-pipes/issues/4#issuecomment-817208635
 
 ### Alternative proposal: F# pipes
 In the [**F# language**’s pipe syntax][F# pipes],
-the righthand side of the pipe is an expression that must **evaluate into a function**,
-which is then **tacitly called** with the lefthand side’s value as its **sole argument**.
+the righthand side of the pipe is an expression
+that must **evaluate into a unary function**,
+which is then **tacitly called**
+with the lefthand side’s value as its **sole argument**.
 That is, we write `value |> one |> two |> three` to pipe `value`
 through the three functions.
 `left |> right` becomes `right(left)`.
@@ -295,71 +325,102 @@ envars
 ```js
 envars
  |> Object.keys
- |> x => x.map(envar =>
+ |> x=> x.map(envar =>
     `${envar}=${envars[envar]}`,
   )
- |> x => x.join(' ')
- |> x => `$ ${x}`
- |> x => chalk.dim(x, 'node', args.join(' '))
+ |> x=> x.join(' ')
+ |> x=> `$ ${x}`
+ |> x=> chalk.dim(x, 'node', args.join(' '))
  |> console.log;
 ```
 
 </details>
 
-**Pro:** The restriction that the righthand side *must* resolve to a function
+**Pro:** The restriction that the righthand side
+**must** resolve to a unary function
 lets us write very terse pipes
-**when** the operation we want to perform is **already a unary function**.
+**when** the operation we want to perform
+is a **unary function call**:
+
+* `value |> foo` for unary function calls.
+
+This includes unary functions
+that were created by **[function-currying][] libraries** like [Ramda][],
+as well as [unary arrow functions
+that perform **complex destructuring** on their arguments][destruct]:
+F# pipes would be **slightly less verbose**
+with an **implicit** function call (no `(%)`).
 
 **Con:** The restriction means that **any operations**
 that are performed by **other syntax**
-must be done by **wrapping** the operation in a unary **arrow function**:\
-`value |> x=>x[0]`,\
-`value |> x=>x.foo()`,\
-`value |> x=>x+1`,\
-`value |> x=>new Foo(x)`,\
-`value |> x=>import(x)`,\
-etc.\
-Even calling **named functions requires wrapping**
-when we need to pass **more than one argument**:\
-`value |> x=>f(1, x)`.
+must be made **slightly more verbose** by **wrapping** the operation
+in a unary **arrow function**:
 
-**Con:** The **`yield` and `await`** operations are scoped
-to their containing function,
-and thus can’t be handled by the arrow-function workaround
-from the previous paragraph.
-If we want to integrate them into a pipe expression
-(rather than requiring the pipe to be parenthesis-wrapped and prefixed with `await`),
-[`await` and `yield` need to be handled as **special syntax cases**][enhanced F# pipes]:
-`value |> await |> one` to simulate `one(await value)`, etc.
+* `value |> x=> x.foo()` for method calls,
+* `value |> x=> x + 1` for arithmetic,
+* `value |> x=> [x, 0]` for array literals,
+* `value |> x=> {foo: x}` for object literals,
+* `` value |> x=> `${x}` `` for template literals,
+* `value |> x=> new Foo(x)` for constructing objects,
+* `value |> x=> import(x)` for calling function-like keywords,
+* etc.
+
+Even calling **named functions** requires **wrapping**
+when we need to pass **more than one argument**:
+
+* `value |> x=> foo(1, x)` for n-ary function calls.
+
+**Con:** The **`await` and `yield`** operations are **scoped**
+to their **containing function**,
+and thus **cannot be handled by unary functions** alone.
+If we want to integrate them into a pipe expression,
+[`await` and `yield` must be handled as **special syntax cases**][enhanced F# pipes]:
+
+* `value |> await` for awaiting promises, and
+* `value |> yield` for yielding generator values.
 
 [enhanced F# pipes]: https://github.com/valtech-nyc/proposal-fsharp-pipelines/
 
-### Hack pipes favor more-common use cases
+### Hack pipes favor more common expressions
 **Both** Hack pipes and F# pipes respectively impose
-a small **syntax tax** on different cases:\
-**Hack pipes** tax only **unary functions**;\
-**F# pipes** tax **everything besides unary functions**.
+a small **syntax tax** on different expressions:\
+**Hack pipes** slightly tax only **unary function calls**, and\
+**F# pipes** slightly tax **all expressions except** unary function calls.
 
-The case of “unary function” is in general **less common**
-than “**everything besides** unary functions”,
-so it may make more sense to impose a tax on the former rather than the latter.
+In **both** proposals, the syntax tax per taxed expression is **small**
+(**both** `(%)` and `x=>` are **only three characters**).
+However, the tax is **multiplied** by the **prevalence**
+of its respectively taxed expressions.
+It therefore might make sense
+to impose a tax on whichever expressions are **less common**
+and to **optimize** in favor of whichever expressions are **more common**.
 
-In particular, **method** calling and **non-unary function** calling
-will **always** be **popular**.
-Those two cases **alone** equal or exceed
-unary function calling in frequency,
-let alone other syntaxes such as **array/object literals** and **arithmetic operations**.
+Unary function calls are in general **less common**
+than **all** expressions **except** unary functions.
+In particular, **method** calling and **n-ary function** calling
+will **always** be **popular**;
+in general frequency,
+**unary** function calling is equal to or exceeded by
+those two cases **alone** –
+let alone by other ubiquitous syntaxes
+such as **array literals**, **object literals**,
+and **arithmetic operations**.
+This explainer contains several [real-world examples][]
+of this difference in prevalence.
 
-Several other proposed **new syntaxes**,
-such as **[extension][]** calling,
+[real-world examples]: #real-world-examples
+
+Furthermore, several other proposed **new syntaxes**,
+such as **[extension calling][]**,
 **[do expressions][]**,
 and **[record/tuple literals][]**,
-will also likely become common in the future.
-And **arithmetic** operations would become even more common
-if TC39 standardized **[operator overloading][]**.
-All of these syntaxes would be better accommodated by Hack pipes.
+will also likely become **pervasive** in the **future**.
+Likewise, **arithmetic** operations would also become **even more common**
+if TC39 standardizes **[operator overloading][]**.
+Untangling these future syntaxes’ expressions would be more fluent
+with Hack pipes compared to F# pipes.
 
-[extension]: https://github.com/tc39/proposal-extensions/
+[extension calling]: https://github.com/tc39/proposal-extensions/
 [do expressions]: https://github.com/tc39/proposal-do-expressions/
 [record/tuple literals]: https://github.com/tc39/proposal-record-tuple/
 [operator overloading]: https://github.com/tc39/proposal-operator-overloading/
@@ -368,11 +429,12 @@ All of these syntaxes would be better accommodated by Hack pipes.
 The syntax tax of Hack pipes on unary function calls
 (i.e., the `(%)` to invoke the righthand side’s unary function)
 is **not a special case**:
-it’s just **writing ordinary code** in **the way we normally would** without a pipe.
+it simply is **explicitly writing ordinary code**,
+in **the way we normally would** without a pipe.
 
 On the other hand, **F# pipes require** us to **distinguish**
 between “code that resolves to an unary function”
-versus **“anything else”** –
+versus **“any other expression”** –
 and to remember to add the arrow-function wrapper around the latter case.
 
 For example, with Hack pipes, `value |> someFunction + 1`
@@ -390,22 +452,30 @@ The **topic reference** `%` is a **nullary operator**.
 It acts as a placeholder for a **topic value**,
 and it is **lexically scoped** and **immutable**.
 
-(The precise [token for the topic reference is not final][token bikeshedding].
-`%` could instead be `#`, `@`, `?`, or many other tokens.
-We plan to [bikeshed what actual token to use][token bikeshedding]
-later, if TC39 advances this proposal.
-However, `%` seems to be the least syntactically problematic.
-It also resembles the placeholders of [printf format strings][].)
+<details>
+<summary><code>%</code> is not a final choice</summary>
 
+(The precise [**token** for the topic reference is **not final**][token bikeshedding].
+`%` could instead be `#`, `@`, `?`, or many other tokens.
+We plan to [**bikeshed** what actual token to use][token bikeshedding]
+**later**, if TC39 advances this proposal.
+However, `%` seems to be the [least syntactically problematic][],
+and it also resembles the placeholders of **[printf format strings][]**
+and [**Clojure**’s `#(%)` **function literals**][Clojure function literals].)
+
+[least syntactically problematic]: https://github.com/js-choi/proposal-hack-pipes/issues/2
+[Clojure function literals]: https://clojure.org/reference/reader#_dispatch
 [printf format strings]: https://en.wikipedia.org/wiki/Printf_format_string
+
+</details>
 
 The **pipe operator** `|>` is a bidirectionally **associative infix operator**
 that forms a **pipe expression** (also called a **pipeline**).
 It evaluates its lefthand side (the **pipe head** or **pipe input**),
-immutably **binds** the resulting value to the topic reference,
+immutably **binds** the resulting value (the **topic value**) to the **topic reference**,
 then evaluates its righthand side (the **pipe body**) with that binding.
 The resulting value of the righthand side
-becomes the whole pipe expression’s **final value** or **pipe output**.
+becomes the whole pipe expression’s final value (the **pipe output**).
 
 The pipe operator’s [precedence][] is **looser**
 than all operators **other than**:
@@ -418,13 +488,14 @@ For example, `v => v |> % == null |> foo(%, 0)`\
 would group into `v => (v |> (% == null) |> foo(%, 0))`,\
 which in turn is equivalent to `v => foo(v == null, 0)`.
 
-A pipe body **must** use its topic reference at least once.
+A pipe body **must** use its topic value **at least once**.
 For example, `value |> foo + 1` is **invalid syntax**,
 because its body does not contain a topic reference.
-This design is because omission of the topic reference from a pipe expression’s body
-is almost certainly an accidental programmer error.
+This design is because **omission** of the topic reference
+from a pipe expression’s body
+is almost certainly an **accidental** programmer error.
 
-Likewise, a topic reference **must** be in a pipe body.
+Likewise, a topic reference **must** be contained in a pipe body.
 Using a topic reference outside of a pipe body
 is also **invalid syntax**.
 
@@ -436,10 +507,11 @@ when the `eval` expression is evaluated at runtime.
 
 There are **no other special rules**.
 
-If we need to interpose a **side effect**
+A natural result of these rules is that,
+if we need to interpose a **side effect**
 in the middle of a chain of pipe expressions,
 without modifying the data being piped through,
-we could use a **comma expression**,
+then we could use a **comma expression**,
 such as with `value |> (sideEffect(), %)`.
 As usual, the comma expression will evaluate to its righthand side `%`,
 essentially passing through the topic value without modifying it.
@@ -779,14 +851,12 @@ return context
 If Hack pipes are added to JavaScript,
 then they could also elegantly handle
 **partial function application** in the future
-with a syntax inspired by
-[Clojure’s `#(+ %1 %2)` function literals][Clojure function literals].
-
-[Clojure function literals]: https://clojure.org/reference/reader#_dispatch
+with a syntax further inspired by
+[Clojure’s `#(%1 %2)` function literals][Clojure function literals].
 
 There is **already** a [proposed special syntax
 for partial function application (PFA) with `?` placeholders][PFA]
-(abbreviated here as ***`?`-PFA**).
+(abbreviated here as **`?`-PFA**).
 Both `?`-PFA and Hack pipes address a **similar problem** –
 binding values to **placeholder tokens** –
 but they address it in different ways.
@@ -871,9 +941,9 @@ and `for (of) |>` would consecutively bind each of its iterator’s values to `%
 
 | Status quo                  | Hack-pipe statement syntax |
 | --------------------------- | -------------------------- |
-|`const c = f(); if (c) g(c);`|`if (f()) |> b(%);`         |
-|`catch (e) f(e);`            |`catch |> f(%);`            |
-|`for (const v of f()) g(v);` |`for (f()) |> g(%);`        |
+|`const c = f(); if (c) g(c);`|`if (f()) \|> b(%);`        |
+|`catch (e) f(e);`            |`catch \|> f(%);`           |
+|`for (const v of f()) g(v);` |`for (f()) \|> g(%);`       |
 
 ### Optional Hack pipes
 A **short-circuiting** optional-pipe operator `|?>` could also be useful,
