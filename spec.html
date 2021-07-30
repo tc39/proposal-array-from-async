@@ -148,12 +148,13 @@ contributors: J. S. Choi
 
         <emu-note>
           <p>Several early error rules for |ScriptBody| and for
-          |ModuleItemList|, as well as by a step in CreateDynamicFunction,
-          use the Contains operation to check for any unbound topic reference.
-          Any |EqualityExpression| that uses `&percnt;==` or `&percnt;===`
-          is considered to contain `&percnt;` for this purpose.
+          |ModuleItemList|, as well as a step in CreateDynamicFunction,
+          use the Contains operation to check for any unbound topic reference `&percnt;`.
+          With this definition,
+          any |EqualityExpression| that uses `&percnt;==` or `&percnt;===`
+          is considered to contain `&percnt;`.
           This guarantees that `&percnt;==` and `&percnt;===` may only be
-          used within a topic-binding environment created by |PipeBody|.</p>
+          used within a topic-binding environment created by a |PipeBody|.</p>
         </emu-note>
 
         <emu-grammar>PipeBody : PipeExpression</emu-grammar>
@@ -170,15 +171,15 @@ contributors: J. S. Choi
 
         <emu-note>
           <p>Several early error rules for |ScriptBody| and for
-          |ModuleItemList|, as well as by a step in CreateDynamicFunction,
-          use the Contains operation to check for any unbound topic reference.</p>
-
-          <p>|PipeBody| hides its inner topic references from these rules,
+          |ModuleItemList|, as well as a step in CreateDynamicFunction,
+          use the Contains operation to check for any unbound topic reference `&percnt;`.
+          Any inner topic reference within a |PipeBody| is hidden from these rules,
           preventing them from triggering the rules during program
           compilation.</p>
 
-          <p>This guarantees that every topic reference must be
-          present within a topic-binding environment created by |PipeBody|.</p>
+          <p>This guarantees that any topic reference in a program must be
+          present within a topic-binding environment
+          created by a |PipeBody| within that program.</p>
         </emu-note>
       </ins>
     </emu-clause>
@@ -302,8 +303,8 @@ contributors: J. S. Choi
                   <td>List of any</td>
                   <td>If the declarative Environment Record is a topic-binding
                   environment, then [[TopicValues]] is a List containing the one element
-                  which is the environment's topic value (that is, the value of `&percnt;`
-                  within its program scope).
+                  which is the environment's topic value (that is, the value of
+                  the topic reference within its program scope).
                   Otherwise, the value of [[TopicValues]] is an empty List.</td>
                 </tr>
               </tbody>
@@ -312,8 +313,7 @@ contributors: J. S. Choi
 
           <emu-note type=editor>
             <p>[[TopicValues]] is a List in order to be forward compatible with
-            future extensions that would use multiple <emu-xref
-            href="#sec-topic-bindings">topic values</emu-xref>, e.g., <a
+            future extensions that would use more than one topic value, e.g., <a
          href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md#hack-pipe-functions
             >"pipe functions".</a></p>
           </emu-note>
@@ -350,10 +350,9 @@ contributors: J. S. Choi
           </emu-table>
 
           <emu-note type=editor>
-          <p>BindTopicValues() accepts a List argument rather than a single-value
+          <p>BindTopicValues accepts a List argument rather than a single-value
           argument in order to be forward compatible with future extensions that
-          would use multiple <emu-xref href="#sec-topic-bindings">topic
-          values</emu-xref>, e.g., <a
+          would use more than one topic value, e.g., <a
           href=https://github.com/js-choi/proposal-hack-pipes/blob/master/README.md#hack-pipe-functions
           >"pipe functions"</a>.</p>
           </emu-note>
@@ -378,8 +377,9 @@ contributors: J. S. Choi
           <emu-alg>
             1. Let _envRec_ be the declarative Environment Record for which the
                method was invoked.
-            1. If _envRec_.[[TopicValues]] is an empty List, then return *true*.
-            1. Return *false*.
+            1. Assert: _envRec_.[[TopicValues]] is a List.
+            1. If _envRec_.[[TopicValues]] is an empty List, then return *false*.
+            1. Return *true*.
           </emu-alg>
         </emu-clause>
 
@@ -391,11 +391,11 @@ contributors: J. S. Choi
             >original Declarative Environment Records clause</a>.</p>
           </emu-note>
           <p>The method BindTopicValues for declarative Environment Records may
-          only be called on an Environment Records when it is not yet a
+          only be called on an Environment Record when it is not yet a
           topic-binding environment, after which it does become a topic-binding
           environment.</p>
           <emu-alg>
-            1. <ins>Assert: _V_ is a List.</ins>
+            1. Assert: _V_ is a List.
             1. Let _envRec_ be the declarative Environment Record for which the
                method was invoked.
             1. Assert: _envRec_.HasTopicBinding() is *false*.
@@ -418,7 +418,7 @@ contributors: J. S. Choi
           original Object Environment Records clause</a>.</p>
           </emu-note>
 
-          <p>Regular object Environment Records never have topic bindings.</p>
+          <p>An Object Environment Record may never have a topic binding.</p>
           <emu-alg>
             1. Return *false*.
           </emu-alg>
@@ -437,7 +437,7 @@ contributors: J. S. Choi
               original Global Environment Records clause</a>.</p>
             </emu-note>
 
-            <p>Global Environment Records never have topic bindings.</p>
+            <p>A Global Environment Record may never have a topic binding.</p>
             <emu-alg>
               1. Return *false*.
             </emu-alg>
@@ -467,9 +467,9 @@ contributors: J. S. Choi
       lexical context is "about".</p>
 
       <p>A <dfn>topic-binding environment</dfn> is a declarative Environment
-      Record that establishes a topic binding. The <dfn>topic
-      environment</dfn> of the running execution context is its
-      LexicalEnvironment's nearest outer Environment Record that is also a
+      Record that establishes a topic binding.
+      The <dfn>topic environment</dfn> of the running execution context is its
+      LexicalEnvironment's innermost Environment Record that is also a
       topic-binding environment (or *null* if no such Environment Record
       exists), as defined by the abstract operator GetTopicEnvironment.</p>
 
@@ -575,53 +575,59 @@ contributors: J. S. Choi
       <emu-note>
         <p>The <dfn>topic reference</dfn>, which is the token `&percnt;`, is a
         nullary operator that evaluates to the current Environment Record's
-        topic value. The topic reference acts as if it were a special variable:
+        topic value. The topic reference acts as if it were a special variable,
         implicitly bound to the topic value, yet still lexically scoped. But
         `&percnt;` is not actually an |IdentifierName| and the topic reference is
-        not a variable, and it cannot be bound by typical assignment; instead,
-        it is immutably bound to a value during the instantiation of any
-        topic-binding environment.</p>
+        not a variable, and it cannot be bound by typical assignment.
+        Instead, the topic reference is immutably bound to a value
+        during the instantiation of any topic-binding environment by a |PipeBody|.</p>
 
-        <p>The concept of topic bindings is further discussed in <emu-xref
+        <p>The concept of the topic binding is further discussed in <emu-xref
         href="#sec-topic-bindings">Topic Bindings</emu-xref> and in <emu-xref
         href="#sec-declarative-environment-records">Declarative Environment
         Records</emu-xref>.</p>
       </emu-note>
 
       <emu-note>
-        <p>Several early error rules for |ScriptBody| and for
-        |ModuleItemList|, as well as by a step in CreateDynamicFunction,
-        use the
-        <emu-xref href="#sec-syntax-directed-operations-contains">Contains</emu-xref>
-        operation to check for any unbound topic reference.</p>
-
-        <p>|PipeBody| hides its inner topic references from these rules,
-        preventing them from triggering the rules during program
-        compilation.</p>
-
-        <p>This guarantees that every topic reference must be
-        present within a topic-binding environment created by |PipeBody|.</p>
-      </emu-note>
-
-      <emu-note>
         <p>The `&percnt;==` and `&percnt;===` punctuators
         respectively "combine" the topic reference `&percnt;`
         with the equality operators `==` and `===`.
-        These punctuators are declared—in addition to `&percnt;`, `==`, and `===`—
+        These punctuators are declared in addition to `&percnt;`, `==`, and `===`
         so that the lexical grammar may distinguish them
-        from the assignment operator `&percnt;=`.
+        from the modulo assignment operator `&percnt;=`.
         See also the
         <emu-xref href="#sec-equality-operators">Equality Operators</emu-xref>
         clause.</p>
       </emu-note>
 
+      <emu-note>
+        <p>An <dfn>unbound topic reference</dfn> is a topic reference that
+        is not present within any topic-binding environment created by a |PipeBody|.
+        All unbound topic references are invalid syntax.
+        Several early error rules for |ScriptBody| and for
+        |ModuleItemList|, as well as a step in CreateDynamicFunction,
+        use the
+        <emu-xref href="#sec-syntax-directed-operations-contains">Contains</emu-xref>
+        operation to check for any unbound topic reference `&percnt;`.
+        (Any |EqualityExpression| that uses `&percnt;==` and `&percnt;===`
+        is also considered to
+        <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref>
+        `&percnt;` for this purpose.)
+        Any inner topic reference within a |PipeBody| is hidden from these rules,
+        preventing them from triggering the rules during program
+        compilation.</p>
+
+        <p>This guarantees that every topic reference in a program must be
+        present within a topic-binding environment
+        created by a |PipeBody| within that program.</p>
+      </emu-note>
+
       <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
         <h1>Runtime Semantics: GetTopicEnvironment</h1>
         <emu-note>
-          <p>GetTopicEnvironment finds the running execution context's innermost
-          topic-binding environment (i.e., the Environment Record that supplies
-          the current topic binding) or *null* if the running execution context
-          has no topic binding.</p>
+          <p>GetTopicEnvironment returns the running execution context's topic environment
+          (i.e., its LexicalEnvironment's innermost topic-binding environment)
+          or *null* if the running execution context has no topic binding.</p>
         </emu-note>
         <p>When the abstract operation GetTopicEnvironment is called, the
         following steps are performed:</p>
@@ -639,12 +645,16 @@ contributors: J. S. Choi
 
       <emu-clause id=sec-getprimarytopicvalue aoid=GetPrimaryTopicValue>
         <h1>Runtime Semantics: GetPrimaryTopicValue</h1>
-
-        <emu-grammar>PrimaryExpression : `&percnt;`</emu-grammar>
+        <emu-note>
+          <p>GetPrimaryTopicValue returns the topic value
+          of the running execution context's topic environment.
+          It may be called only when the running execution context's topic environment
+          is not *null*.</p>
+        </emu-note>
         <emu-alg>
         1. Let _topicEnv_ be GetTopicEnvironment().
         1. Assert: _topicEnv_ is a declarative Environment Record.
-        1. Assert: _topicEnv_.HasTopicBinding() is true.
+        1. Assert: _topicEnv_.HasTopicBinding() is *true*.
         1. Let _topicValues_ be _envRec_.[[TopicValues]].
         1. Assert: _topicValues_ has at least one element.
         1. Return _topicValues_[0].
@@ -654,10 +664,12 @@ contributors: J. S. Choi
       <emu-clause id=sec-topic-references-runtime-semantics-evaluation>
         <h1>Runtime Semantics: Evaluation</h1>
         <emu-note>
-          <p>A topic reference will always be evaluated in a topic-binding
-          environment. This is enforced by early error rules for |ScriptBody| and
-          for |ModuleItemList|, as well as by a step in CreateDynamicFunction.
-          They use the
+          <p>A topic reference may be evaluated only when
+          the running execution context's topic environment is not *null*.
+          This is syntactically enforced by early error rules
+          for |ScriptBody| and for |ModuleItemList|,
+          as well as a step in CreateDynamicFunction.
+          These rules use the
           <emu-xref href="#sec-syntax-directed-operations-contains">Contains</emu-xref>
           operation to check for any unbound topic reference.</p>
         </emu-note>
@@ -704,21 +716,22 @@ contributors: J. S. Choi
       with the equality operators `==` and `===`.
       These punctuators are declared—in addition to `&percnt;`, `==`, and `===`—
       so that the lexical grammar may distinguish them
-      from the assignment operator `&percnt;=`.</p>
-      <p>For example, `x |&gt; y&percnt;=z` is equivalent to `x |&gt; y &percnt;= z`,
-      `x |&gt; &percnt;==y` is equivalent to `x |&gt; &percnt; == y`,
-      and `x |&gt; &percnt;===y` is equivalent to `x |&gt; &percnt; === y`.</p>
+      from the modulo assignment operator `&percnt;=`.</p>
+
+      <p>For example:<br>
+      `x |&gt; z&percnt;=y` is equivalent to `x |&gt; z &percnt;= y`,<br>
+      `x |&gt; &percnt;==y` is equivalent to `x |&gt; &percnt; == y`, and<br>
+      `x |&gt; &percnt;===y` is equivalent to `x |&gt; &percnt; === y`.</p>
 
       <p>Several early error rules for |ScriptBody| and for
-      |ModuleItemList|, as well as by a step in CreateDynamicFunction,
+      |ModuleItemList|, as well as a step in CreateDynamicFunction,
       use the Contains operation to check for any unbound topic reference.
-      Any |EqualityExpression| that uses `&percnt;==` or `&percnt;===`
-      is considered to contain `&percnt;` for this purpose.
+      (Any |EqualityExpression| that uses `&percnt;==` or `&percnt;===`
+      is considered to
+      <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref>
+      `&percnt;` for this purpose.)
       This guarantees that `&percnt;==` and `&percnt;===` may only be
-      used within a topic-binding environment created by |PipeBody|.
-      See also the
-      <emu-xref href="#sec-syntax-directed-operations-contains">Contains</emu-xref>
-      clause.</p>
+      used within a topic-binding environment created by a |PipeBody|.</p>
     </emu-note>
     </ins>
 
@@ -740,16 +753,22 @@ contributors: J. S. Choi
           1. Return IsStrictlyEqual(_rval_, _lval_).
         </emu-alg>
         <emu-note>
-          <p>An equality operation that uses the topic reference
-          (i.e., `&percnt;==` or `&percnt;===`)
-          will always be evaluated in a topic-binding environment.
-          This is enforced by early error rules for |ScriptBody| and
-          for |ModuleItemList|, as well as by a step in CreateDynamicFunction.
-          They use the
+          <p>An |EqualityExpression| that uses `&percnt;==` or `&percnt;===`
+          must not
+          <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref>
+          an unbound topic reference,
+          and an |EqualityExpression| may be evaluated only when
+          the running execution context's topic environment is not *null*.
+          This is syntactically enforced by early error rules
+          for |ScriptBody| and for |ModuleItemList|,
+          as well as a step in CreateDynamicFunction.
+          These rules use the
           <emu-xref href="#sec-syntax-directed-operations-contains">Contains</emu-xref>
           operation to check for any unbound topic reference,
           and any |EqualityExpression| that uses `&percnt;==` or `&percnt;===`
-          is considered to contain `&percnt;` for this purpose.</p>
+          is considered to
+          <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref>
+          `&percnt;` for this purpose.</p>
         </emu-note>
       </ins>
     </emu-clause>
@@ -787,10 +806,16 @@ contributors: J. S. Choi
       </emu-note>
 
       <emu-note>
-        <p>A |PipeBody| must use its topic reference at least once.
+        <p>A |PipeBody| must use its topic at least once.
         `value |&gt; foo + 1` is an early error,
-        because its |PipeBody| does not contain `&percnt;`.
-        This design is because omission of the topic reference from a |PipeBody|
+        because its |PipeBody| does not
+        <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref>
+        a topic reference `&percnt;`.
+        (Any |EqualityExpression| that uses `&percnt;==` or `&percnt;===`
+        is considered to
+        <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref>
+        `&percnt;` for this purpose.)
+        This design is such because omission of any topic reference from a |PipeBody|
         is almost certainly an accidental programmer error.</p>
       </emu-note>
 
@@ -808,6 +833,7 @@ contributors: J. S. Choi
 
       <emu-grammar>PipeBody : PipeExpression</emu-grammar>
       <emu-alg>
+        1. Assert: _inputValues_ is a List.
         1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
         1. Let _PipeBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
         1. Perform ! _PipeBodyEnv_.BindTopicValues(_inputValues_).
@@ -885,14 +911,14 @@ contributors: J. S. Choi
       <ins class="block">
       <emu-note>
         <p>An early error rule uses the Contains operation
-        to check for any unbound topic reference.</p>
-
-        <p>|PipeBody| hides its inner topic references from this rule,
+        to check for any unbound topic reference.
+        Any inner topic reference within a |PipeBody| is hidden from this rule,
         preventing them from triggering the rule during program
         compilation.</p>
 
-        <p>This guarantees that every topic reference must be
-        present within a topic-binding environment created by |PipeBody|.</p>
+        <p>This guarantees that every topic reference in a |Script| must be
+        present within a topic-binding environment created
+        by a |PipeBody| within that |Script|.</p>
       </emu-note>
       </ins>
     </emu-clause>
@@ -927,14 +953,14 @@ contributors: J. S. Choi
         <ins class="block">
         <emu-note>
           <p>An early error rule uses the Contains operation
-          to check for any unbound topic reference.</p>
-
-          <p>|PipeBody| hides its inner topic references from this rule,
+          to check for any unbound topic reference.
+          Any inner topic reference within a |PipeBody| is hidden from this rule,
           preventing them from triggering the rule during program
           compilation.</p>
 
-          <p>This guarantees that every topic reference must be
-          present within a topic-binding environment created by |PipeBody|.</p>
+          <p>This guarantees that every topic reference in a |ModuleBody| must be
+          present within a topic-binding environment created
+          by a |PipeBody| within that |ModuleBody|.</p>
         </emu-note>
         </ins>
       </emu-clause>
@@ -1021,7 +1047,7 @@ contributors: J. S. Choi
             1. NOTE: If this step is reached, _sourceText_ must match _exprSym_ (although the reverse implication does not hold). The purpose of the next two steps is to enforce any Early Error rules which apply to _exprSym_ directly.
             1. Let _expr_ be ParseText(_sourceText_, _exprSym_).
             1. If _expr_ is a List of errors, throw a *SyntaxError* exception.
-            1. <ins>NOTE: The dynamic function must not contain an unbound topic reference. See also the <emu-xref href="#sec-syntax-directed-operations-contains">Contains</emu-xref> clause.</ins>
+            1. <ins>NOTE: The dynamic function must not <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref> an unbound topic reference `&percnt;`. (Any |EqualityExpression| that uses `&percnt;==` or `&percnt;===` is considered to <emu-xref href="#sec-syntax-directed-operations-contains">contain</emu-xref> `&percnt;` for this purpose.)</ins>
             1. <ins>If _expr_ Contains `&percnt;` is *true*, throw a *SyntaxError* exception.</ins>
             1. Let _proto_ be ? GetPrototypeFromConstructor(_newTarget_, _fallbackProto_).
             1. Let _realmF_ be the current Realm Record.
