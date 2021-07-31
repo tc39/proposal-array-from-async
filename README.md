@@ -533,6 +533,25 @@ Only minor formatting changes have been made to the status-quo examples.
 <td>
 
 ```js
+return equals(
+  take(prefix.length, list),
+  prefix,
+);
+```
+From [ramda.js][].
+
+<td>
+
+```js
+return list
+ |> take(prefix.length, %)
+ |> equals(%, prefix);
+```
+
+<tr>
+<td>
+
+```js
 var minLoc = Object.keys(
   grunt.config(
     'uglify.all.files',
@@ -630,6 +649,55 @@ return data
  |> buildFragment([%], context, scripts)
  |> %.childNodes
  |> jQuery.merge([], %);
+```
+
+<tr>
+<td>
+
+```js
+return xf['@@transducer/result'](
+  obj[methodName](
+    bind(xf['@@transducer/step'], xf),
+    acc,
+  ),
+);
+```
+From [ramda.js][].
+
+<td>
+
+```js
+return xf
+ |> bind(%[@@transducer/step'], %)
+ |> obj[methodName](%, acc)
+ |> xf['@@transducer/result'](%);
+```
+
+<tr>
+<td>
+
+```js
+try {
+  return tryer.apply(this, arguments);
+} catch (e) {
+  return catcher.apply(this,
+    _concat([e], arguments),
+  );
+}
+```
+From [ramda.js][].
+
+<td>
+
+```js
+try {
+  return arguments
+   |> tryer.apply(this, %);
+} catch (e) {
+  return arguments
+   |> _concat([e], arguments)
+   |> catcher.apply(this, %);
+}
 ```
 
 <tr>
@@ -762,6 +830,32 @@ return self
 <td>
 
 ```js
+return _reduce(
+  xf(
+    typeof fn === 'function'
+    ? _xwrap(fn)
+    : fn,
+  ),
+  acc, list,
+);
+```
+From [ramda.js][].
+
+<td>
+
+```js
+return fn
+ |> typeof % === 'function'
+  ? _xwrap(%)
+  : %
+ |> xf(%)
+ |> _reduce(%, acc, list);
+```
+
+<tr>
+<td>
+
+```js
 if (obj == null) return 0;
 return isArrayLike(obj)
   ? obj.length
@@ -835,6 +929,7 @@ return context
 
 </table>
 
+[ramda.js]: https://github.com/ramda/ramda/blob/v0.27.1/dist/ramda.js
 [node/deps/npm/lib/unpublish.js]: https://github.com/nodejs/node/blob/v16.x/deps/npm/lib/unpublish.js
 [node/deps/v8/test/mjsunit/regress/regress-crbug-158185.js]: https://github.com/nodejs/node/blob/v16.x/deps/v8/test/mjsunit/regress/regress-crbug-158185.js
 [express/lib/response.js]: https://github.com/expressjs/express/blob/5.0/lib/response.js
