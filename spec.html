@@ -476,8 +476,82 @@ contributors: J. S. Choi
       <emu-note>
         <p>An Environment Record is a topic-binding environment
         <strong>only</strong> when it is a declarative Environment Record that
-        is associated with a |PipeBody| and which was created with its
-        PipeBodyEvaluation operation.</p>
+        was created by a |PipeBody|.</p>
+      </emu-note>
+    </emu-clause>
+  </emu-clause>
+
+  <emu-clause id="sec-execution-contexts">
+    <h1>Execution Contexts</h1>
+
+    <emu-note type=editor>
+      <p>This section augments the <a
+      href=https://tc39.es/ecma262/#sec-execution-contexts>original
+      Execution Contexts clause</a>.</p>
+    </emu-note>
+
+    <emu-clause id="sec-evaluatewithtopics" type="abstract operation">
+      <h1>
+        EvaluateWithTopics (
+          _topicValues_: a List,
+          _expression_: a Parse Node,
+        )
+      </h1>
+      <dl class="header"></dl>
+      <emu-alg>
+        1. Assert: _topicValues_ is a List.
+        1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
+        1. Let _topicEnv_ be NewDeclarativeEnvironment(_outerEnv_).
+        1. Perform ! _topicEnv_.BindTopicValues(_topicValues_).
+        1. Set the running execution context's LexicalEnvironment to
+           _topicEnv_.
+        1. Let _result_ be the result of evaluating _expression_.
+        1. Set the running execution context's LexicalEnvironment to _outerEnv_.
+        1. Return _result_.
+      </emu-alg>
+      <emu-note>
+        <p>EvaluateWithTopics creates a new topic-binding environment and
+        evaluates the given _expression_ with that as its topic environment.
+        The previous Lexical Environment is restored afterward.</p>
+      </emu-note>
+    </emu-clause>
+
+    <emu-clause id=sec-gettopicenvironment type="abstract operation">
+      <h1>GetTopicEnvironment ( )</h1>
+      <dl class="header"></dl>
+      <emu-alg>
+      1. Let _envRec_ be the running execution context's LexicalEnvironment.
+      1. Repeat,
+        1. Let _status_ be _envRec_.HasTopicBinding().
+        1. If _status_ is *true*, return _envRec_.
+        1. If _envRec_ is a global Environment Record, return *null*.
+        1. Let _outer_ be the value of _envRec_.[[OuterEnv]].
+        1. Set _envRec_ to _outer_.
+      1. Return _envRec_.
+      </emu-alg>
+      <emu-note>
+        <p>GetTopicEnvironment returns the running execution context's topic environment
+        (i.e., its LexicalEnvironment's innermost topic-binding environment)
+        or *null* if the running execution context has no topic binding.</p>
+      </emu-note>
+    </emu-clause>
+
+    <emu-clause id=sec-getprimarytopicvalue type="abstract operation">
+      <h1>GetPrimaryTopicValue ( )</h1>
+      <dl class="header"></dl>
+      <emu-alg>
+      1. Let _topicEnv_ be GetTopicEnvironment().
+      1. Assert: _topicEnv_ is a declarative Environment Record.
+      1. Assert: _topicEnv_.HasTopicBinding() is *true*.
+      1. Let _topicValues_ be _envRec_.[[TopicValues]].
+      1. Assert: _topicValues_ has at least one element.
+      1. Return _topicValues_[0].
+      </emu-alg>
+      <emu-note>
+        <p>GetPrimaryTopicValue returns the topic value
+        of the running execution context's topic environment.
+        It may be called only when the running execution context's topic environment
+        is not *null*.</p>
       </emu-note>
     </emu-clause>
   </emu-clause>
@@ -539,7 +613,7 @@ contributors: J. S. Choi
     </emu-note>
 
     <h2>Syntax</h2>
-    <emu-grammar>
+    <emu-grammar type="definition">
       PrimaryExpression[Yield, Await] :
         `this`
         <ins>`&percnt;`</ins>
@@ -621,45 +695,6 @@ contributors: J. S. Choi
         present within a topic-binding environment
         created by a |PipeBody| within that program.</p>
       </emu-note>
-
-      <emu-clause id=sec-gettopicenvironment aoid=GetTopicEnvironment>
-        <h1>Runtime Semantics: GetTopicEnvironment</h1>
-        <emu-note>
-          <p>GetTopicEnvironment returns the running execution context's topic environment
-          (i.e., its LexicalEnvironment's innermost topic-binding environment)
-          or *null* if the running execution context has no topic binding.</p>
-        </emu-note>
-        <p>When the abstract operation GetTopicEnvironment is called, the
-        following steps are performed:</p>
-        <emu-alg>
-        1. Let _envRec_ be the running execution context's LexicalEnvironment.
-        1. Repeat,
-          1. Let _status_ be _envRec_.HasTopicBinding().
-          1. If _status_ is *true*, return _envRec_.
-          1. If _envRec_ is a global Environment Record, return *null*.
-          1. Let _outer_ be the value of _envRec_.[[OuterEnv]].
-          1. Set _envRec_ to _outer_.
-        1. Return _envRec_.
-        </emu-alg>
-      </emu-clause>
-
-      <emu-clause id=sec-getprimarytopicvalue aoid=GetPrimaryTopicValue>
-        <h1>Runtime Semantics: GetPrimaryTopicValue</h1>
-        <emu-note>
-          <p>GetPrimaryTopicValue returns the topic value
-          of the running execution context's topic environment.
-          It may be called only when the running execution context's topic environment
-          is not *null*.</p>
-        </emu-note>
-        <emu-alg>
-        1. Let _topicEnv_ be GetTopicEnvironment().
-        1. Assert: _topicEnv_ is a declarative Environment Record.
-        1. Assert: _topicEnv_.HasTopicBinding() is *true*.
-        1. Let _topicValues_ be _envRec_.[[TopicValues]].
-        1. Assert: _topicValues_ has at least one element.
-        1. Return _topicValues_[0].
-        </emu-alg>
-      </emu-clause>
 
       <emu-clause id=sec-topic-references-runtime-semantics-evaluation>
         <h1>Runtime Semantics: Evaluation</h1>
@@ -825,26 +860,6 @@ contributors: J. S. Choi
       </emu-alg>
     </emu-clause>
 
-    <emu-clause id=sec-pipe-operator-runtime-semantics-PipeBodyEvaluation
-      aoid=PipeBodyEvaluation
-    >
-      <h1>Runtime Semantics: PipeBodyEvaluation</h1>
-      <p>With parameter _inputValues_.</p>
-
-      <emu-grammar>PipeBody : PipeExpression</emu-grammar>
-      <emu-alg>
-        1. Assert: _inputValues_ is a List.
-        1. Let _outerEnv_ be the running execution context's LexicalEnvironment.
-        1. Let _PipeBodyEnv_ be NewDeclarativeEnvironment(_outerEnv_).
-        1. Perform ! _PipeBodyEnv_.BindTopicValues(_inputValues_).
-        1. Set the running execution context's LexicalEnvironment to
-           _PipeBodyEnv_.
-        1. Let _pipeBodyValue_ be the result of evaluating |PipeBody|.
-        1. Set the running execution context's LexicalEnvironment to _outerEnv_.
-        1. Return _pipeBodyValue_.
-      </emu-alg>
-    </emu-clause>
-
     <emu-clause id=sec-pipe-operator-runtime-semantics-evaluation>
     <h1>Runtime Semantics: Evaluation</h1>
 
@@ -852,8 +867,7 @@ contributors: J. S. Choi
     <emu-alg>
       1. Let _inputRef_ be the result of evaluating _ConditionalExpression_.
       1. Let _inputValues_ be « ? GetValue(_inputRef_) ».
-      1. Let _outputValue_ be ? PipeBodyEvaluation of |PipeBody| with argument
-      _inputValues_.
+      1. Let _outputValue_ be ? EvaluateWithTopics(_inputValues_, |PipeBody|).
       1. Return _outputValue_.
     </emu-alg>
     </emu-clause>
