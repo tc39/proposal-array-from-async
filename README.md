@@ -67,8 +67,48 @@ It does not require that its `this` value be the `Array` constructor,
 and it can be transferred to or inherited by any other constructors
 that may be called with a single numeric argument.
 
+## Other proposals
+
+### `Object.asyncFromEntries`
+In the future, a complementary method could be added to `Object`.
+
+Type    | Sync method  | Async method
+------- | ------------ | ------------------
+`Array` | `from`       | `asyncFrom`
+`Object`| `fromEntries`| `asyncFromEntries`?
+
+It is **uncertain** whether `Object.asyncFromEntries`
+should be **piggybacked** onto this proposal
+or left to a **separate** proposal.
+
+### Async spread operator
 In the future, standardizing an async spread operator (like `[ 0, await ...v ]`)
-may also be useful. This proposal leaves that idea to a separate proposal.
+may be useful. This proposal leaves that idea to a **separate** proposal.
+
+### Iterator helpers
+The **[iterator-helpers][] proposal** puts forward, among other methods,
+a **`toArray` method** for async iterators (as well as synchronous iterators).
+We could consider `Array.asyncFrom` to be redundant with `toArray`.
+
+However, **`Array.from` already** exists,
+and `Array.asyncFrom` would **parallel** it.
+If we **had to choose** between `asyncIterator.toArray` and `Array.asyncFrom`,
+we should **prefer** `Array.asyncFrom` would be **preferable** to `toArray`
+for its **parallelism** with what already exists.
+
+In addition, the iterator-helpers proposal’s **already duplicates** `Array.from`
+for **synchronous iterators**.
+We may consider **duplication** with an `Array` method as **unimportant** anyway.
+If duplication between `syncIterator.toArray` and `Array.from` is already okay,
+then duplication between `asyncIterator.toArray` and `Array.asyncFrom` should also be okay.
+
+[iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
+
+### Records and tuples
+The **[record/tuple] proposal** puts forward two new data types
+with APIs that respectively **resemble** those of **`Array` and `Object`**.
+
+[record/tuple]: https://github.com/tc39/proposal-record-tuple
 
 ## Real-world examples
 Only minor formatting changes have been made to the status-quo examples.
