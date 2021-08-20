@@ -88,15 +88,15 @@ may be useful. This proposal leaves that idea to a **separate** proposal.
 ### Iterator helpers
 The **[iterator-helpers][] proposal** puts forward, among other methods,
 a **`toArray` method** for async iterators (as well as synchronous iterators).
-We could consider `Array.asyncFrom` to be redundant with `toArray`.
+We **could** consider `Array.asyncFrom` to be **redundant** with `toArray`.
 
 However, **`Array.from` already** exists,
 and `Array.asyncFrom` would **parallel** it.
 If we **had to choose** between `asyncIterator.toArray` and `Array.asyncFrom`,
-we should **prefer** `Array.asyncFrom` would be **preferable** to `toArray`
+we should **prefer** `Array.asyncFrom` to `asyncIterator.toArray`
 for its **parallelism** with what already exists.
 
-In addition, the iterator-helpers proposal’s **already duplicates** `Array.from`
+In addition, the `iterator.toArray` method **already would duplicate** `Array.from`
 for **synchronous iterators**.
 We may consider **duplication** with an `Array` method as **unimportant** anyway.
 If duplication between `syncIterator.toArray` and `Array.from` is already okay,
