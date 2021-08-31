@@ -1,4 +1,4 @@
-# `Array.asyncFrom` for JavaScript
+# `Array.fromAsync` for JavaScript
 ECMAScript Stage-0 Proposal. J. S. Choi, 2021.
 
 * **[Specification][]**
@@ -6,7 +6,7 @@ ECMAScript Stage-0 Proposal. J. S. Choi, 2021.
 
 [specification]: http://jschoi.org/21/es-array-async-from/
 
-## Why an `Array.asyncFrom` method
+## Why an `Array.fromAsync` method
 Since its standardization in JavaScript,
 `Array.from` has become one of `Array`’s
 most frequently used built-in methods.
@@ -39,7 +39,7 @@ by various developers, asking how to convert async iterators to arrays.
 (A [formal draft specification][specification] is available.)
 
 Similarly to **[`Array.from`][]**,
-**`Array.asyncFrom`** would be a **static method**
+**`Array.fromAsync`** would be a **static method**
 of the `Array` built-in class, with **one required argument**
 and **two optional arguments**: `(items, mapfn, thisArg)`.
 
@@ -54,7 +54,7 @@ async function * f () {
 }
 
 // Resolves to [0, 1, 2, 3].
-await Array.asyncFrom(f());
+await Array.fromAsync(f());
 ```
 
 [`Array.from`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
@@ -62,22 +62,22 @@ await Array.asyncFrom(f());
 `mapfn` is an optional function to call on every item value,
 and `thisArg` is an optional value to (or `undefined` by default).
 
-Also similarly to `Array.from`, `Array.asyncFrom` is a **generic factory method**.
+Also similarly to `Array.from`, `Array.fromAsync` is a **generic factory method**.
 It does not require that its `this` value be the `Array` constructor,
 and it can be transferred to or inherited by any other constructors
 that may be called with a single numeric argument.
 
 ## Other proposals
 
-### `Object.asyncFromEntries`
+### `Object.fromEntriesAsync`
 In the future, a complementary method could be added to `Object`.
 
 Type    | Sync method  | Async method
 ------- | ------------ | ------------------
 `Array` | `from`       | `asyncFrom`
-`Object`| `fromEntries`| `asyncFromEntries`?
+`Object`| `fromEntries`| `fromEntriesAsync`?
 
-It is **uncertain** whether `Object.asyncFromEntries`
+It is **uncertain** whether `Object.fromEntriesAsync`
 should be **piggybacked** onto this proposal
 or left to a **separate** proposal.
 
@@ -151,7 +151,7 @@ From [ipfs-core/src/runtime/init-assets-nodejs.js][].
 
 ```js
 // Add the default assets to the repo.
-const results = await Array.asyncFrom(
+const results = await Array.fromAsync(
   addAll(
     globSource(initDocsPath, {
       recursive: true,
@@ -190,7 +190,7 @@ From [js-libp2p/test/content-routing/content-routing.node.js][].
 <td>
 
 ```js
-const results = await Array.asyncFrom(
+const results = await Array.fromAsync(
   node.contentRouting
     .findProviders('a cid'),
 );
@@ -231,7 +231,7 @@ From [node-httptransfer/test/generator/pipeline.test.js][].
 ```js
 it('empty-pipeline', async () => {
   const pipeline = new Pipeline();
-  const result = await Array.asyncFrom(
+  const result = await Array.fromAsync(
     pipeline.execute(
       [ 1, 2, 3, 4, 5 ]));
   assert.deepStrictEqual(
