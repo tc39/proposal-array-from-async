@@ -59,10 +59,19 @@ await Array.fromAsync(f());
 
 [`Array.from`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
 
-`mapfn` is an optional function to call on every item value,
-and `thisArg` is an optional value to (or `undefined` by default).
+`mapfn` is an optional function to call on every item value.
+(Unlike `Array.from`, `mapfn` may be an **async function**.
+Whenever `mapfn` returns a promise, that promise will be awaited,
+and the value it resolves to is what is added
+to the final returned promise’s array.
+If `mapfn`’s promise rejects,
+then the final returned promise
+will also reject with that error.)
 
-Also similarly to `Array.from`, `Array.fromAsync` is a **generic factory method**.
+`thisArg` is an optional value with which to call `mapfn`
+(or `undefined` by default).
+
+Like `Array.from`, `Array.fromAsync` is a **generic factory method**.
 It does not require that its `this` value be the `Array` constructor,
 and it can be transferred to or inherited by any other constructors
 that may be called with a single numeric argument.
