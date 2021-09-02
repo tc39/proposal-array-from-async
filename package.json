@@ -7,7 +7,7 @@
   "repository": "github:js-choi/proposal-hack-pipes",
   "scripts": {
     "prespec": "mkdir -p out/",
-    "spec": "ecmarkup spec.html out/index.html --assets inline --contributors \"J. S. Choi, Ecma International\" --copyright true --title \"ES Array.asyncFrom (2021)\" --status \"proposal\" --stage 0",
+    "spec": "ecmarkup spec.html out/index.html --assets inline --contributors \"J. S. Choi, Ecma International\" --copyright true --title \"ES Array.fromAsync (2021)\" --status \"proposal\" --stage 0",
     "prewatch": "npm run prespec",
     "watch": "npm run spec -- --watch"
   },
