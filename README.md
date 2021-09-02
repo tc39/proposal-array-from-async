@@ -25,7 +25,7 @@ that uses ad-hoc `for await`–`of` loops with empty arrays:
 ```js
 const arr = [];
 for await (const item of asyncItems) {
-    arr.push(item);
+  arr.push(item);
 }
 ```
 Further demonstrating the demand for such functionality,
