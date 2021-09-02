@@ -74,7 +74,7 @@ In the future, a complementary method could be added to `Object`.
 
 Type    | Sync method  | Async method
 ------- | ------------ | ------------------
-`Array` | `from`       | `asyncFrom`
+`Array` | `from`       | `fromAsync`
 `Object`| `fromEntries`| `fromEntriesAsync`?
 
 It is **uncertain** whether `Object.fromEntriesAsync`
@@ -88,27 +88,37 @@ may be useful. This proposal leaves that idea to a **separate** proposal.
 ### Iterator helpers
 The **[iterator-helpers][] proposal** puts forward, among other methods,
 a **`toArray` method** for async iterators (as well as synchronous iterators).
-We **could** consider `Array.asyncFrom` to be **redundant** with `toArray`.
+We **could** consider `Array.fromAsync` to be **redundant** with `toArray`.
 
 However, **`Array.from` already** exists,
-and `Array.asyncFrom` would **parallel** it.
-If we **had to choose** between `asyncIterator.toArray` and `Array.asyncFrom`,
-we should **prefer** `Array.asyncFrom` to `asyncIterator.toArray`
+and `Array.fromAsync` would **parallel** it.
+If we **had to choose** between `asyncIterator.toArray` and `Array.fromAsync`,
+we should **prefer** `Array.fromAsync` to `asyncIterator.toArray`
 for its **parallelism** with what already exists.
 
 In addition, the `iterator.toArray` method **already would duplicate** `Array.from`
 for **synchronous iterators**.
-We may consider **duplication** with an `Array` method as **unimportant** anyway.
+We consider **duplication** with an `Array` method as **okay** anyway.
 If duplication between `syncIterator.toArray` and `Array.from` is already okay,
-then duplication between `asyncIterator.toArray` and `Array.asyncFrom` should also be okay.
+then duplication between `asyncIterator.toArray` and `Array.fromAsync` should also be okay.
 
 [iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
 
 ### Records and tuples
 The **[record/tuple] proposal** puts forward two new data types
 with APIs that respectively **resemble** those of **`Array` and `Object`**.
+The `Tuple` constructor, too, would probably need an `fromAsync` method.
+Whether the `Record` constructor gets a `fromEntriesAsync` method
+depends on [whether `Object` gets `fromEntriesAsync`](#objectfromentriesasync).
 
 [record/tuple]: https://github.com/tc39/proposal-record-tuple
+
+### Set and Map
+There is a [proposal for `Set.from` and `Map.from` methods][setmap-offrom].
+If this proposal is accepted before that proposal,
+then that proposal could also add corresponding `fromAsync` methods.
+
+[setmap-offrom]: (https://github.com/tc39/proposal-setmap-offrom)
 
 ## Real-world examples
 Only minor formatting changes have been made to the status-quo examples.
