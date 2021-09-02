@@ -127,7 +127,7 @@ There is a [proposal for `Set.from` and `Map.from` methods][setmap-offrom].
 If this proposal is accepted before that proposal,
 then that proposal could also add corresponding `fromAsync` methods.
 
-[setmap-offrom]: (https://github.com/tc39/proposal-setmap-offrom)
+[setmap-offrom]: https://github.com/tc39/proposal-setmap-offrom
 
 ## Real-world examples
 Only minor formatting changes have been made to the status-quo examples.
