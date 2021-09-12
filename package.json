@@ -20,7 +20,9 @@
     "Array.fromAsync",
     "Array.asyncFrom"
   ],
-  "workspaces": [ "polyfill" ],
+  "workspaces": [
+    "polyfill"
+  ],
   "scripts": {
     "prespec": "mkdir -p out/",
     "spec": "ecmarkup spec.html out/index.html --assets inline --contributors \"J. S. Choi, Ecma International\" --copyright true --title \"ES Array.fromAsync (2021)\" --status \"proposal\" --stage 1",
@@ -28,7 +30,7 @@
     "watch": "npm run spec -- --watch"
   },
   "devDependencies": {
-    "ecmarkup": "^1.7.0"
+    "ecmarkup": "^9.1.0"
   },
   "homepage": "https://github.com/js-choi/proposal-array-async-from"
 }
