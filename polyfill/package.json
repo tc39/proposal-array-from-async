@@ -1,11 +1,12 @@
 {
   "name": "array-from-async",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A polyfill for Array.fromAsync, which dumps an async iterator into an array.",
   "type": "module",
   "main": "index.mjs",
   "devDependencies": {
-    "tape": "^5.3.1"
+    "tape": "^5.3.1",
+    "tape-promise": "^4.0.0"
   },
   "scripts": {
     "test": "npx tape test.mjs"

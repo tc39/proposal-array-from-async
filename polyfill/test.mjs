@@ -1,6 +1,6 @@
 import './index.mjs';
 
-import test from 'tape';
+import test from 'tape-promise/tape.js';
 
 test('creates promise', async t => {
   const outputPromise = Array.fromAsync([]);
@@ -25,6 +25,28 @@ test('creates new array-like in promise', async t => {
   t.equal(output[1], 1);
   t.equal(output[2], 2);
   t.equal(output[3], undefined);
+});
+
+test('resorts to creating array if dynamic-this is not constructor', async t => {
+  const expected = [ 0, 1, 2 ];
+  const arrowFn = () => {};
+  const output = await Array.fromAsync.call(arrowFn, expected);
+  t.equal(output.constructor, Array);
+  t.deepEqual(output, expected);
+});
+
+test('does not resort to creating array if constructor throws', async t => {
+  class SpecialError extends Error {}
+
+  class C {
+    constructor () {
+      throw new SpecialError;
+    }
+  }
+
+  const input = [ 0, 1, 2 ];
+  const outputPromise = Array.fromAsync.call(C, input);
+  await t.rejects(outputPromise, SpecialError);
 });
 
 test('ordinary-iterable input', async t => {

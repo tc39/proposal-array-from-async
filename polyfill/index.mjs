@@ -1,11 +1,21 @@
 const { MAX_SAFE_INTEGER } = Number;
 
+function isConstructor (obj) {
+  const prox = new Proxy(obj, {
+    construct () {
+      return prox;
+    },
+  });
+  try {
+    new prox;
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 Array.fromAsync = Array.fromAsync || async function fromAsync (items, mapfn, thisArg) {
-  // Note: This does not exactly match the spec.
-  // If `this` is a non-constructor function (i.e., arrow functions or `class` methods),
-  // then this line will incorrectly throw a TypeError
-  // rather than correctly creating an empty array.
-  const result = typeof this === 'function'
+  const result = isConstructor(this)
     ? new this
     : Array(0);
   let i = 0;
