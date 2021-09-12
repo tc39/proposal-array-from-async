@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "proposal-array-from-async",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A TC39 proposal and specification for an Array.fromAsync method.",
   "author": "J. S. Choi <jschoi@jschoi.org> (https://jschoi.org/)",
   "license": "MIT",

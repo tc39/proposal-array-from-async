@@ -1,6 +1,6 @@
 {
   "name": "array-from-async",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A polyfill for Array.fromAsync, which dumps an async iterator into an array.",
   "type": "module",
   "main": "index.mjs",
