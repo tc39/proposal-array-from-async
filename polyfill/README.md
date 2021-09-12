@@ -63,3 +63,15 @@ Like `Array.from`, `Array.fromAsync` is a **generic factory method**.
 It does not require that its `this` value be the `Array` constructor,
 and it can be transferred to or inherited by any other constructors
 that may be called with a single numeric argument.
+
+## Polyfill limitations
+The polyfill cannot exactly match the spec in one way.
+If it is attached to a **non-constructor function**
+(i.e., arrow functions or `class` methods),
+then `fromAsync` will incorrectly throw a TypeError,
+rather than correctly creating an array.
+
+This is because there is [no current way
+to test whether a function is not a constructor][no isConstructor].
+
+[no isConstructor]: https://stackoverflow.com/a/40922715

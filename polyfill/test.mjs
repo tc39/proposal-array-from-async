@@ -14,6 +14,19 @@ test('creates new array in promise', async t => {
   t.notEqual(output, expected);
 });
 
+test('creates new array-like in promise', async t => {
+  class C {}
+
+  const input = [ 0, 1, 2 ];
+  const output = await Array.fromAsync.call(C, input);
+  t.equal(output.constructor, C);
+  t.equal(output.length, 3);
+  t.equal(output[0], 0);
+  t.equal(output[1], 1);
+  t.equal(output[2], 2);
+  t.equal(output[3], undefined);
+});
+
 test('ordinary-iterable input', async t => {
   t.test('is dumped', async t => {
     const expected = [ 0, 1, 2 ];
