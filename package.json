@@ -1,17 +1,33 @@
 {
   "private": true,
-  "name": "proposal-hack-pipes",
-  "description": "Draft specification for Hack pipes in JavaScript.",
+  "name": "proposal-array-from-async",
+  "description": "A TC39 proposal and specification for an Array.fromAsync method.",
   "author": "J. S. Choi <jschoi@jschoi.org> (https://jschoi.org/)",
   "license": "MIT",
-  "repository": "github:js-choi/proposal-hack-pipes",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/js-choi/proposal-array-async-from.git"
+  },
+  "keywords": [
+    "proposal",
+    "tc39",
+    "array",
+    "async",
+    "iterator",
+    "iterator",
+    "stream",
+    "Array.fromAsync",
+    "Array.asyncFrom"
+  ],
+  "workspaces": [ "polyfill" ],
   "scripts": {
     "prespec": "mkdir -p out/",
-    "spec": "ecmarkup spec.html out/index.html --assets inline --contributors \"J. S. Choi, Ecma International\" --copyright true --title \"ES Array.fromAsync (2021)\" --status \"proposal\" --stage 0",
+    "spec": "ecmarkup spec.html out/index.html --assets inline --contributors \"J. S. Choi, Ecma International\" --copyright true --title \"ES Array.fromAsync (2021)\" --status \"proposal\" --stage 1",
     "prewatch": "npm run prespec",
     "watch": "npm run spec -- --watch"
   },
   "devDependencies": {
-    "ecmarkup": "^8.0.1"
-  }
+    "ecmarkup": "^1.7.0"
+  },
+  "homepage": "https://github.com/js-choi/proposal-array-async-from"
 }

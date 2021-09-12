@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright © 2018 J. S. Choi.
+Copyright © 2021 J. S. Choi.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal

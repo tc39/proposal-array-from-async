@@ -8,19 +8,21 @@ ECMAScript Stage-1 Proposal. J. S. Choi, 2021.
 
 ## Why an `Array.fromAsync` method
 Since its standardization in JavaScript,
-`Array.from` has become one of `Array`’s
+**[`Array.from`][]** has become one of `Array`’s
 most frequently used built-in methods.
 However, no similar functionality exists for async iterators.
 
+[`Array.from`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
+
 Such functionality would be useful
-for dumping the entirety of an async iterator
-into a single data structure,
-especially in unit tests or in command-line interfaces.
+for **dumping** the entirety of an **async iterator**
+into a **single data structure**,
+especially in **unit tests** or in **command-line** interfaces.
 (Several real-world examples are included in a following section.)
 
 There is an [it-all][] NPM library that performs only this task
 and which gets about 50,000 weekly downloads daily.
-This of course does not include any code
+This of course does **not** include any code
 that uses ad-hoc `for await`–`of` loops with empty arrays:
 ```js
 const arr = [];
@@ -56,8 +58,6 @@ async function * f () {
 // Resolves to [0, 1, 2, 3].
 await Array.fromAsync(f());
 ```
-
-[`Array.from`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
 
 `mapfn` is an optional function to call on every item value.
 (Unlike `Array.from`, `mapfn` may be an **async function**.
