@@ -22,7 +22,7 @@ import 'array-from-async';
 
 In web browsers or Deno:
 ```
-import 'https://unpkg.com/array-from-async@1.0.0/array-from-async';
+import 'https://unpkg.com/array-from-async';
 ```
 
 ## Description
