@@ -1,10 +1,11 @@
 # `Array.fromAsync` for JavaScript
 ECMAScript Stage-1 Proposal. J. S. Choi, 2021.
 
-* **[Specification][]**
-* **Babel plugin**: Not yet
+* **[Specification][]** available
+* **[Polyfill][]** available
 
 [specification]: http://jschoi.org/21/es-array-async-from/
+[polyfill]: https://www.npmjs.com/package/array-from-async
 
 ## Why an `Array.fromAsync` method
 Since its standardization in JavaScript,
