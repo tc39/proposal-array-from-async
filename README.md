@@ -46,9 +46,9 @@ Similarly to **[`Array.from`][]**,
 of the `Array` built-in class, with **one required argument**
 and **two optional arguments**: `(items, mapfn, thisArg)`.
 
-But instead of converting an **iterable** to an array,
-it converts an **async iterable** to a **promise**
-that will resolve to an array.
+But instead of converting an **array-like object** or **iterable** to an array,
+it converts an **async iterable** (or array-like object or iterable)
+to a **promise** that will resolve to an array.
 
 ```js
 async function * f () {
