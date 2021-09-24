@@ -2,10 +2,13 @@
 ECMAScript Stage-1 Proposal. J. S. Choi, 2021.
 
 * **[Specification][]** available
-* **[Polyfill][]** available
+* Polyfills:
+  * **[core-js][]**
+  * **[array-from-async][]**
 
 [specification]: http://jschoi.org/21/es-array-async-from/
-[polyfill]: https://www.npmjs.com/package/array-from-async
+[core-js]: https://github.com/zloirock/core-js#arrayfromasync
+[array-from-async]: https://www.npmjs.com/package/array-from-async
 
 ## Why an `Array.fromAsync` method
 Since its standardization in JavaScript,
