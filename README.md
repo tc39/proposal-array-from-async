@@ -75,7 +75,20 @@ will also reject with that error.)
 `thisArg` is an optional value with which to call `mapfn`
 (or `undefined` by default).
 
-Like `Array.from`, `Array.fromAsync` is a **generic factory method**.
+Like `for await`, when `Array.fromAsync` receives a **sync-iterable object**
+(and that object is not async iterable),
+then it creates a sync iterator for that object and adds its items to an array.
+When **any yielded item is a promise**, then that promise will **block** the iteration
+until it **resolves** to a value (in which case that value is what is added to the array)
+or until it **rejects** with an error (in which case
+the promise returned by `Array.fromAsync` itself will reject with that error).
+
+Like `Array.from`, `Array.fromAsync` also works on non-iterable **array-like objects**
+(i.e., objects with a length property and indexed elements).
+As with sync-iterable objects, any element that is a promise must settle first,
+and the value to which it resolves (if any) will be what is added to the resulting array.
+
+Also like `Array.from`, `Array.fromAsync` is a **generic factory method**.
 It does not require that its `this` value be the `Array` constructor,
 and it can be transferred to or inherited by any other constructors
 that may be called with a single numeric argument.
