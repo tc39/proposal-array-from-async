@@ -81,7 +81,7 @@ contributors: J. S. Choi
               1. Let _defineStatus_ be CreateDataPropertyOrThrow(_A_, _Pk_, _mappedValue_).
               1. If _defineStatus_ is an abrupt completion, return ? AsyncIteratorClose(_iteratorRecord_, _defineStatus_).
               1. Set _k_ to _k_ + 1.
-          1. Perform AsyncFunctionStart(promiseCapability, _fromAsyncClosure_).
+          1. Perform AsyncFunctionStart(_promiseCapability_, _fromAsyncClosure_).
           1. Return _promiseCapability_.[[Promise]].
         </emu-alg>
         <emu-note>
