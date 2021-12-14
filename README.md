@@ -1,10 +1,10 @@
 # `Array.fromAsync` for JavaScript
-ECMAScript Stage-1 Proposal. J. S. Choi, 2021.
+ECMAScript Stage-2 Proposal. J. S. Choi, 2021.
 
 * **[Specification][]** available
 * Polyfills:
-  * **[core-js][]**
   * **[array-from-async][]**
+  * **[core-js][]**
 
 [specification]: http://jschoi.org/21/es-array-async-from/
 [core-js]: https://github.com/zloirock/core-js#arrayfromasync
@@ -38,12 +38,16 @@ Further demonstrating the demand for such functionality,
 several [Stack Overflow questions][Stack Overflow] have been asked
 by various developers, asking how to convert async iterators to arrays.
 
+There are several [real-world examples](#real-world-examples) listed
+later in this explainer.
+
 [it-all]: https://www.npmjs.com/package/it-all
 [Stack Overflow]: https://stackoverflow.com/questions/58668361/how-can-i-convert-an-async-iterator-to-an-array
 
 ## Description
 (A [formal draft specification][specification] is available.)
 
+### Async-iterable inputs
 Similarly to **[`Array.from`][]**,
 **`Array.fromAsync`** would be a **static method**
 of the `Array` built-in class, with **one required argument**
@@ -54,81 +58,177 @@ it converts an **async iterable** (or array-like object or iterable)
 to a **promise** that will resolve to an array.
 
 ```js
-async function * f () {
-  for (let i = 0; i < 4; i++)
-    yield i;
+async function * asyncGen (n) {
+  for (let i = 0; i < n; i++)
+    yield i * 2;
 }
-
-// Resolves to [0, 1, 2, 3].
-await Array.fromAsync(f());
+// arr will be [0, 2, 4, 6].
+const arr = [];
+for await (const v of asyncGen(4)) {
+  arr.push(v);
+}
+// This is equivalent.
+const arr = await Array.fromAsync(asyncGen(4));
 ```
 
-`mapfn` is an optional function to call on every item value.
-(Unlike `Array.from`, `mapfn` may be an **async function**.
-Whenever `mapfn` returns a promise, that promise will be awaited,
-and the value it resolves to is what is added
-to the final returned promise’s array.
-If `mapfn`’s promise rejects,
-then the final returned promise
-will also reject with that error.)
-
-`thisArg` is an optional value with which to call `mapfn`
-(or `undefined` by default).
-
-Like `for await`, when `Array.fromAsync` receives a **sync-iterable object**
-(and that object is not async iterable),
-then it creates a sync iterator for that object and adds its items to an array.
-When **any yielded item is a promise**, then that promise will **block** the iteration
-until it **resolves** to a value (in which case that value is what is added to the array)
-or until it **rejects** with an error (in which case
-the promise returned by `Array.fromAsync` itself will reject with that error).
+### Sync-iterable inputs
+If the argument is a sync iterable (and not an async iterable), then the return value is still a promise that will resolve to an array.
+If the sync iterator yields promises, then each yielded promise is awaited before its value is added to the new array. (Values that are not promises are also awaited for one microtick to prevent Zalgo.)
+This matches the behavior of `for await`.
 
 Like `Array.from`, `Array.fromAsync` also works on non-iterable **array-like objects**
 (i.e., objects with a length property and indexed elements).
 As with sync-iterable objects, any element that is a promise must settle first,
 and the value to which it resolves (if any) will be what is added to the resulting array.
 
-Also like `Array.from`, `Array.fromAsync` is a **generic factory method**.
-It does not require that its `this` value be the `Array` constructor,
-and it can be transferred to or inherited by any other constructors
-that may be called with a single numeric argument.
+```js
+function * genPromises (n) {
+  for (let i = 0; i < n; i++)
+    yield Promise.resolve(i * 2);
+}
+// arr will be [0, 2, 4, 6].
+const arr = [];
+for await (const v of genPromises(4)) {
+  arr.push(v);
+}
+// This is equivalent.
+const arr = await Array.fromAsync(genPromises(4));
+```
+
+### Non-iterable array-like inputs
+Array.fromAsync’s valid inputs are a superset of Array.from’s valid inputs. This includes non-iterable array-likes: objects that have a length property as well as indexed elements.
+The return value is still a promise that will resolve to an array.
+If the array-like object’s elements are promises, then each accessed promise is awaited before its value is added to the new array.
+One TC39 representative’s opinion: “[Array-likes are] very much not obsolete, and it’s very nice that things aren’t forced to implement the iterator protocol to be transformable into an Array.”
+
+```js
+const arrLike = {
+  length: 4,
+  0: Promise.resolve(0),
+  1: Promise.resolve(2),
+  2: Promise.resolve(4),
+  3: Promise.resolve(6),
+}
+// arr will be [0, 2, 4, 6].
+const arr = [];
+for await (const v of Array.from(arrLike)) {
+  arr.push(v);
+}
+// This is equivalent.
+const arr = await Array.fromAsync(arrLike);
+See issue #7. Previously discussed at 2021-11 plenary without objections.
+```
+
+### Generic factory method
+Array.fromAsync is a generic factory method. It does not require that its this receiver be the Array constructor.
+fromAsync can be transferred to or inherited by any other constructor with a single numeric parameter. In that case, the final result will be the data structure created by that constructor (with 0 as its argument), and with each value yielded by the input being assigned to the data structure’s numeric properties.
+(Symbol.species is not involved at all.)
+If the this receiver is not a constructor, then fromAsync creates an array as usual.
+This matches the behavior of Array.from.
+
+```js
+async function * asyncGen (n) {
+  for (let i = 0; i < n; i++)
+    yield i * 2;
+}
+function Data (n) {}
+Data.from = Array.from;
+Data.fromAsync = Array.fromAsync;
+// d will be a new Data(0), with
+// 0 assigned to 0, 1 assigned to 2, etc.
+const d = new Data(0); let i = 0;
+for await (const v of asyncGen(4)) {
+  d[i] = v;
+}
+// This is equivalent.
+const d = await Data.fromAsync(asyncGen(4));
+```
+
+### Optional parameters
+Array.fromAsync has two optional parameters.
+The first optional parameter is a mapping callback, which is called on each value yielded from the input – the result of which is awaited then added to the array.
+Unlike `Array.from`, `mapfn` may be an async function.)
+By default, this is essentially an identity function.
+The second optional parameter is a this value for the mapping callback. By default, this is undefined.
+These optional parameters match the behavior of Array.from. Their exclusion would be surprising to developers who are already used to Array.from.
+
+```js
+async function * asyncGen (n) {
+  for (let i = 0; i < n; i++)
+    yield i * 2;
+}
+// arr will be [0, 4, 16, 36].
+const arr = [];
+for await (const v of asyncGen(4)) {
+  arr.push(v ** 2);
+}
+// This is equivalent.
+const arr = await Array.fromAsync(asyncGen(4),
+  v => v ** 2);
+```
+
+### Errors
+Like other promise-based APIs, Array.fromAsync will always immediately return a promise. It will never synchronously throw an error and summon Zalgo.
+If its input throws an error while creating its async or sync iterator, then its promise will reject with that error.
+If its input’s iterator throws an error while yielding a value, then its promise will reject with that error.
+If its this receiver’s constructor throws an error, then its promise will reject to that error.
+If its mapping callback throws an error when given an input value, then its promise will reject with that error.
+If its input is null or undefined, or if its mapping callback is neither undefined nor callable, then its promise will reject with a TypeError.
+
+```js
+const err = new Error;
+const badIterable = { [Symbol.iterator] () { throw err; } };
+function * genError () { throw err; }
+function * genRejection () { yield Promise.reject(err); }
+function badCallback () { throw err; }
+function BadConstructor () { throw err; }
+// These create promises that will reject with err.
+Array.fromAsync(badIterable);
+Array.fromAsync(genError());
+Array.fromAsync(genRejection());
+Array.fromAsync(genErrorAsync());
+Array.fromAsync([], badCallback);
+BadConstructor.call(Array.fromAsync, []);
+// These create promises that will reject with TypeErrors.
+Array.fromAsync(null);
+Array.fromAsync([], 1);
+```
 
 ## Other proposals
 
-### `Object.fromEntriesAsync`
-In the future, a complementary method could be added to `Object`.
+### Relationship with iterator-helpers
+The [iterator-helpers][] proposal has toArray, which works with both sync and async iterables.
 
-Type    | Sync method  | Async method
-------- | ------------ | ------------------
-`Array` | `from`       | `fromAsync`
-`Object`| `fromEntries`| `fromEntriesAsync`?
+```js
+Array.from(gen())
+gen().toArray()
+Array.fromAsync(asyncGen())
+asyncGen().toArray()
+```
 
-It is **uncertain** whether `Object.fromEntriesAsync`
-should be **piggybacked** onto this proposal
-or left to a **separate** proposal.
+toArray overlaps with both Array.from and Array.fromAsync. This is okay. They can coexist.
+If we have to choose between having toArray and having fromAsync, then we should choose fromAsync. We already have Array.from. We should match the existing language precedent.
+
+See [tc39/proposal-iterator-helpers#156](https://github.com/tc39/proposal-iterator-helpers/issues/156).
+A co-champion of iterable-helpers seems to agree that we should have both or that we should prefer Array.fromAsync:
+“I remembered why it’s better for a buildable structure to consume an iterable than for an iterable to consume a buildable protocol. Sometimes building something one element at a time is the same as building it [more than one] element at a time, but sometimes it could be slow to build that way or produce a structure with equivalent semantics but different performance properties.”
+
+[iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
+
+### TypedArray.fromAsync, Set.fromAsync, etc.
+The following built-ins also resemble Array.from:
+```js
+TypedArray.from
+new Set
+Object.fromEntries
+new Map
+```
+We are deferring any async versions of these methods to future proposals.
+See [issue #8](https://github.com/tc39/proposal-array-from-async/issues/8) and [proposal-setmap-offrom](https://github.com/tc39/proposal-setmap-offrom).
 
 ### Async spread operator
 In the future, standardizing an async spread operator (like `[ 0, await ...v ]`)
 may be useful. This proposal leaves that idea to a **separate** proposal.
-
-### Iterator helpers
-The **[iterator-helpers][] proposal** puts forward, among other methods,
-a **`toArray` method** for async iterators (as well as synchronous iterators).
-We **could** consider `Array.fromAsync` to be **redundant** with `toArray`.
-
-However, **`Array.from` already** exists,
-and `Array.fromAsync` would **parallel** it.
-If we **had to choose** between `asyncIterator.toArray` and `Array.fromAsync`,
-we should **prefer** `Array.fromAsync` to `asyncIterator.toArray`
-for its **parallelism** with what already exists.
-
-In addition, the `iterator.toArray` method **already would duplicate** `Array.from`
-for **synchronous iterators**.
-We consider **duplication** with an `Array` method as **okay** anyway.
-If duplication between `syncIterator.toArray` and `Array.from` is already okay,
-then duplication between `asyncIterator.toArray` and `Array.fromAsync` should also be okay.
-
-[iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
 
 ### Records and tuples
 The **[record/tuple] proposal** puts forward two new data types
@@ -139,13 +239,6 @@ depends on [whether `Object` gets `fromEntriesAsync`](#objectfromentriesasync).
 
 [record/tuple]: https://github.com/tc39/proposal-record-tuple
 
-### Set and Map
-There is a [proposal for `Set.from` and `Map.from` methods][setmap-offrom].
-If this proposal is accepted before that proposal,
-then that proposal could also add corresponding `fromAsync` methods.
-
-[setmap-offrom]: https://github.com/tc39/proposal-setmap-offrom
-
 ## Real-world examples
 Only minor formatting changes have been made to the status-quo examples.
 
@@ -153,7 +246,7 @@ Only minor formatting changes have been made to the status-quo examples.
 <thead>
 <tr>
 <th>Status quo
-<th>With binding
+<th>With Array.fromAsync
 
 <tbody>
 <tr>
