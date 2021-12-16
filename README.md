@@ -76,11 +76,6 @@ If the argument is a sync iterable (and not an async iterable), then the return 
 If the sync iterator yields promises, then each yielded promise is awaited before its value is added to the new array. (Values that are not promises are also awaited for one microtick to prevent Zalgo.)
 This matches the behavior of `for await`.
 
-Like `Array.from`, `Array.fromAsync` also works on non-iterable **array-like objects**
-(i.e., objects with a length property and indexed elements).
-As with sync-iterable objects, any element that is a promise must settle first,
-and the value to which it resolves (if any) will be what is added to the resulting array.
-
 ```js
 function * genPromises (n) {
   for (let i = 0; i < n; i++)
