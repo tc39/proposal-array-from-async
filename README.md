@@ -187,7 +187,7 @@ Array.fromAsync(badIterable);
 Array.fromAsync(genError());
 Array.fromAsync(genRejection());
 Array.fromAsync(genErrorAsync());
-Array.fromAsync([], badCallback);
+Array.fromAsync([1], badCallback);
 BadConstructor.call(Array.fromAsync, []);
 // These create promises that will reject with TypeErrors.
 Array.fromAsync(null);
