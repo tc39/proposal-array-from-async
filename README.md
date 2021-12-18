@@ -6,7 +6,7 @@ ECMAScript Stage-2 Proposal. J. S. Choi, 2021.
   * **[array-from-async][]**
   * **[core-js][]**
 
-[specification]: http://jschoi.org/21/es-array-async-from/
+[specification]: https://tc39.es/proposal-array-from-async/
 [core-js]: https://github.com/zloirock/core-js#arrayfromasync
 [array-from-async]: https://www.npmjs.com/package/array-from-async
 

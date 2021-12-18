@@ -1,12 +1,12 @@
 {
   "name": "proposal-array-from-async",
-  "version": "2.0.0",
+  "private": true,
   "description": "A TC39 proposal and specification for an Array.fromAsync method.",
   "author": "J. S. Choi <jschoi@jschoi.org> (https://jschoi.org/)",
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/js-choi/proposal-array-async-from.git"
+    "url": "git+https://github.com/tc39/proposal-array-async-from.git"
   },
   "keywords": [
     "proposal",
@@ -18,9 +18,6 @@
     "stream",
     "Array.fromAsync",
     "Array.asyncFrom"
-  ],
-  "workspaces": [
-    "polyfill"
   ],
   "scripts": {
     "prebuild": "mkdir -p dist",
