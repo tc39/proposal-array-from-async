@@ -2,7 +2,7 @@
 ECMAScript Stage-2 Proposal. J. S. Choi, 2021.
 
 * **[Specification][]** available
-* Polyfills:
+* **Experimental polyfills** (do **not** use in production code yet):
   * **[array-from-async][]**
   * **[core-js][]**
 

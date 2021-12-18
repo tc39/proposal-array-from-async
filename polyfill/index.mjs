@@ -1,20 +1,24 @@
 const { MAX_SAFE_INTEGER } = Number;
 
 function isConstructor (obj) {
-  const prox = new Proxy(obj, {
-    construct () {
-      return prox;
-    },
-  });
-  try {
-    new prox;
-    return true;
-  } catch (err) {
+  if (obj != null) {
+    const prox = new Proxy(obj, {
+      construct () {
+        return prox;
+      },
+    });
+    try {
+      new prox;
+      return true;
+    } catch (err) {
+      return false;
+    }
+  } else {
     return false;
   }
 }
 
-Array.fromAsync = Array.fromAsync || async function fromAsync (items, mapfn, thisArg) {
+export default async function fromAsync (items, mapfn, thisArg) {
   const result = isConstructor(this)
     ? new this
     : Array(0);

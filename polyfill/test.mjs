@@ -1,15 +1,15 @@
-import './index.mjs';
+import fromAsync from './index.mjs';
 
 import test from 'tape-promise/tape.js';
 
 test('creates promise', async t => {
-  const outputPromise = Array.fromAsync([]);
+  const outputPromise = fromAsync([]);
   t.equal(outputPromise.constructor, Promise);
 });
 
 test('creates new array in promise', async t => {
   const expected = [ 0, 1, 2 ];
-  const output = await Array.fromAsync(expected);
+  const output = await fromAsync(expected);
   t.equal(output.constructor, Array);
   t.notEqual(output, expected);
 });
@@ -18,7 +18,7 @@ test('creates new array-like in promise', async t => {
   class C {}
 
   const input = [ 0, 1, 2 ];
-  const output = await Array.fromAsync.call(C, input);
+  const output = await fromAsync.call(C, input);
   t.equal(output.constructor, C);
   t.equal(output.length, 3);
   t.equal(output[0], 0);
@@ -30,7 +30,7 @@ test('creates new array-like in promise', async t => {
 test('resorts to creating array if dynamic-this is not constructor', async t => {
   const expected = [ 0, 1, 2 ];
   const arrowFn = () => {};
-  const output = await Array.fromAsync.call(arrowFn, expected);
+  const output = await fromAsync.call(arrowFn, expected);
   t.equal(output.constructor, Array);
   t.deepEqual(output, expected);
 });
@@ -45,14 +45,14 @@ test('does not resort to creating array if constructor throws', async t => {
   }
 
   const input = [ 0, 1, 2 ];
-  const outputPromise = Array.fromAsync.call(C, input);
+  const outputPromise = fromAsync.call(C, input);
   await t.rejects(outputPromise, SpecialError);
 });
 
 test('ordinary-iterable input', async t => {
   t.test('is dumped', async t => {
     const expected = [ 0, 1, 2 ];
-    const output = await Array.fromAsync(expected);
+    const output = await fromAsync(expected);
     t.deepEqual(output, expected);
   });
 
@@ -60,7 +60,7 @@ test('ordinary-iterable input', async t => {
     t.test('with default undefined this', async t => {
       const expected = [ [ 0, undefined ], [ 2, undefined ], [ 4, undefined ] ];
       const input = [ 0, 1, 2 ];
-      const output = await Array.fromAsync(input, function (v) {
+      const output = await fromAsync(input, function (v) {
         return [ v * 2, this ];
       });
       t.deepEqual(output, expected);
@@ -70,7 +70,7 @@ test('ordinary-iterable input', async t => {
       const thisValue = {};
       const expected = [ [ 0, thisValue ], [ 2, thisValue ], [ 4, thisValue ] ];
       const input = [ 0, 1, 2 ];
-      const output = await Array.fromAsync(input, function (v) {
+      const output = await fromAsync(input, function (v) {
         return [ v * 2, this ];
       }, thisValue);
       t.deepEqual(output, expected);
@@ -81,7 +81,7 @@ test('ordinary-iterable input', async t => {
     t.test('with default undefined this', async t => {
       const expected = [ [ 0, undefined ], [ 2, undefined ], [ 4, undefined ] ];
       const input = [ 0, 1, 2 ];
-      const output = await Array.fromAsync(input, async function (v) {
+      const output = await fromAsync(input, async function (v) {
         return [ v * 2, this ];
       });
       t.deepEqual(output, expected);
@@ -91,7 +91,7 @@ test('ordinary-iterable input', async t => {
       const thisValue = {};
       const expected = [ [ 0, thisValue ], [ 2, thisValue ], [ 4, thisValue ] ];
       const input = [ 0, 1, 2 ];
-      const output = await Array.fromAsync(input, async function (v) {
+      const output = await fromAsync(input, async function (v) {
         return [ v * 2, this ];
       }, thisValue);
       t.deepEqual(output, expected);
@@ -108,7 +108,7 @@ test('async-iterable input', async t => {
     }
 
     const input = generateInput();
-    const output = await Array.fromAsync(input);
+    const output = await fromAsync(input);
     t.deepEqual(output, expected);
   });
 
@@ -121,7 +121,7 @@ test('async-iterable input', async t => {
       }
 
       const input = generateInput();
-      const output = await Array.fromAsync(input, function (v, i) {
+      const output = await fromAsync(input, function (v, i) {
         return [ v * 2, i, this ];
       });
       t.deepEqual(output, expected);
@@ -136,7 +136,7 @@ test('async-iterable input', async t => {
       }
 
       const input = generateInput();
-      const output = await Array.fromAsync(input, function (v, i) {
+      const output = await fromAsync(input, function (v, i) {
         return [ v * 2, i, this ];
       }, thisValue);
       t.deepEqual(output, expected);
@@ -152,7 +152,7 @@ test('async-iterable input', async t => {
       }
 
       const input = generateInput();
-      const output = await Array.fromAsync(input, async function (v, i) {
+      const output = await fromAsync(input, async function (v, i) {
         return [ v * 2, i, this ];
       });
       t.deepEqual(output, expected);
@@ -167,7 +167,7 @@ test('async-iterable input', async t => {
       }
 
       const input = generateInput();
-      const output = await Array.fromAsync(input, async function (v, i) {
+      const output = await fromAsync(input, async function (v, i) {
         return [ v * 2, i, this ];
       }, thisValue);
       t.deepEqual(output, expected);

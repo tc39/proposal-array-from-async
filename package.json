@@ -1,6 +1,6 @@
 {
   "name": "proposal-array-from-async",
-  "version": "1.0.5",
+  "version": "2.0.0",
   "description": "A TC39 proposal and specification for an Array.fromAsync method.",
   "author": "J. S. Choi <jschoi@jschoi.org> (https://jschoi.org/)",
   "license": "BSD-3-Clause",
