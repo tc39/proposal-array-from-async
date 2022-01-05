@@ -112,9 +112,10 @@ see [§ Errors][].
 ### Non-iterable array-like inputs
 Array.fromAsync’s valid inputs are a superset of Array.from’s valid inputs. This
 includes non-iterable array-likes: objects that have a length property as well
-as indexed elements. The return value is still a promise that will resolve to an
-array. If the array-like object’s elements are promises, then each accessed
-promise is awaited before its value is added to the new array.
+as indexed elements (similarly to Array.prototype.values). The return value is
+still a promise that will resolve to an array. If the array-like object’s
+elements are promises, then each accessed promise is awaited before its value is
+added to the new array.
 
 One [TC39 representative’s opinion][issue #7 comment]: “[Array-likes are] very
 much not obsolete, and it’s very nice that things aren’t forced to implement the
@@ -180,9 +181,10 @@ const d = await Data.fromAsync(asyncGen(4));
 Array.fromAsync has two optional parameters: `mapfn` and `thisArg`.
 
 `mapfn` is a mapping callback, which is called on each value yielded from the
-input – the result of which is awaited then added to the array. Unlike
-Array.from, `mapfn` may be an async function.) By default, this is essentially
-an identity function.
+input (and awaited if it came from a synchronous input), along with its index
+integer (starting from 0). Each result of the mapping callback is, in turn,
+awaited then added to the array. By default, the callback is essentially an
+identity function.
 
 `thisArg` is a `this`-binding receiver value for the mapping callback. By
 default, this is undefined. These optional parameters match the behavior of
