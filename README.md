@@ -10,6 +10,7 @@ ECMAScript Stage-2 Proposal. J. S. Choi, 2021.
 [core-js]: https://github.com/zloirock/core-js#arrayfromasync
 [array-from-async]: https://www.npmjs.com/package/array-from-async
 [§ Errors]: #errors
+[§ Sync-iterable inputs]: #sync-iterable-inputs
 
 ## Why an Array.fromAsync method
 Since its standardization in JavaScript, **[Array.from][]** has become one of
@@ -81,9 +82,8 @@ const arr = await Array.fromAsync(asyncGen(4));
 If the argument is a sync iterable (and not an async iterable), then the return
 value is still a promise that will resolve to an array. If the sync iterator
 yields promises, then each yielded promise is awaited before its value is added
-to the new array. (Values that are not promises are also awaited for one
-microtick to [prevent Zalgo][Zalgo].) All of this matches the behavior of `for
-await`.
+to the new array. (Values that are not promises are also awaited to
+[prevent Zalgo][Zalgo].) All of this matches the behavior of `for await`.
 
 [Zalgo]: https://blog.izs.me/2013/08/designing-apis-for-asynchrony/
 
@@ -103,11 +103,50 @@ for await (const v of genPromises(4)) {
 const arr = await Array.fromAsync(genPromises(4));
 ```
 
+Like `for await`, Array.fromAsync **lazily** iterates over a sync-but-not-async
+input. Whenever a developer needs to dump a synchronous input that yields
+promises into an array, the developer needs to choose carefully between
+Array.fromAsync and Promise.all, which have complementary control flows:
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Parallel awaiting</th>
+      <th>Sequential awaiting</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Lazy iteration</th>
+      <td>Impossible</td>
+      <td><code>await Array.fromAsync(input)</code></td>
+    </tr>
+    <tr>
+      <th>Eager iteration</th>
+      <td><code>await Promise.all(Array.from(input))</code></td>
+      <td>Useless</td>
+    </tr>
+  </tbody>
+</table>
+
 Also like `for await`, when given a sync-but-not-async iterable input, then
-Array.fromAsync **will not handle** any yielded promises that **reject**.
-This is because `Array.fromAsync` **lazily** iterates over its input, so it
-cannot attach any handlers to its input’s promise values. For more information,
-see [§ Errors][].
+Array.fromAsync will catch **only** the first rejection that its iteration
+reaches, and only if that rejection does **not** occur in a microtask before the
+iteration reaches and awaits for it. For more information, see [§ Errors][].
+
+```js
+// `arr` will be `[ 0, 2, 4, 6 ]`.
+// `genPromises(4)` is lazily iterated,
+// and its four yielded promises are awaited in sequence.
+const arr = await Array.fromAsync(genPromises(4));
+
+// `arr` will also be `[ 0, 2, 4, 6 ]`.
+// However, `genPromises(4)` is eagerly iterated
+// (into an array of four promises),
+// and the four promises are awaited in parallel.
+const arr = await Promise.all(Array.from(genPromises(4)));
+```
 
 ### Non-iterable array-like inputs
 Array.fromAsync’s valid inputs are a superset of Array.from’s valid inputs. This
@@ -142,10 +181,10 @@ for await (const v of Array.from(arrLike)) {
 const arr = await Array.fromAsync(arrLike);
 ```
 
-As with sync iterables, when given a non-iterable input, then Array.fromAsync
-**will not handle** any yielded promises that **reject**. This is because
-`Array.fromAsync` **lazily** iterates over its input, so it cannot attach any
-handlers to its input’s promise values. For more information, see [§ Errors][].
+As it does with sync-but-not-async iterable inputs, Array.fromAsync lazily
+iterates over the values of array-like inputs, and it awaits each value.
+The developer must choose between using Array.fromAsync and Promise.all (see
+[§ Sync-iterable inputs](#sync-iterable-inputs) and [§ Errors][]).
 
 ### Generic factory method
 Array.fromAsync is a generic factory method. It does not require that its this
@@ -213,149 +252,126 @@ Like other promise-based APIs, Array.fromAsync will always immediately return a
 promise. Array.fromAsync will never synchronously throw an error and [summon
 Zalgo][Zalgo].
 
-If Array.fromAsync’s input throws an error while creating its async or sync
+When Array.fromAsync’s input throws an error while creating its async or sync
 iterator, then Array.fromAsync’s returned promise will reject with that error.
 
 ```js
 const err = new Error;
 const badIterable = { [Symbol.iterator] () { throw err; } };
 
-// This creates a promise that will reject with `err`.
+// This returns a promise that will reject with `err`.
 Array.fromAsync(badIterable);
 ```
 
-If Array.fromAsync’s input is iterable but the input’s iterator throws while
+When Array.fromAsync’s input is iterable but the input’s iterator throws while
 iterating, then Array.fromAsync’s returned promise will reject with that error.
+
+```js
+const err = new Error;
+async function * genErrorAsync () { throw err; }
+
+// This returns a promise that will reject with `err`.
+Array.fromAsync(genErrorAsync());
+```
 
 ```js
 const err = new Error;
 function * genError () { throw err; }
 
-// This creates a promise that will reject with `err`.
+// This returns a promise that will reject with `err`.
 Array.fromAsync(genError());
 ```
 
-```js
-const err = new Error;
-function * genErrorAsync () { throw err; }
+When Array.fromAsync’s input is synchronous only (i.e., the input is not an
+async iterable), and when one of the input’s values is a promise that eventually
+rejects or has rejected, then iteration stops and Array.fromAsync’s returned
+promise will reject with the first such error.
 
-// This creates a promise that will reject with `err`.
-Array.fromAsync(genErrorAsync());
-```
-
-If Array.fromAsync’s input is sync (i.e., the input is not an async iterable),
-and if one of the input’s values is a promise that eventually rejects or has
-rejected, then Array.fromAsync’s returned promise will reject with that error.
+In this case, Array.fromAsync will catch and handle that first input rejection
+**only if** that rejection does **not** occur in a microtask before the
+iteration reaches and awaits for it.
 
 ```js
 const err = new Error;
-const rejection = Promise.reject(err);
-function * genZeroThenRejection () {
-  yield 0;
-  yield rejection;
+function * genRejection () {
+  yield Promise.reject(err);
 }
 
-// This creates a promise that will reject with `err`. However, `rejection`
-// itself will not be handled by Array.fromAsync.
+// This returns a promise that will reject with `err`. There is **no** unhandled
+// promise rejection, because the rejection occurs in the same microtask.
 Array.fromAsync(genZeroThenRejection());
 ```
 
-```js
-const err = new Error;
-const arrLikeWithRejection = {
-  length: 2,
-  0: 0,
-  1: Promise.reject(err),
-};
+Just like with `for await`, Array.fromAsync will **not** catch any rejections by
+the input’s promises whenever those rejections occur **before** the ticks in
+which Array.fromAsync’s iteration reaches those promises.
 
-// This creates a promise that will reject with `err`.
-Array.fromAsync(arrLikeWithRejection);
-```
+This is because – like `for await` – Array.fromAsync **lazily** iterates over
+its input and **sequentially** awaits each yielded value. Whenever a developer
+needs to dump a synchronous input that yields promises into an array, the
+developer needs to choose carefully between Array.fromAsync and Promise.all,
+which have complementary control flows (see [§ Sync-iterable
+inputs](#sync-iterable-inputs)).
 
-However, like `for await`, in this case Array.fromAsync **will not handle** any
-yielded rejecting promises. This is because `Array.fromAsync` **lazily**
-iterates over its input, so it cannot attach any handlers to its input’s promise
-values.
-
-The creator of the rejecting promise is expected to synchronously attach a
-rejection handler when the promise is created, as usual:
+For example, when a synchronous input contains two promises, the latter of which
+will reject before the former promise resolves, then Array.fromAsync will not
+catch that rejection, because it lazily reaches the rejecting promise only after
+it already has rejected.
 
 ```js
-const err = new Error;
-// The creator of the rejecting promise attaches a rejection handler.
-const rejection = Promise.reject(err).catch(console.error);
-function * genZeroThenRejection () {
-  yield 0;
-  yield rejection;
+const numOfMillisecondsPerSecond = 1000;
+const slowError = new Error;
+const fastError = new Error;
+
+function waitThenReject (value) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => reject(value), numOfMillisecondsPerSecond);
+  });
 }
 
-// This still creates a promise that will reject with `err`. `err` will also
-// separately be printed to the console due to the rejection handler.
-Array.fromAsync(genZeroThenRejection());
-```
-
-```js
-const err = new Error;
-const arrLikeWithRejection = {
-  length: 2,
-  0: 0,
-  1: Promise.reject(err),
-};
-
-// This still creates a promise that will reject with `err`. `err` will also
-// separately be printed to the console due to the rejection handler.
-Array.fromAsync(arrLikeWithRejection);
-```
-
-Alternatively, the user of the promises can switch from Array.fromAsync to
-Promise.all. Promise.all would change the control flow from lazy sync iteration
-(with sequential awaiting) to eager sync iteration (with parallel awaiting),
-allowing the handling of any rejection in the input.
-
-```js
-const err = new Error;
-const rejection = Promise.reject(err);
-function * genZeroThenRejection () {
-  yield 0;
-  yield rejection;
+function * genRejections () {
+  // Slow promise.
+  yield waitAndReject(slowError);
+  // Fast promise.
+  yield Promise.reject(fastError);
 }
 
-// Creates a promise that will reject with `err`. Unlike Array.fromAsync,
-// Promise.all will handle the `rejection`.
-Promise.all(genZeroThenRejection());
+// This returns a promise that will reject with `slowError`. There is **no**
+// unhandled promise rejection: the iteration is lazy and will stop early at the
+// slow promise, so the fast promise will never be created.
+Array.fromAsync(genSlowRejectThenFastReject());
+
+// This returns a promise that will reject with `slowError`. There **is** an
+// unhandled promise rejection with `fastError`: the iteration eagerly creates
+// and dumps both promises into an array, but Array.fromAsync will
+// **sequentially** handle only the slow promise.
+Array.fromAsync([ ...genSlowRejectThenFastReject() ]);
+
+// This returns a promise that will reject with `fastError`. There is **no**
+// unhandled promise rejection: the iteration eagerly creates and dumps both
+// promises into an array, but Promise.all will handle both promises **in
+// parallel**.
+Promise.all([ ...genSlowRejectThenFastReject() ]);
 ```
 
-```js
-const err = new Error;
-const arrLikeWithRejection = {
-  length: 2,
-  0: 0,
-  1: Promise.reject(err),
-};
-
-// Creates a promise that will reject with `err`. Unlike Array.fromAsync,
-// Promise.all will handle the `rejection`.
-Promise.all(Array.from(arrLikeWithRejection));
-```
-
-If Array.fromAsync’s input has at least one value, and Array.fromAsync’s mapping
-callback throws an error when given any of those values, then Array.fromAsync’s
-returned promise will reject with the first such error.
+When Array.fromAsync’s input has at least one value, and when Array.fromAsync’s
+mapping callback throws an error when given any of those values, then
+Array.fromAsync’s returned promise will reject with the first such error.
 
 ```js
 const err = new Error;
 function badCallback () { throw err; }
 
-// This creates a promise that will reject with `err`.
+// This returns a promise that will reject with `err`.
 Array.fromAsync([ 0 ], badCallback);
 ```
 
-If Array.fromAsync’s input is null or undefined, or if Array.fromAsync’s mapping
-callback is neither undefined nor callable, then Array.fromAsync’s returned
-promise will reject with a TypeError.
+When Array.fromAsync’s input is null or undefined, or when Array.fromAsync’s
+mapping callback is neither undefined nor callable, then Array.fromAsync’s
+returned promise will reject with a TypeError.
 
 ```js
-// These create promises that will reject with TypeErrors.
+// These return promises that will reject with TypeErrors.
 Array.fromAsync(null);
 Array.fromAsync([], 1);
 ```
