@@ -189,12 +189,12 @@ The developer must choose between using Array.fromAsync and Promise.all (see
 ### Generic factory method
 Array.fromAsync is a generic factory method. It does not require that its this
 receiver be the Array constructor. fromAsync can be transferred to or inherited
-by any other constructor with a single numeric parameter. In that case, the
-final result will be the data structure created by that constructor (with 0 as
-its argument), and with each value yielded by the input being assigned to the
-data structure’s numeric properties. (Symbol.species is not involved at all.) If
-the this receiver is not a constructor, then fromAsync creates an array as
-usual. This matches the behavior of Array.from.
+by any other constructor. In that case, the final result will be the data
+structure created by that constructor (with no arguments), and with each value
+yielded by the input being assigned to the data structure’s numeric properties.
+(Symbol.species is not involved at all.) If the this receiver is not a
+constructor, then fromAsync creates an array as usual. This matches the behavior
+of Array.from.
 
 ```js
 async function * asyncGen (n) {
