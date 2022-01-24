@@ -31,7 +31,7 @@ that uses ad-hoc `for await`–`of` loops with empty arrays:
 ```js
 const arr = [];
 for await (const item of asyncItems) {
-  arr.push(item);
+  arr.push(await item);
 }
 ```
 Further demonstrating the demand for such functionality,
@@ -71,7 +71,7 @@ async function * asyncGen (n) {
 // `arr` will be `[0, 2, 4, 6]`.
 const arr = [];
 for await (const v of asyncGen(4)) {
-  arr.push(v);
+  arr.push(await v);
 }
 
 // This is equivalent.
@@ -96,7 +96,7 @@ function * genPromises (n) {
 // `arr` will be `[ 0, 2, 4, 6 ]`.
 const arr = [];
 for await (const v of genPromises(4)) {
-  arr.push(v);
+  arr.push(await v);
 }
 
 // This is equivalent.
@@ -174,7 +174,7 @@ const arrLike = {
 // `arr` will be `[ 0, 2, 4, 6 ]`.
 const arr = [];
 for await (const v of Array.from(arrLike)) {
-  arr.push(v);
+  arr.push(await v);
 }
 
 // This is equivalent.
@@ -239,7 +239,7 @@ async function * asyncGen (n) {
 // `arr` will be `[ 0, 4, 16, 36 ]`.
 const arr = [];
 for await (const v of asyncGen(4)) {
-  arr.push(v ** 2);
+  arr.push(await (v ** 2));
 }
 
 // This is equivalent.
