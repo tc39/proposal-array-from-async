@@ -21,6 +21,30 @@ contributors: J. S. Choi
 
 <emu-clause id="sec-control-abstraction-objects">
   <h1>Control Abstraction Objects</h1>
+
+  <emu-clause id="sec-iteration">
+    <h1>Iteration</h1>
+
+    <emu-clause id="sec-iterator-abstract-operations">
+      <h1>Iterator Abstract Operations</h1>
+
+      <emu-clause id="sec-ifabruptcloseasynciterator" aoid="IfAbruptCloseAsyncIterator">
+        <h1>IfAbruptCloseAsyncIterator ( _value_, _iteratorRecord_ )</h1>
+        <p><dfn>IfAbruptCloseAsyncIterator</dfn> is a shorthand for a sequence of algorithm steps that use an Iterator Record. An algorithm step of the form:</p>
+        <emu-alg>
+          1. IfAbruptCloseAsyncIterator(_value_, _iteratorRecord_).
+        </emu-alg>
+        <p>means the same thing as:</p>
+        <emu-alg>
+          1. If _value_ is an abrupt completion, then
+            1. Perform ? AsyncIteratorClose(_iteratorRecord_, _value_).
+            1. Return _value_.
+          1. Else if _value_ is a Completion Record, set _value_ to _value_.[[Value]].
+        </emu-alg>
+      </emu-clause>
+    </emu-clause>
+  </emu-clause>
+
   <emu-clause id="sec-async-function-objects">
     <h1>AsyncFunction Objects</h1>
     <emu-clause id="sec-async-functions-abstract-operations">
@@ -63,10 +87,8 @@ contributors: J. S. Choi
         </emu-alg>
       </emu-clause>
     </emu-clause>
-    </emu-clause>
-
   </emu-clause>
-
+</emu-clause>
 
 <emu-clause id="sec-indexed-collections">
   <h1>Indexed Collections</h1>
