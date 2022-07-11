@@ -219,11 +219,15 @@ const d = await Data.fromAsync(asyncGen(4));
 ### Optional parameters
 Array.fromAsync has two optional parameters: `mapfn` and `thisArg`.
 
-`mapfn` is a mapping callback, which is called on each value yielded from the
-input (and awaited if it came from a synchronous input), along with its index
-integer (starting from 0). Each result of the mapping callback is, in turn,
-awaited then added to the array. By default, the callback is essentially an
-identity function.
+`mapfn` is an optional mapping callback, which is called on each value yielded
+from the input (and awaited if it came from a synchronous input), along with
+its index integer (starting from 0). Each result of the mapping callback is, in
+turn, awaited then added to the array.
+
+(Without the optional mapping callback, each value yielded from asynchronous
+inputs is not awaited, and each value yielded from synchronous inputs is
+awaited only once, before the value is added to the result array. This matches
+the behavior of `for await`.)
 
 `thisArg` is a `this`-binding receiver value for the mapping callback. By
 default, this is undefined. These optional parameters match the behavior of
