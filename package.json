@@ -25,7 +25,7 @@
     "watch": "npm run build -- --watch"
   },
   "devDependencies": {
-    "ecmarkup": "^9.1.0"
+    "ecmarkup": "^13.0.1"
   },
   "homepage": "https://github.com/tc39/proposal-array-async-from"
 }
