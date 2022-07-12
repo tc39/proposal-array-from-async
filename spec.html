@@ -76,7 +76,6 @@ contributors: J. S. Choi
                 1. IfAbruptCloseAsyncIterator(_mappedValue_, _iteratorRecord_).
                 1. Set _mappedValue_ to Await(_mappedValue_).
                 1. IfAbruptCloseAsyncIterator(_mappedValue_, _iteratorRecord_).
-                1. Set _mappedValue_ to _mappedValue_.[[Value]].
               1. Else, let _mappedValue_ be _nextValue_.
               1. Let _defineStatus_ be CreateDataPropertyOrThrow(_A_, _Pk_, _mappedValue_).
               1. If _defineStatus_ is an abrupt completion, return ? AsyncIteratorClose(_iteratorRecord_, _defineStatus_).
