@@ -21,11 +21,11 @@
   ],
   "scripts": {
     "prebuild": "mkdir -p dist",
-    "build": "ecmarkup --verbose spec.html dist/index.html --css dist/ecmarkup.css --js dist/ecmarkup.js",
+    "build": "ecmarkup --verbose spec.html dist/index.html --css-out dist/ecmarkup.css --js-out dist/ecmarkup.js",
     "watch": "npm run build -- --watch"
   },
   "devDependencies": {
-    "ecmarkup": "^13.0.1"
+    "ecmarkup": "^14.0.1"
   },
   "homepage": "https://github.com/tc39/proposal-array-async-from"
 }
