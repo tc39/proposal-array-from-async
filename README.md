@@ -30,8 +30,8 @@ This of course does **not** include any code
 that uses ad-hoc `for await`–`of` loops with empty arrays:
 ```js
 const arr = [];
-for await (const item of asyncItems) {
-  arr.push(await item);
+for await (const v of asyncIterable) {
+  arr.push(v);
 }
 ```
 Further demonstrating the demand for such functionality,
@@ -71,7 +71,7 @@ async function * asyncGen (n) {
 // `arr` will be `[0, 2, 4, 6]`.
 const arr = [];
 for await (const v of asyncGen(4)) {
-  arr.push(await v);
+  arr.push(v);
 }
 
 // This is equivalent.
@@ -96,7 +96,7 @@ function * genPromises (n) {
 // `arr` will be `[ 0, 2, 4, 6 ]`.
 const arr = [];
 for await (const v of genPromises(4)) {
-  arr.push(await v);
+  arr.push(v);
 }
 
 // This is equivalent.
@@ -175,7 +175,7 @@ const arrLike = {
 // `arr` will be `[ 0, 2, 4, 6 ]`.
 const arr = [];
 for await (const v of Array.from(arrLike)) {
-  arr.push(await v);
+  arr.push(v);
 }
 
 // This is equivalent.
