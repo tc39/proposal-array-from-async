@@ -17,23 +17,37 @@ Since its standardization in JavaScript, **[Array.from][]** has become one of
 `Array`’s most frequently used built-in methods. However, no similar
 functionality exists for async iterators.
 
+```js
+const arr = [];
+for (const v of iterable) {
+  arr.push(v);
+}
+
+// This does the same thing.
+const arr = Array.from(iterable);
+```
+
 [Array.from]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
 
-Such functionality would be useful for **dumping** the entirety of an **async
-iterator** into a **single data structure**, especially in **unit tests** or in
-**command-line** interfaces. (Several real-world examples are included in a
-following section.)
+Such functionality would also be useful for **dumping** the entirety of an
+**async iterator** into a **single data structure**, especially in **unit
+tests** or in **command-line** interfaces. (Several real-world examples are
+included in a following section.)
 
-There is an [it-all][] NPM library that performs only this task
-and which gets about 50,000 weekly downloads daily.
-This of course does **not** include any code
-that uses ad-hoc `for await`–`of` loops with empty arrays:
 ```js
 const arr = [];
 for await (const v of asyncIterable) {
   arr.push(v);
 }
+
+// We should add something that does the same thing.
+const arr = await ??????????(asyncIterable);
 ```
+
+There is an [it-all][] NPM library that performs only this task
+and which gets about 50,000 weekly downloads daily.
+This of course does **not** include any code
+that uses ad-hoc `for await`–`of` loops with empty arrays.
 Further demonstrating the demand for such functionality,
 several [Stack Overflow questions][Stack Overflow] have been asked
 by various developers, asking how to convert async iterators to arrays.
@@ -47,8 +61,8 @@ later in this explainer.
 ## Description
 (A [formal draft specification][specification] is available.)
 
-Array.fromAsync is to `for await`\
-as Array.from is to `for`.
+**Array.fromAsync is to `for await`**\
+as **Array.from is to `for`.**
 
 Similarly to [Array.from][], Array.fromAsync would be a static method of the
 `Array` built-in class, with one required argument and two optional arguments:
