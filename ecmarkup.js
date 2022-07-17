@@ -130,7 +130,7 @@ Search.prototype.loadBiblio = function () {
 };
 
 Search.prototype.documentKeydown = function (e) {
-  if (e.keyCode === 191) {
+  if (e.key === '/') {
     e.preventDefault();
     e.stopPropagation();
     this.triggerSearch();
@@ -209,7 +209,7 @@ Search.prototype.search = function (searchString) {
   if (/^[\d.]*$/.test(searchString)) {
     results = this.biblio.clauses
       .filter(clause => clause.number.substring(0, searchString.length) === searchString)
-      .map(clause => ({ entry: clause }));
+      .map(clause => ({ key: getKey(clause), entry: clause }));
   } else {
     results = [];
 
@@ -529,7 +529,7 @@ Menu.prototype.addPinEntry = function (id) {
     // prettier-ignore
     this.$pinList.innerHTML += `<li><a href="${makeLinkToId(entry.id)}">${prefix}${entry.titleHTML}</a></li>`;
   } else {
-    this.$pinList.innerHTML += `<li><a href="${makeLinkToId(entry.id)}">${entry.key}</a></li>`;
+    this.$pinList.innerHTML += `<li><a href="${makeLinkToId(entry.id)}">${getKey(entry)}</a></li>`;
   }
 
   if (Object.keys(this._pinnedIds).length === 0) {
@@ -749,6 +749,7 @@ let referencePane = {
 
     let $spacer = document.createElement('div');
     $spacer.setAttribute('id', 'references-pane-spacer');
+    $spacer.classList.add('menu-spacer');
 
     this.$pane = document.createElement('div');
     this.$pane.setAttribute('id', 'references-pane');
@@ -804,7 +805,7 @@ let referencePane = {
     this.$headerRefId.textContent = '#' + entry.id;
     this.$headerRefId.setAttribute('href', makeLinkToId(entry.id));
     this.$headerRefId.style.display = 'inline';
-    entry.referencingIds
+    (entry.referencingIds || [])
       .map(id => {
         let cid = menu.search.biblio.refParentClause[id];
         let clause = menu.search.biblio.byId[cid];
@@ -897,6 +898,7 @@ let Toolbox = {
       e.preventDefault();
       e.stopPropagation();
       menu.togglePinEntry(this.entry.id);
+      this.$pinLink.textContent = menu._pinnedIds[this.entry.id] ? 'Unpin' : 'Pin';
     });
 
     this.$refsLink = document.createElement('a');
@@ -917,6 +919,7 @@ let Toolbox = {
     sdoBox.deactivate();
     this.active = true;
     this.entry = entry;
+    this.$pinLink.textContent = menu._pinnedIds[entry.id] ? 'Unpin' : 'Pin';
     this.$outer.classList.add('active');
     this.top = el.offsetTop - this.$outer.offsetHeight;
     this.left = el.offsetLeft - 10;
@@ -935,7 +938,7 @@ let Toolbox = {
   },
 
   updateReferences() {
-    this.$refsLink.textContent = `References (${this.entry.referencingIds.length})`;
+    this.$refsLink.textContent = `References (${(this.entry.referencingIds || []).length})`;
   },
 
   activateIfMouseOver(e) {
@@ -1056,7 +1059,10 @@ function doShortcut(e) {
   if (name === 'textarea' || name === 'input' || name === 'select' || target.isContentEditable) {
     return;
   }
-  if (e.key === 'm' && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && usesMultipage) {
+  if (e.altKey || e.ctrlKey || e.metaKey) {
+    return;
+  }
+  if (e.key === 'm' && usesMultipage) {
     let pathParts = location.pathname.split('/');
     let hash = location.hash;
     if (pathParts[pathParts.length - 2] === 'multipage') {
@@ -1073,6 +1079,10 @@ function doShortcut(e) {
     } else {
       location = 'multipage/' + hash;
     }
+  } else if (e.key === 'u') {
+    document.documentElement.classList.toggle('show-ao-annotations');
+  } else if (e.key === '?') {
+    document.getElementById('shortcuts-help').classList.toggle('active');
   }
 }
 
@@ -1088,8 +1098,11 @@ function init() {
   document.addEventListener(
     'keydown',
     debounce(e => {
-      if (e.code === 'Escape' && Toolbox.active) {
-        Toolbox.deactivate();
+      if (e.code === 'Escape') {
+        if (Toolbox.active) {
+          Toolbox.deactivate();
+        }
+        document.getElementById('shortcuts-help').classList.remove('active');
       }
     })
   );
@@ -1100,6 +1113,114 @@ document.addEventListener('keypress', doShortcut);
 document.addEventListener('DOMContentLoaded', () => {
   Toolbox.init();
   referencePane.init();
+});
+
+// preserve state during navigation
+
+function getTocPath(li) {
+  let path = [];
+  let pointer = li;
+  while (true) {
+    let parent = pointer.parentElement;
+    if (parent == null) {
+      return null;
+    }
+    let index = [].indexOf.call(parent.children, pointer);
+    if (index == -1) {
+      return null;
+    }
+    path.unshift(index);
+    pointer = parent.parentElement;
+    if (pointer == null) {
+      return null;
+    }
+    if (pointer.id === 'menu-toc') {
+      break;
+    }
+    if (pointer.tagName !== 'LI') {
+      return null;
+    }
+  }
+  return path;
+}
+
+function activateTocPath(path) {
+  try {
+    let pointer = document.getElementById('menu-toc');
+    for (let index of path) {
+      pointer = pointer.querySelector('ol').children[index];
+    }
+    pointer.classList.add('active');
+  } catch (e) {
+    // pass
+  }
+}
+
+function getActiveTocPaths() {
+  return [...menu.$menu.querySelectorAll('.active')].map(getTocPath).filter(p => p != null);
+}
+
+function loadStateFromSessionStorage() {
+  if (!window.sessionStorage || typeof menu === 'undefined' || window.navigating) {
+    return;
+  }
+  if (sessionStorage.referencePaneState != null) {
+    let state = JSON.parse(sessionStorage.referencePaneState);
+    if (state != null) {
+      if (state.type === 'ref') {
+        let entry = menu.search.biblio.byId[state.id];
+        if (entry != null) {
+          referencePane.showReferencesFor(entry);
+        }
+      } else if (state.type === 'sdo') {
+        let sdos = sdoMap[state.id];
+        if (sdos != null) {
+          referencePane.$headerText.innerHTML = state.html;
+          referencePane.showSDOsBody(sdos, state.id);
+        }
+      }
+      delete sessionStorage.referencePaneState;
+    }
+  }
+
+  if (sessionStorage.activeTocPaths != null) {
+    document
+      .getElementById('menu-toc')
+      .querySelectorAll('.active')
+      .forEach(e => {
+        e.classList.remove('active');
+      });
+    let active = JSON.parse(sessionStorage.activeTocPaths);
+    active.forEach(activateTocPath);
+    delete sessionStorage.activeTocPaths;
+  }
+
+  if (sessionStorage.searchValue != null) {
+    let value = JSON.parse(sessionStorage.searchValue);
+    menu.search.$searchBox.value = value;
+    menu.search.search(value);
+    delete sessionStorage.searchValue;
+  }
+
+  if (sessionStorage.tocScroll != null) {
+    let tocScroll = JSON.parse(sessionStorage.tocScroll);
+    menu.$toc.scrollTop = tocScroll;
+    delete sessionStorage.tocScroll;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadStateFromSessionStorage);
+
+window.addEventListener('pageshow', loadStateFromSessionStorage);
+
+window.addEventListener('beforeunload', () => {
+  if (!window.sessionStorage || typeof menu === 'undefined') {
+    return;
+  }
+  sessionStorage.referencePaneState = JSON.stringify(referencePane.state || null);
+  sessionStorage.activeTocPaths = JSON.stringify(getActiveTocPaths());
+  sessionStorage.searchValue = JSON.stringify(menu.search.$searchBox.value);
+  sessionStorage.tocScroll = JSON.stringify(menu.$toc.scrollTop);
 });
 
 'use strict';
@@ -1134,5 +1255,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let sdoMap = JSON.parse(`{}`);
-let biblio = JSON.parse(`{"refsByClause":{"sec-asyncblockstart":["_ref_0","_ref_3","_ref_4","_ref_5","_ref_6"],"sec-ifabruptcloseasynciterator":["_ref_1","_ref_2"],"sec-array.fromAsync":["_ref_7","_ref_8","_ref_9","_ref_10","_ref_11","_ref_12","_ref_13","_ref_14","_ref_15","_ref_16","_ref_17","_ref_18","_ref_19","_ref_20","_ref_21","_ref_22","_ref_23","_ref_24","_ref_25","_ref_26","_ref_27","_ref_28","_ref_29","_ref_30"]},"entries":[{"type":"clause","id":"introduction","aoid":null,"titleHTML":"Introduction","number":"","referencingIds":[]},{"type":"term","term":"IfAbruptCloseAsyncIterator","refId":"sec-ifabruptcloseasynciterator","referencingIds":[]},{"type":"op","aoid":"IfAbruptCloseAsyncIterator","refId":"sec-ifabruptcloseasynciterator","referencingIds":[]},{"type":"clause","id":"sec-ifabruptcloseasynciterator","aoid":"IfAbruptCloseAsyncIterator","title":"IfAbruptCloseAsyncIterator ( value, iteratorRecord )","titleHTML":"IfAbruptCloseAsyncIterator ( <var>value</var>, <var>iteratorRecord</var> )","number":"1.1.1.1","referencingIds":["_ref_1","_ref_25","_ref_27"]},{"type":"clause","id":"sec-iterator-abstract-operations","aoid":null,"titleHTML":"Iterator Abstract Operations","number":"1.1.1","referencingIds":[]},{"type":"clause","id":"sec-iteration","aoid":null,"titleHTML":"Iteration","number":"1.1","referencingIds":[]},{"type":"step","id":"step-asyncblockstart-return-undefined","stepNumbers":[3,9],"referencingIds":["_ref_0"]},{"type":"op","aoid":"AsyncBlockStart","refId":"sec-asyncblockstart","referencingIds":[]},{"type":"clause","id":"sec-asyncblockstart","aoid":"AsyncBlockStart","title":"AsyncBlockStart ( promiseCapability, asyncBody, asyncContext )","titleHTML":"AsyncBlockStart ( <var>promiseCapability</var>, <var>asyncBody</var>, <var>asyncContext</var> )","number":"1.2.1.1","referencingIds":[]},{"type":"clause","id":"sec-async-functions-abstract-operations","aoid":null,"titleHTML":"Async Functions Abstract Operations","number":"1.2.1","referencingIds":[]},{"type":"clause","id":"sec-async-function-objects","aoid":null,"titleHTML":"AsyncFunction Objects","number":"1.2","referencingIds":[]},{"type":"clause","id":"sec-control-abstraction-objects","aoid":null,"titleHTML":"Control Abstraction Objects","number":"1","referencingIds":[]},{"type":"clause","id":"sec-array.fromAsync","aoid":null,"title":"Array.fromAsync ( asyncItems [ , mapfn [ , thisArg ] ] )","titleHTML":"<ins>Array.fromAsync ( <var>asyncItems</var> [ , <var>mapfn</var> [ , <var>thisArg</var> ] ] )</ins>","number":"2.1.1.1","referencingIds":[]},{"type":"clause","id":"sec-properties-of-the-array-constructor","aoid":null,"titleHTML":"Properties of the Array Constructor","number":"2.1.1","referencingIds":[]},{"type":"clause","id":"sec-array-objects","aoid":null,"titleHTML":"Array Objects","number":"2.1","referencingIds":[]},{"type":"clause","id":"sec-indexed-collections","aoid":null,"titleHTML":"Indexed Collections","number":"2","referencingIds":[]}]}`);
+let biblio = JSON.parse(`{"refsByClause":{"sec-asyncblockstart":["_ref_0"],"sec-ifabruptcloseasynciterator":["_ref_1"],"sec-array.fromAsync":["_ref_2","_ref_3"]},"entries":[{"type":"clause","id":"introduction","titleHTML":"Introduction","number":""},{"type":"term","term":"IfAbruptCloseAsyncIterator","refId":"sec-ifabruptcloseasynciterator"},{"type":"clause","id":"sec-ifabruptcloseasynciterator","title":"IfAbruptCloseAsyncIterator ( value, iteratorRecord )","titleHTML":"IfAbruptCloseAsyncIterator ( <var>value</var>, <var>iteratorRecord</var> )","number":"1.1.1.1","referencingIds":["_ref_1","_ref_2","_ref_3"]},{"type":"clause","id":"sec-iterator-abstract-operations","titleHTML":"Iterator Abstract Operations","number":"1.1.1"},{"type":"clause","id":"sec-iteration","titleHTML":"Iteration","number":"1.1"},{"type":"step","id":"step-asyncblockstart-return-undefined","referencingIds":["_ref_0"]},{"type":"op","aoid":"AsyncBlockStart","refId":"sec-asyncblockstart"},{"type":"clause","id":"sec-asyncblockstart","title":"AsyncBlockStart ( promiseCapability, asyncBody, asyncContext )","titleHTML":"AsyncBlockStart ( <var>promiseCapability</var>, <var>asyncBody</var>, <var>asyncContext</var> )","number":"1.2.1.1"},{"type":"clause","id":"sec-async-functions-abstract-operations","titleHTML":"Async Functions Abstract Operations","number":"1.2.1"},{"type":"clause","id":"sec-async-function-objects","titleHTML":"AsyncFunction Objects","number":"1.2"},{"type":"clause","id":"sec-control-abstraction-objects","titleHTML":"Control Abstraction Objects","number":"1"},{"type":"clause","id":"sec-array.fromAsync","title":"Array.fromAsync ( asyncItems [ , mapfn [ , thisArg ] ] )","titleHTML":"<ins>Array.fromAsync ( <var>asyncItems</var> [ , <var>mapfn</var> [ , <var>thisArg</var> ] ] )</ins>","number":"2.1.1.1"},{"type":"clause","id":"sec-properties-of-the-array-constructor","titleHTML":"Properties of the Array Constructor","number":"2.1.1"},{"type":"clause","id":"sec-array-objects","titleHTML":"Array Objects","number":"2.1"},{"type":"clause","id":"sec-indexed-collections","titleHTML":"Indexed Collections","number":"2"}]}`);
 ;let usesMultipage = false
