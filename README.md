@@ -132,8 +132,9 @@ Array.fromAsync and Promise.all, which have complementary control flows:
 
 Also like `for await`, when given a sync-but-not-async iterable input, then
 Array.fromAsync will catch **only** the first rejection that its iteration
-reaches, and only if that rejection does **not** occur in a microtask before the
-iteration reaches and awaits for it. For more information, see [§ Errors][].
+reaches, and only if that rejection does **not** occur in a microtask before
+the iteration reaches and awaits for it. For more information, see
+[§ Errors][].
 
 ```js
 // `arr` will be `[ 0, 2, 4, 6 ]`.
@@ -149,16 +150,16 @@ const arr = await Promise.all(Array.from(genPromises(4)));
 ```
 
 ### Non-iterable array-like inputs
-Array.fromAsync’s valid inputs are a superset of Array.from’s valid inputs. This
-includes non-iterable array-likes: objects that have a length property as well
-as indexed elements (similarly to Array.prototype.values). The return value is
-still a promise that will resolve to an array. If the array-like object’s
-elements are promises, then each accessed promise is awaited before its value is
-added to the new array.
+Array.fromAsync’s valid inputs are a superset of Array.from’s valid inputs.
+This includes non-iterable array-likes: objects that have a length property as
+well as indexed elements (similarly to Array.prototype.values). The return
+value is still a promise that will resolve to an array. If the array-like
+object’s elements are promises, then each accessed promise is awaited before
+its value is added to the new array.
 
 One [TC39 representative’s opinion][issue #7 comment]: “[Array-likes are] very
-much not obsolete, and it’s very nice that things aren’t forced to implement the
-iterator protocol to be transformable into an Array.”
+much not obsolete, and it’s very nice that things aren’t forced to implement
+the iterator protocol to be transformable into an Array.”
 
 [issue #7 comment]: https://github.com/tc39/proposal-array-from-async/issues/7#issuecomment-920299880
 
@@ -193,8 +194,8 @@ by any other constructor. In that case, the final result will be the data
 structure created by that constructor (with no arguments), and with each value
 yielded by the input being assigned to the data structure’s numeric properties.
 (Symbol.species is not involved at all.) If the this receiver is not a
-constructor, then fromAsync creates an array as usual. This matches the behavior
-of Array.from.
+constructor, then fromAsync creates an array as usual. This matches the
+behavior of Array.from.
 
 ```js
 async function * asyncGen (n) {
@@ -287,9 +288,9 @@ Array.fromAsync(genError());
 ```
 
 When Array.fromAsync’s input is synchronous only (i.e., the input is not an
-async iterable), and when one of the input’s values is a promise that eventually
-rejects or has rejected, then iteration stops and Array.fromAsync’s returned
-promise will reject with the first such error.
+async iterable), and when one of the input’s values is a promise that
+eventually rejects or has rejected, then iteration stops and Array.fromAsync’s
+returned promise will reject with the first such error.
 
 In this case, Array.fromAsync will catch and handle that first input rejection
 **only if** that rejection does **not** occur in a microtask before the
@@ -301,13 +302,14 @@ function * genRejection () {
   yield Promise.reject(err);
 }
 
-// This returns a promise that will reject with `err`. There is **no** unhandled
-// promise rejection, because the rejection occurs in the same microtask.
+// This returns a promise that will reject with `err`. There is **no**
+// unhandled promise rejection, because the rejection occurs in the same
+// microtask.
 Array.fromAsync(genZeroThenRejection());
 ```
 
-Just like with `for await`, Array.fromAsync will **not** catch any rejections by
-the input’s promises whenever those rejections occur **before** the ticks in
+Just like with `for await`, Array.fromAsync will **not** catch any rejections
+by the input’s promises whenever those rejections occur **before** the ticks in
 which Array.fromAsync’s iteration reaches those promises.
 
 This is because – like `for await` – Array.fromAsync **lazily** iterates over
@@ -317,10 +319,10 @@ developer needs to choose carefully between Array.fromAsync and Promise.all,
 which have complementary control flows (see [§ Sync-iterable
 inputs](#sync-iterable-inputs)).
 
-For example, when a synchronous input contains two promises, the latter of which
-will reject before the former promise resolves, then Array.fromAsync will not
-catch that rejection, because it lazily reaches the rejecting promise only after
-it already has rejected.
+For example, when a synchronous input contains two promises, the latter of
+which will reject before the former promise resolves, then Array.fromAsync will
+not catch that rejection, because it lazily reaches the rejecting promise only
+after it already has rejected.
 
 ```js
 const numOfMillisecondsPerSecond = 1000;
@@ -395,16 +397,16 @@ asyncGen().toArray()
 
 toArray overlaps with both Array.from and Array.fromAsync. This is okay. They
 can coexist. If we have to choose between having toArray and having fromAsync,
-then we should choose fromAsync. We already have Array.from. We should match the
-existing language precedent.
+then we should choose fromAsync. We already have Array.from. We should match
+the existing language precedent.
 
 A [co-champion of iterable-helpers agrees][tc39/proposal-iterator-helpers#156]
-that we should have both or that we should prefer Array.fromAsync: “I remembered
-why it’s better for a buildable structure to consume an iterable than for an
-iterable to consume a buildable protocol. Sometimes building something one
-element at a time is the same as building it [more than one] element at a time,
-but sometimes it could be slow to build that way or produce a structure with
-equivalent semantics but different performance properties.”
+that we should have both or that we should prefer Array.fromAsync: “I
+remembered why it’s better for a buildable structure to consume an iterable
+than for an iterable to consume a buildable protocol. Sometimes building
+something one element at a time is the same as building it [more than one]
+element at a time, but sometimes it could be slow to build that way or produce
+a structure with equivalent semantics but different performance properties.”
 
 [iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
 [tc39/proposal-iterator-helpers#156]: https://github.com/tc39/proposal-iterator-helpers/issues/156.
@@ -424,8 +426,8 @@ See [issue #8][] and [proposal-setmap-offrom][].
 [proposal-setmap-offrom]: https://github.com/tc39/proposal-setmap-offrom
 
 ### Async spread operator
-In the future, standardizing an async spread operator (like `[ 0, await ...v ]`)
-may be useful. This proposal leaves that idea to a **separate** proposal.
+In the future, standardizing an async spread operator (like `[ 0, await ...v
+]`) may be useful. This proposal leaves that idea to a **separate** proposal.
 
 ### Records and tuples
 The **[record/tuple] proposal** puts forward two new data types with APIs that
