@@ -400,26 +400,26 @@ Array.fromAsync([], 1);
 
 ### Relationship with iterator-helpers
 The [iterator-helpers][] proposal has toArray, which works with both sync and
-async iterables.
+async iterables. The following pairs of lines are equivalent:
 
 [iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
 
 ```js
 // Array.from
 
-Array.from(input)
-Iterator(input).toArray()
+Array.from(iterable)
+Iterator(iterable).toArray()
 
-Array.from(input, mapfn)
-Iterator(input).map(mapfn).toArray()
+Array.from(iterable, mapfn)
+Iterator(iterable).map(mapfn).toArray()
 
 // Array.asyncFrom
 
-Array.fromAsync(input)
-AsyncIterator(input).toArray()
+Array.fromAsync(asyncIterable)
+AsyncIterator(asyncIterable).toArray()
 
-Array.fromAsync(input, mapfn)
-AsyncIterator(input).map(mapfn).toArray()
+Array.fromAsync(asyncIterable, mapfn)
+AsyncIterator(asyncIterable).map(mapfn).toArray()
 ```
 
 toArray overlaps with both Array.from and Array.fromAsync. This is okay. They
