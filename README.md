@@ -402,11 +402,24 @@ Array.fromAsync([], 1);
 The [iterator-helpers][] proposal has toArray, which works with both sync and
 async iterables.
 
+[iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
+
 ```js
-Array.from(gen())
-gen().toArray()
-Array.fromAsync(asyncGen())
-asyncGen().toArray()
+// Array.from
+
+Array.from(input)
+Iterator(input).toArray()
+
+Array.from(input, mapfn)
+Iterator(input).map(mapfn).toArray()
+
+// Array.asyncFrom
+
+Array.fromAsync(input)
+AsyncIterator(input).toArray()
+
+Array.fromAsync(input, mapfn)
+AsyncIterator(input).map(mapfn).toArray()
 ```
 
 toArray overlaps with both Array.from and Array.fromAsync. This is okay. They
@@ -422,7 +435,6 @@ something one element at a time is the same as building it [more than one]
 element at a time, but sometimes it could be slow to build that way or produce
 a structure with equivalent semantics but different performance properties.”
 
-[iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
 [tc39/proposal-iterator-helpers#156]: https://github.com/tc39/proposal-iterator-helpers/issues/156.
 
 ### TypedArray.fromAsync, Set.fromAsync, Object.fromEntriesAsync, etc.
