@@ -413,7 +413,7 @@ Iterator(iterable).toArray()
 Array.from(iterable, mapfn)
 Iterator(iterable).map(mapfn).toArray()
 
-// Array.asyncFrom
+// Array.fromAsync
 
 Array.fromAsync(asyncIterable)
 AsyncIterator(asyncIterable).toArray()
