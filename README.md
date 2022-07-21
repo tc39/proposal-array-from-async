@@ -45,7 +45,7 @@ const arr = await ??????????(asyncIterable);
 ```
 
 There is an [it-all][] NPM library that performs only this task
-and which gets about 50,000 weekly downloads daily.
+and which gets about 50,000 weekly downloads.
 This of course does **not** include any code
 that uses ad-hoc `for await`–`of` loops with empty arrays.
 Further demonstrating the demand for such functionality,
