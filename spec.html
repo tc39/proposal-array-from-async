@@ -141,7 +141,7 @@ contributors: J. S. Choi
                 1. Let _next_ be ? Await(IteratorStep(_iteratorRecord_)).
                 1. If _next_ is *false*, then
                   1. Perform ? Set(_A_, *"length"*, 𝔽(_k_), *true*).
-                  1. Return _A_.
+                  1. Return Completion Record { [[Type]]: ~return~, [[Value]]: _A_, [[Target]]: ~empty~ }.
                 1. Let _nextValue_ be ? IteratorValue(_next_).
                 1. If _mapping_ is *true*, then
                   1. Let _mappedValue_ be Call(_mapfn_, _thisArg_, &laquo; _nextValue_, 𝔽(_k_) &raquo;).
@@ -172,7 +172,7 @@ contributors: J. S. Choi
                 1. Perform ? CreateDataPropertyOrThrow(_A_, _Pk_, _mappedValue_).
                 1. Set _k_ to _k_ + 1.
               1. Perform ? Set(_A_, *"length"*, 𝔽(_len_), *true*).
-              1. Return _A_.
+              1. Return Completion Record { [[Type]]: ~return~, [[Value]]: _A_, [[Target]]: ~empty~ }.
           1. Perform AsyncFunctionStart(_promiseCapability_, _fromAsyncClosure_).
           1. Return _promiseCapability_.[[Promise]].
         </emu-alg>
