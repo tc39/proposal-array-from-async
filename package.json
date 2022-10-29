@@ -25,6 +25,7 @@
     "watch": "npm run build -- --watch"
   },
   "devDependencies": {
+    "@tc39/ecma262-biblio": "2.1.2462",
     "ecmarkup": "^14.0.1"
   },
   "homepage": "https://github.com/tc39/proposal-array-async-from"
