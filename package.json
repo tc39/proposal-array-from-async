@@ -21,10 +21,11 @@
   ],
   "scripts": {
     "prebuild": "mkdir -p dist",
-    "build": "ecmarkup --verbose spec.html dist/index.html --css-out dist/ecmarkup.css --js-out dist/ecmarkup.js",
+    "build": "ecmarkup --verbose spec.html dist/index.html --css-out dist/ecmarkup.css --js-out dist/ecmarkup.js --load-biblio @tc39/ecma262-biblio",
     "watch": "npm run build -- --watch"
   },
   "devDependencies": {
+    "@tc39/ecma262-biblio": "2.1.2462",
     "ecmarkup": "^14.0.1"
   },
   "homepage": "https://github.com/tc39/proposal-array-async-from"
