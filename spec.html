@@ -164,10 +164,10 @@ contributors: J. S. Choi
               1. Repeat, while _k_ &lt; _len_,
                 1. Let _Pk_ be ! ToString(𝔽(_k_)).
                 1. Let _kValue_ be ? Get(_arrayLike_, _Pk_).
-                1. Let _kValue_ be ? Await(_kValue_).
+                1. Set _kValue_ to ? Await(_kValue_).
                 1. If _mapping_ is *true*, then
                   1. Let _mappedValue_ be ? Call(_mapfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_) &raquo;).
-                  1. Let _mappedValue_ be ? Await(_mappedValue_).
+                  1. Set _mappedValue_ to ? Await(_mappedValue_).
                 1. Else, let _mappedValue_ be _kValue_.
                 1. Perform ? CreateDataPropertyOrThrow(_A_, _Pk_, _mappedValue_).
                 1. Set _k_ to _k_ + 1.
