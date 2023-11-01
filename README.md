@@ -1,5 +1,5 @@
 # Array.fromAsync for JavaScript
-ECMAScript Stage-3 Proposal. J. S. Choi, 2021.
+ECMAScript Stage-3 (conditional on editor review) Proposal. J. S. Choi, 2021.
 
 * **[Specification][]** available
 * **Experimental polyfills** (do **not** use in production code yet):
