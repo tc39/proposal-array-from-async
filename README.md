@@ -396,6 +396,50 @@ Array.fromAsync(null);
 Array.fromAsync([], 1);
 ```
 
+### Closing sync iterables?
+Array.fromAsync tries to match `for await`’s behavior as much as possible.
+
+This includes how `for await` currently does not close sync iterables when it
+yields a rejected promise.
+
+```js
+function * createIter() {
+  try {
+    yield Promise.resolve(console.log("a"));
+    yield Promise.reject("x");
+  } finally {
+    console.log("finalized");
+  }
+}
+
+// Prints "a" and then prints "finalized".
+// There is an uncaught "x" rejection.
+for (const x of createIter()) {
+  console.log(await x);
+}
+
+// Prints "a" and then prints "finalized".
+// There is an uncaught "x" rejection.
+Array.from(createIter());
+
+// Prints "a" and does *not* print "finalized".
+// There is an uncaught "x" rejection.
+for await (const x of createIter()) {
+  console.log(x);
+}
+
+// Prints "a" and does *not* print "finalized".
+// There is an uncaught "x" rejection.
+Array.fromAsync(createIter());
+```
+
+TC39 has agreed to change `for await`’s behavior here. In the future, `for await` will
+close sync iterators when async wrappers yield rejections (see [tc39/ecma262#2600][]).
+When that behavior changes for `for await`, then it will also change for `Array.fromAsync`
+at the same time.
+
+[tc39/ecma262#2600]: https://github.com/tc39/ecma262/pull/2600
+
 ## Other proposals
 
 ### Relationship with iterator-helpers
