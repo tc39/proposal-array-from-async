@@ -350,6 +350,14 @@ function Menu() {
   this._pinnedIds = {};
   this.loadPinEntries();
 
+  // unpin all button
+  document
+    .querySelector('#menu-pins .unpin-all')
+    .addEventListener('click', this.unpinAll.bind(this));
+
+  // individual unpinning buttons
+  this.$pinList.addEventListener('click', this.pinListClick.bind(this));
+
   // toggle menu
   this.$toggle.addEventListener('click', this.toggle.bind(this));
 
@@ -399,8 +407,8 @@ Menu.prototype.documentKeydown = function (e) {
   e.stopPropagation();
   if (e.keyCode === 80) {
     this.togglePinEntry();
-  } else if (e.keyCode > 48 && e.keyCode < 58) {
-    this.selectPin(e.keyCode - 49);
+  } else if (e.keyCode >= 48 && e.keyCode < 58) {
+    this.selectPin((e.keyCode - 9) % 10);
   }
 };
 
@@ -450,23 +458,66 @@ Menu.prototype.revealInToc = function (path) {
 };
 
 function findActiveClause(root, path) {
-  let clauses = getChildClauses(root);
   path = path || [];
 
-  for (let $clause of clauses) {
-    let rect = $clause.getBoundingClientRect();
+  let visibleClauses = getVisibleClauses(root, path);
+  let midpoint = Math.floor(window.innerHeight / 2);
+
+  for (let [$clause, path] of visibleClauses) {
+    let { top: clauseTop, bottom: clauseBottom } = $clause.getBoundingClientRect();
+    let isFullyVisibleAboveTheFold =
+      clauseTop > 0 && clauseTop < midpoint && clauseBottom < window.innerHeight;
+    if (isFullyVisibleAboveTheFold) {
+      return path;
+    }
+  }
+
+  visibleClauses.sort(([, pathA], [, pathB]) => pathB.length - pathA.length);
+  for (let [$clause, path] of visibleClauses) {
+    let { top: clauseTop, bottom: clauseBottom } = $clause.getBoundingClientRect();
     let $header = $clause.querySelector('h1');
+    let clauseStyles = getComputedStyle($clause);
     let marginTop = Math.max(
-      parseInt(getComputedStyle($clause)['margin-top']),
+      0,
+      parseInt(clauseStyles['margin-top']),
       parseInt(getComputedStyle($header)['margin-top'])
     );
-
-    if (rect.top - marginTop <= 1 && rect.bottom > 0) {
-      return findActiveClause($clause, path.concat($clause)) || path;
+    let marginBottom = Math.max(0, parseInt(clauseStyles['margin-bottom']));
+    let crossesMidpoint =
+      clauseTop - marginTop <= midpoint && clauseBottom + marginBottom >= midpoint;
+    if (crossesMidpoint) {
+      return path;
     }
   }
 
   return path;
+}
+
+function getVisibleClauses(root, path) {
+  let childClauses = getChildClauses(root);
+  path = path || [];
+
+  let result = [];
+
+  let seenVisibleClause = false;
+  for (let $clause of childClauses) {
+    let { top: clauseTop, bottom: clauseBottom } = $clause.getBoundingClientRect();
+    let isPartiallyVisible =
+      (clauseTop > 0 && clauseTop < window.innerHeight) ||
+      (clauseBottom > 0 && clauseBottom < window.innerHeight) ||
+      (clauseTop < 0 && clauseBottom > window.innerHeight);
+
+    if (isPartiallyVisible) {
+      seenVisibleClause = true;
+      let innerPath = path.concat($clause);
+      result.push([$clause, innerPath]);
+      result.push(...getVisibleClauses($clause, innerPath));
+    } else if (seenVisibleClause) {
+      break;
+    }
+  }
+
+  return result;
 }
 
 function* getChildClauses(root) {
@@ -519,6 +570,7 @@ Menu.prototype.addPinEntry = function (id) {
     return;
   }
 
+  let text;
   if (entry.type === 'clause') {
     let prefix;
     if (entry.number) {
@@ -527,10 +579,13 @@ Menu.prototype.addPinEntry = function (id) {
       prefix = '';
     }
     // prettier-ignore
-    this.$pinList.innerHTML += `<li><a href="${makeLinkToId(entry.id)}">${prefix}${entry.titleHTML}</a></li>`;
+    text = `${prefix}${entry.titleHTML}`;
   } else {
-    this.$pinList.innerHTML += `<li><a href="${makeLinkToId(entry.id)}">${getKey(entry)}</a></li>`;
+    text = getKey(entry);
   }
+
+  let link = `<a href="${makeLinkToId(entry.id)}">${text}</a>`;
+  this.$pinList.innerHTML += `<li data-section-id="${id}">${link}<button class="unpin">\u{2716}</button></li>`;
 
   if (Object.keys(this._pinnedIds).length === 0) {
     this.showPins();
@@ -540,7 +595,7 @@ Menu.prototype.addPinEntry = function (id) {
 };
 
 Menu.prototype.removePinEntry = function (id) {
-  let item = this.$pinList.querySelector(`a[href="${makeLinkToId(id)}"]`).parentNode;
+  let item = this.$pinList.querySelector(`li[data-section-id="${id}"]`);
   this.$pinList.removeChild(item);
   delete this._pinnedIds[id];
   if (Object.keys(this._pinnedIds).length === 0) {
@@ -548,6 +603,21 @@ Menu.prototype.removePinEntry = function (id) {
   }
 
   this.persistPinEntries();
+};
+
+Menu.prototype.unpinAll = function () {
+  for (let id of Object.keys(this._pinnedIds)) {
+    this.removePinEntry(id);
+  }
+};
+
+Menu.prototype.pinListClick = function (event) {
+  if (event?.target?.classList.contains('unpin')) {
+    let id = event.target.parentNode.dataset.sectionId;
+    if (id) {
+      this.removePinEntry(id);
+    }
+  }
 };
 
 Menu.prototype.persistPinEntries = function () {
@@ -763,6 +833,10 @@ let referencePane = {
     this.$header.appendChild(this.$headerText);
     this.$headerRefId = document.createElement('a');
     this.$header.appendChild(this.$headerRefId);
+    this.$header.addEventListener('pointerdown', e => {
+      this.dragStart(e);
+    });
+
     this.$closeButton = document.createElement('span');
     this.$closeButton.setAttribute('id', 'references-pane-close');
     this.$closeButton.addEventListener('click', () => {
@@ -771,16 +845,16 @@ let referencePane = {
     this.$header.appendChild(this.$closeButton);
 
     this.$pane.appendChild(this.$header);
-    let tableContainer = document.createElement('div');
-    tableContainer.setAttribute('id', 'references-pane-table-container');
+    this.$tableContainer = document.createElement('div');
+    this.$tableContainer.setAttribute('id', 'references-pane-table-container');
 
     this.$table = document.createElement('table');
     this.$table.setAttribute('id', 'references-pane-table');
 
     this.$tableBody = this.$table.createTBody();
 
-    tableContainer.appendChild(this.$table);
-    this.$pane.appendChild(tableContainer);
+    this.$tableContainer.appendChild(this.$table);
+    this.$pane.appendChild(this.$tableContainer);
 
     menu.$specContainer.appendChild(this.$container);
   },
@@ -802,7 +876,7 @@ let referencePane = {
     let previousId;
     let previousCell;
     let dupCount = 0;
-    this.$headerRefId.textContent = '#' + entry.id;
+    this.$headerRefId.innerHTML = getKey(entry);
     this.$headerRefId.setAttribute('href', makeLinkToId(entry.id));
     this.$headerRefId.style.display = 'inline';
     (entry.referencingIds || [])
@@ -833,6 +907,7 @@ let referencePane = {
     this.$table.removeChild(this.$tableBody);
     this.$tableBody = newBody;
     this.$table.appendChild(this.$tableBody);
+    this.autoSize();
   },
 
   showSDOs(sdos, alternativeId) {
@@ -879,6 +954,34 @@ let referencePane = {
     this.$table.removeChild(this.$tableBody);
     this.$tableBody = newBody;
     this.$table.appendChild(this.$tableBody);
+    this.autoSize();
+  },
+
+  autoSize() {
+    this.$tableContainer.style.height =
+      Math.min(250, this.$table.getBoundingClientRect().height) + 'px';
+  },
+
+  dragStart(pointerDownEvent) {
+    let startingMousePos = pointerDownEvent.clientY;
+    let startingHeight = this.$tableContainer.getBoundingClientRect().height;
+    let moveListener = pointerMoveEvent => {
+      if (pointerMoveEvent.buttons === 0) {
+        removeListeners();
+        return;
+      }
+      let desiredHeight = startingHeight - (pointerMoveEvent.clientY - startingMousePos);
+      this.$tableContainer.style.height = Math.max(0, desiredHeight) + 'px';
+    };
+    let listenerOptions = { capture: true, passive: true };
+    let removeListeners = () => {
+      document.removeEventListener('pointermove', moveListener, listenerOptions);
+      this.$header.removeEventListener('pointerup', removeListeners, listenerOptions);
+      this.$header.removeEventListener('pointercancel', removeListeners, listenerOptions);
+    };
+    document.addEventListener('pointermove', moveListener, listenerOptions);
+    this.$header.addEventListener('pointerup', removeListeners, listenerOptions);
+    this.$header.addEventListener('pointercancel', removeListeners, listenerOptions);
   },
 };
 
@@ -909,7 +1012,9 @@ let Toolbox = {
       referencePane.showReferencesFor(this.entry);
     });
     this.$container.appendChild(this.$permalink);
+    this.$container.appendChild(document.createTextNode(' '));
     this.$container.appendChild(this.$pinLink);
+    this.$container.appendChild(document.createTextNode(' '));
     this.$container.appendChild(this.$refsLink);
     document.body.appendChild(this.$outer);
   },
@@ -1160,12 +1265,40 @@ function getActiveTocPaths() {
   return [...menu.$menu.querySelectorAll('.active')].map(getTocPath).filter(p => p != null);
 }
 
-function loadStateFromSessionStorage() {
-  if (!window.sessionStorage || typeof menu === 'undefined' || window.navigating) {
+function initTOCExpansion(visibleItemLimit) {
+  // Initialize to a reasonable amount of TOC expansion:
+  // * Expand any full-breadth nesting level up to visibleItemLimit.
+  // * Expand any *single-item* level while under visibleItemLimit (even if that pushes over it).
+
+  // Limit to initialization by bailing out if any parent item is already expanded.
+  const tocItems = Array.from(document.querySelectorAll('#menu-toc li'));
+  if (tocItems.some(li => li.classList.contains('active') && li.querySelector('li'))) {
     return;
   }
-  if (sessionStorage.referencePaneState != null) {
-    let state = JSON.parse(sessionStorage.referencePaneState);
+
+  const selfAndSiblings = maybe => Array.from(maybe?.parentNode.children ?? []);
+  let currentLevelItems = selfAndSiblings(tocItems[0]);
+  let availableCount = visibleItemLimit - currentLevelItems.length;
+  while (availableCount > 0 && currentLevelItems.length) {
+    const nextLevelItems = currentLevelItems.flatMap(li => selfAndSiblings(li.querySelector('li')));
+    availableCount -= nextLevelItems.length;
+    if (availableCount > 0 || currentLevelItems.length === 1) {
+      // Expand parent items of the next level down (i.e., current-level items with children).
+      for (const ol of new Set(nextLevelItems.map(li => li.parentNode))) {
+        ol.closest('li').classList.add('active');
+      }
+    }
+    currentLevelItems = nextLevelItems;
+  }
+}
+
+function initState() {
+  if (typeof menu === 'undefined' || window.navigating) {
+    return;
+  }
+  const storage = typeof sessionStorage !== 'undefined' ? sessionStorage : Object.create(null);
+  if (storage.referencePaneState != null) {
+    let state = JSON.parse(storage.referencePaneState);
     if (state != null) {
       if (state.type === 'ref') {
         let entry = menu.search.biblio.byId[state.id];
@@ -1179,39 +1312,36 @@ function loadStateFromSessionStorage() {
           referencePane.showSDOsBody(sdos, state.id);
         }
       }
-      delete sessionStorage.referencePaneState;
+      delete storage.referencePaneState;
     }
   }
 
-  if (sessionStorage.activeTocPaths != null) {
-    document
-      .getElementById('menu-toc')
-      .querySelectorAll('.active')
-      .forEach(e => {
-        e.classList.remove('active');
-      });
-    let active = JSON.parse(sessionStorage.activeTocPaths);
+  if (storage.activeTocPaths != null) {
+    document.querySelectorAll('#menu-toc li.active').forEach(li => li.classList.remove('active'));
+    let active = JSON.parse(storage.activeTocPaths);
     active.forEach(activateTocPath);
-    delete sessionStorage.activeTocPaths;
+    delete storage.activeTocPaths;
+  } else {
+    initTOCExpansion(20);
   }
 
-  if (sessionStorage.searchValue != null) {
-    let value = JSON.parse(sessionStorage.searchValue);
+  if (storage.searchValue != null) {
+    let value = JSON.parse(storage.searchValue);
     menu.search.$searchBox.value = value;
     menu.search.search(value);
-    delete sessionStorage.searchValue;
+    delete storage.searchValue;
   }
 
-  if (sessionStorage.tocScroll != null) {
-    let tocScroll = JSON.parse(sessionStorage.tocScroll);
+  if (storage.tocScroll != null) {
+    let tocScroll = JSON.parse(storage.tocScroll);
     menu.$toc.scrollTop = tocScroll;
-    delete sessionStorage.tocScroll;
+    delete storage.tocScroll;
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadStateFromSessionStorage);
+document.addEventListener('DOMContentLoaded', initState);
 
-window.addEventListener('pageshow', loadStateFromSessionStorage);
+window.addEventListener('pageshow', initState);
 
 window.addEventListener('beforeunload', () => {
   if (!window.sessionStorage || typeof menu === 'undefined') {
@@ -1224,33 +1354,200 @@ window.addEventListener('beforeunload', () => {
 });
 
 'use strict';
-let decimalBullet = Array.from({ length: 100 }, (a, i) => '' + (i + 1));
-let alphaBullet = Array.from({ length: 26 }, (a, i) => String.fromCharCode('a'.charCodeAt(0) + i));
 
-// prettier-ignore
-let romanBullet = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx', 'xxi', 'xxii', 'xxiii', 'xxiv', 'xxv'];
-// prettier-ignore
-let bullets = [decimalBullet, alphaBullet, romanBullet, decimalBullet, alphaBullet, romanBullet];
+// Manually prefix algorithm step list items with hidden counter representations
+// corresponding with their markers so they get selected and copied with content.
+// We read list-style-type to avoid divergence with the style sheet, but
+// for efficiency assume that all lists at the same nesting depth use the same
+// style (except for those associated with replacement steps).
+// We also precompute some initial items for each supported style type.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/
 
-function addStepNumberText(ol, parentIndex) {
-  for (let i = 0; i < ol.children.length; ++i) {
-    let child = ol.children[i];
-    let index = parentIndex.concat([i]);
-    let applicable = bullets[Math.min(index.length - 1, 5)];
-    let span = document.createElement('span');
-    span.textContent = (applicable[i] || '?') + '. ';
-    span.style.fontSize = '0';
-    span.setAttribute('aria-hidden', 'true');
-    child.prepend(span);
-    let sublist = child.querySelector('ol');
-    if (sublist != null) {
-      addStepNumberText(sublist, index);
+const lowerLetters = Array.from({ length: 26 }, (_, i) =>
+  String.fromCharCode('a'.charCodeAt(0) + i)
+);
+// Implement the lower-alpha 'alphabetic' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-alphabetic
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#alphabetic-system
+const lowerAlphaTextForIndex = i => {
+  let S = '';
+  for (const N = lowerLetters.length; i >= 0; i--) {
+    S = lowerLetters[i % N] + S;
+    i = Math.floor(i / N);
+  }
+  return S;
+};
+
+const weightedLowerRomanSymbols = Object.entries({
+  m: 1000,
+  cm: 900,
+  d: 500,
+  cd: 400,
+  c: 100,
+  xc: 90,
+  l: 50,
+  xl: 40,
+  x: 10,
+  ix: 9,
+  v: 5,
+  iv: 4,
+  i: 1,
+});
+// Implement the lower-roman 'additive' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-numeric
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#additive-system
+const lowerRomanTextForIndex = i => {
+  let value = i + 1;
+  let S = '';
+  for (const [symbol, weight] of weightedLowerRomanSymbols) {
+    if (!value) break;
+    if (weight > value) continue;
+    const reps = Math.floor(value / weight);
+    S += symbol.repeat(reps);
+    value -= weight * reps;
+  }
+  return S;
+};
+
+// Memoize pure index-to-text functions with an exposed cache for fast retrieval.
+const makeCounter = (pureGetTextForIndex, precomputeCount = 30) => {
+  const cache = Array.from({ length: precomputeCount }, (_, i) => pureGetTextForIndex(i));
+  const getTextForIndex = i => {
+    if (i >= cache.length) cache[i] = pureGetTextForIndex(i);
+    return cache[i];
+  };
+  return { getTextForIndex, cache };
+};
+
+const counterByStyle = {
+  __proto__: null,
+  decimal: makeCounter(i => String(i + 1)),
+  'lower-alpha': makeCounter(lowerAlphaTextForIndex),
+  'upper-alpha': makeCounter(i => lowerAlphaTextForIndex(i).toUpperCase()),
+  'lower-roman': makeCounter(lowerRomanTextForIndex),
+  'upper-roman': makeCounter(i => lowerRomanTextForIndex(i).toUpperCase()),
+};
+const fallbackCounter = makeCounter(() => '?');
+const counterByDepth = [];
+
+function addStepNumberText(
+  ol,
+  depth = 0,
+  special = [...ol.classList].some(c => c.startsWith('nested-'))
+) {
+  let counter = !special && counterByDepth[depth];
+  if (!counter) {
+    const counterStyle = getComputedStyle(ol)['list-style-type'];
+    counter = counterByStyle[counterStyle];
+    if (!counter) {
+      console.warn('unsupported list-style-type', {
+        ol,
+        counterStyle,
+        id: ol.closest('[id]')?.getAttribute('id'),
+      });
+      counterByStyle[counterStyle] = fallbackCounter;
+      counter = fallbackCounter;
+    }
+    if (!special) {
+      counterByDepth[depth] = counter;
     }
   }
+  const { cache, getTextForIndex } = counter;
+  let i = (Number(ol.getAttribute('start')) || 1) - 1;
+  for (const li of ol.children) {
+    const marker = document.createElement('span');
+    marker.textContent = `${i < cache.length ? cache[i] : getTextForIndex(i)}. `;
+    marker.setAttribute('aria-hidden', 'true');
+    const attributesContainer = li.querySelector('.attributes-tag');
+    if (attributesContainer == null) {
+      li.prepend(marker);
+    } else {
+      attributesContainer.insertAdjacentElement('afterend', marker);
+    }
+    for (const sublist of li.querySelectorAll(':scope > ol')) {
+      addStepNumberText(sublist, depth + 1, special);
+    }
+    i++;
+  }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('emu-alg > ol').forEach(ol => {
-    addStepNumberText(ol, []);
+    addStepNumberText(ol);
+  });
+});
+
+'use strict';
+
+// Update superscripts to not suffer misinterpretation when copied and pasted as plain text.
+// For example,
+// * Replace `10<sup>3</sup>` with
+//   `10<span aria-hidden="true">**</span><sup>3</sup>`
+//   so it gets pasted as `10**3` rather than `103`.
+// * Replace `10<sup>-<var>x</var></sup>` with
+//   `10<span aria-hidden="true">**</span><sup>-<var>x</var></sup>`
+//   so it gets pasted as `10**-x` rather than `10-x`.
+// * Replace `2<sup><var>a</var> + 1</sup>` with
+//   `2<span …>**(</span><sup><var>a</var> + 1</sup><span …>)</span>`
+//   so it gets pasted as `2**(a + 1)` rather than `2a + 1`.
+
+function makeExponentPlainTextSafe(sup) {
+  // Change a <sup> only if it appears to be an exponent:
+  // * text-only and contains only mathematical content (not e.g. `1<sup>st</sup>`)
+  // * contains only <var>s and internal links (e.g.
+  //   `2<sup><emu-xref><a href="#ℝ">ℝ</a></emu-xref>(_y_)</sup>`)
+  const isText = [...sup.childNodes].every(node => node.nodeType === 3);
+  const text = sup.textContent;
+  if (isText) {
+    if (!/^[0-9. 𝔽ℝℤ()=*×/÷±+\u2212-]+$/u.test(text)) {
+      return;
+    }
+  } else {
+    if (sup.querySelector('*:not(var, emu-xref, :scope emu-xref a)')) {
+      return;
+    }
+  }
+
+  let prefix = '**';
+  let suffix = '';
+
+  // Add wrapping parentheses unless they are already present
+  // or this is a simple (possibly signed) integer or single-variable exponent.
+  const skipParens =
+    /^[±+\u2212-]?(?:[0-9]+|\p{ID_Start}\p{ID_Continue}*)$/u.test(text) ||
+    // Split on parentheses and remember them; the resulting parts must
+    // start and end empty (i.e., with open/close parentheses)
+    // and increase depth to 1 only at the first parenthesis
+    // to e.g. wrap `(a+1)*(b+1)` but not `((a+1)*(b+1))`.
+    text
+      .trim()
+      .split(/([()])/g)
+      .reduce((depth, s, i, parts) => {
+        if (s === '(') {
+          return depth > 0 || i === 1 ? depth + 1 : NaN;
+        } else if (s === ')') {
+          return depth > 0 ? depth - 1 : NaN;
+        } else if (s === '' || (i > 0 && i < parts.length - 1)) {
+          return depth;
+        }
+        return NaN;
+      }, 0) === 0;
+  if (!skipParens) {
+    prefix += '(';
+    suffix += ')';
+  }
+
+  sup.insertAdjacentHTML('beforebegin', `<span aria-hidden="true">${prefix}</span>`);
+  if (suffix) {
+    sup.insertAdjacentHTML('afterend', `<span aria-hidden="true">${suffix}</span>`);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('sup:not(.text)').forEach(sup => {
+    makeExponentPlainTextSafe(sup);
   });
 });
 
