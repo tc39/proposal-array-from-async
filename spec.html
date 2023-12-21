@@ -93,8 +93,11 @@ contributors: J. S. Choi
                   1. Let _error_ be ThrowCompletion(a newly created *TypeError* object).
                   1. Return ? AsyncIteratorClose(_iteratorRecord_, _error_).
                 1. Let _Pk_ be ! ToString(𝔽(_k_)).
-                1. Let _next_ be ? Await(IteratorStep(_iteratorRecord_)).
-                1. If _next_ is *false*, then
+                1. Let _nextResult_ be ? Call(_iteratorRecord_.[[NextMethod]], _iteratorRecord_.[[Iterator]]).
+                1. Set _nextResult_ to ? Await(_nextResult_).
+                1. If _nextResult_ is not an Object, throw a *TypeError* exception.
+                1. Let _done_ be ? IteratorComplete(_nextResult_).
+                1. If _done_ is *true*,
                   1. Perform ? Set(_A_, *"length"*, 𝔽(_k_), *true*).
                   1. Return Completion Record { [[Type]]: ~return~, [[Value]]: _A_, [[Target]]: ~empty~ }.
                 1. Let _nextValue_ be ? IteratorValue(_next_).
