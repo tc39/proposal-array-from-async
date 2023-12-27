@@ -100,7 +100,7 @@ contributors: J. S. Choi
                 1. If _done_ is *true*,
                   1. Perform ? Set(_A_, *"length"*, 𝔽(_k_), *true*).
                   1. Return Completion Record { [[Type]]: ~return~, [[Value]]: _A_, [[Target]]: ~empty~ }.
-                1. Let _nextValue_ be ? IteratorValue(_next_).
+                1. Let _nextValue_ be ? IteratorValue(_nextResult_).
                 1. If _mapping_ is *true*, then
                   1. Let _mappedValue_ be Call(_mapfn_, _thisArg_, &laquo; _nextValue_, 𝔽(_k_) &raquo;).
                   1. IfAbruptCloseAsyncIterator(_mappedValue_, _iteratorRecord_).
