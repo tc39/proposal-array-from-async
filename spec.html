@@ -79,9 +79,9 @@ contributors: J. S. Choi
               1. Let _usingSyncIterator_ be ? GetMethod(_asyncItems_, @@iterator).
             1. Let _iteratorRecord_ be *undefined*.
             1. If _usingAsyncIterator_ is not *undefined*, then
-              1. Set _iteratorRecord_ to ? GetIterator(_asyncItems_, ~async~, _usingAsyncIterator_).
+              1. Set _iteratorRecord_ to ? GetIteratorFromMethod(_asyncItems_, _usingAsyncIterator_).
             1. Else if _usingSyncIterator_ is not *undefined*, then
-              1. Set _iteratorRecord_ to ? CreateAsyncFromSyncIterator(GetIterator(_asyncItems_, ~sync~, _usingSyncIterator_)).
+              1. Set _iteratorRecord_ to ? CreateAsyncFromSyncIterator(? GetIteratorFromMethod(_asyncItems_, _usingSyncIterator_)).
             1. If _iteratorRecord_ is not *undefined*, then
               1. If IsConstructor(_C_) is *true*, then
                 1. Let _A_ be ? Construct(_C_).
