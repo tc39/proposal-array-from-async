@@ -69,7 +69,7 @@ contributors: J. S. Choi
         <emu-alg>
           1. Let _C_ be the *this* value.
           1. Let _promiseCapability_ be ! NewPromiseCapability(%Promise%).
-          1. Let _fromAsyncClosure_ be a new Abstract Closure with no parameters that captures _C_, _mapper_, and _thisArg_ and performs the following steps when called:
+          1. Let _fromAsyncClosure_ be a new Abstract Closure with no parameters that captures _C_, _asyncItems_, _mapper_, and _thisArg_ and performs the following steps when called:
             1. If _mapper_ is *undefined*, let _mapping_ be *false*.
             1. Else,
               1. If IsCallable(_mapper_) is *false*, throw a *TypeError* exception.
