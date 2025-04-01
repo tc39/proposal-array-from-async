@@ -55,7 +55,7 @@ contributors: J. S. Choi
       <h1>Properties of the Array Constructor</h1>
 
       <emu-clause id="sec-array.fromAsync">
-        <h1><ins>Array.fromAsync ( _asyncItems_ [ , _mapfn_ [ , _thisArg_ ] ] )</ins></h1>
+        <h1><ins>Array.fromAsync ( _asyncItems_ [ , _mapper_ [ , _thisArg_ ] ] )</ins></h1>
 
         <emu-note type=editor>
           <p>This section is a wholly new subsection of the <a
@@ -69,19 +69,19 @@ contributors: J. S. Choi
         <emu-alg>
           1. Let _C_ be the *this* value.
           1. Let _promiseCapability_ be ! NewPromiseCapability(%Promise%).
-          1. Let _fromAsyncClosure_ be a new Abstract Closure with no parameters that captures _C_, _mapfn_, and _thisArg_ and performs the following steps when called:
-            1. If _mapfn_ is *undefined*, let _mapping_ be *false*.
+          1. Let _fromAsyncClosure_ be a new Abstract Closure with no parameters that captures _C_, _asyncItems_, _mapper_, and _thisArg_ and performs the following steps when called:
+            1. If _mapper_ is *undefined*, let _mapping_ be *false*.
             1. Else,
-              1. If IsCallable(_mapfn_) is *false*, throw a *TypeError* exception.
+              1. If IsCallable(_mapper_) is *false*, throw a *TypeError* exception.
               1. Let _mapping_ be *true*.
             1. Let _usingAsyncIterator_ be ? GetMethod(_asyncItems_, @@asyncIterator).
             1. If _usingAsyncIterator_ is *undefined*, then
               1. Let _usingSyncIterator_ be ? GetMethod(_asyncItems_, @@iterator).
             1. Let _iteratorRecord_ be *undefined*.
             1. If _usingAsyncIterator_ is not *undefined*, then
-              1. Set _iteratorRecord_ to ? GetIterator(_asyncItems_, ~async~, _usingAsyncIterator_).
+              1. Set _iteratorRecord_ to ? GetIteratorFromMethod(_asyncItems_, _usingAsyncIterator_).
             1. Else if _usingSyncIterator_ is not *undefined*, then
-              1. Set _iteratorRecord_ to ? CreateAsyncFromSyncIterator(GetIterator(_asyncItems_, ~sync~, _usingSyncIterator_)).
+              1. Set _iteratorRecord_ to ? CreateAsyncFromSyncIterator(? GetIteratorFromMethod(_asyncItems_, _usingSyncIterator_)).
             1. If _iteratorRecord_ is not *undefined*, then
               1. If IsConstructor(_C_) is *true*, then
                 1. Let _A_ be ? Construct(_C_).
@@ -102,7 +102,7 @@ contributors: J. S. Choi
                   1. Return Completion Record { [[Type]]: ~return~, [[Value]]: _A_, [[Target]]: ~empty~ }.
                 1. Let _nextValue_ be ? IteratorValue(_nextResult_).
                 1. If _mapping_ is *true*, then
-                  1. Let _mappedValue_ be Call(_mapfn_, _thisArg_, &laquo; _nextValue_, 𝔽(_k_) &raquo;).
+                  1. Let _mappedValue_ be Call(_mapper_, _thisArg_, &laquo; _nextValue_, 𝔽(_k_) &raquo;).
                   1. IfAbruptCloseAsyncIterator(_mappedValue_, _iteratorRecord_).
                   1. Set _mappedValue_ to Await(_mappedValue_).
                   1. IfAbruptCloseAsyncIterator(_mappedValue_, _iteratorRecord_).
@@ -124,7 +124,7 @@ contributors: J. S. Choi
                 1. Let _kValue_ be ? Get(_arrayLike_, _Pk_).
                 1. Set _kValue_ to ? Await(_kValue_).
                 1. If _mapping_ is *true*, then
-                  1. Let _mappedValue_ be ? Call(_mapfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_) &raquo;).
+                  1. Let _mappedValue_ be ? Call(_mapper_, _thisArg_, &laquo; _kValue_, 𝔽(_k_) &raquo;).
                   1. Set _mappedValue_ to ? Await(_mappedValue_).
                 1. Else, let _mappedValue_ be _kValue_.
                 1. Perform ? CreateDataPropertyOrThrow(_A_, _Pk_, _mappedValue_).
