@@ -399,8 +399,11 @@ Array.fromAsync([], 1);
 ### Closing sync iterables?
 Array.fromAsync tries to match `for await`’s behavior as much as possible.
 
-This includes how `for await` currently does not close sync iterables when it
+Previously,  `for await` did not close sync iterables when it
 yields a rejected promise.
+
+<details>
+<summary>Old code example</summary>  
 
 ```js
 function * createIter() {
@@ -433,12 +436,18 @@ for await (const x of createIter()) {
 Array.fromAsync(createIter());
 ```
 
-TC39 has agreed to change `for await`’s behavior here. In the future, `for await` will
-close sync iterators when async wrappers yield rejections (see [tc39/ecma262#2600][]).
-When that behavior changes for `for await`, then it will also change for `Array.fromAsync`
-at the same time.
+</details>
+
+TC39 has recently changed `for await`’s behavior here.
+In the latest version of the language,
+`for await` now will close sync iterators when async wrappers yield rejections (see [tc39/ecma262#2600][]).
+All of the JavaScript engines are already updating to this new behavior.
 
 [tc39/ecma262#2600]: https://github.com/tc39/ecma262/pull/2600
+
+`Array.fromAsync` matches this new behavior of `for await`.
+Both will close any given sync iterator
+when the sync iterator yields a rejected promise as its next value.
 
 ## Other proposals
 
