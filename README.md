@@ -224,7 +224,7 @@ Data.fromAsync = Array.fromAsync;
 // property assigned to `2`, etc.
 const d = new Data(0); let i = 0;
 for await (const v of asyncGen(4)) {
-  d[i] = v;
+  d[i++] = v;
 }
 
 // This is equivalent.
