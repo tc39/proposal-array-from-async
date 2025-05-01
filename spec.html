@@ -32,6 +32,7 @@ contributors: J. S. Choi
         </emu-alg>
         <p>means the same thing as:</p>
         <emu-alg>
+          1. Assert: _value_ is a Completion Record.
           1. If _value_ is an abrupt completion, then
             1. Perform ? AsyncIteratorClose(_iteratorRecord_, _value_).
             1. Return _value_.
