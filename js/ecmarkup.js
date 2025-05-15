@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'Escape') {
         sdoBox.deactivate();
       }
-    })
+    }),
   );
 });
 
@@ -94,11 +94,11 @@ function Search(menu) {
 
   this.$searchBox.addEventListener(
     'keydown',
-    debounce(this.searchBoxKeydown.bind(this), { stopPropagation: true })
+    debounce(this.searchBoxKeydown.bind(this), { stopPropagation: true }),
   );
   this.$searchBox.addEventListener(
     'keyup',
-    debounce(this.searchBoxKeyup.bind(this), { stopPropagation: true })
+    debounce(this.searchBoxKeyup.bind(this), { stopPropagation: true }),
   );
 
   // Perform an initial search if the box is not empty.
@@ -298,7 +298,6 @@ Search.prototype.displayResults = function (results) {
       }
 
       if (text) {
-        // prettier-ignore
         html += `<li class=menu-search-result-${cssClass}><a href="${makeLinkToId(id)}">${text}</a></li>`;
       }
     });
@@ -480,7 +479,7 @@ function findActiveClause(root, path) {
     let marginTop = Math.max(
       0,
       parseInt(clauseStyles['margin-top']),
-      parseInt(getComputedStyle($header)['margin-top'])
+      parseInt(getComputedStyle($header)['margin-top']),
     );
     let marginBottom = Math.max(0, parseInt(clauseStyles['margin-bottom']));
     let crossesMidpoint =
@@ -578,7 +577,6 @@ Menu.prototype.addPinEntry = function (id) {
     } else {
       prefix = '';
     }
-    // prettier-ignore
     text = `${prefix}${entry.titleHTML}`;
   } else {
     text = getKey(entry);
@@ -658,6 +656,7 @@ Menu.prototype.togglePinEntry = function (id) {
 };
 
 Menu.prototype.selectPin = function (num) {
+  if (num >= this.$pinList.children.length) return;
   document.location = this.$pinList.children[num].children[0].href;
 };
 
@@ -856,7 +855,9 @@ let referencePane = {
     this.$tableContainer.appendChild(this.$table);
     this.$pane.appendChild(this.$tableContainer);
 
-    menu.$specContainer.appendChild(this.$container);
+    if (menu != null) {
+      menu.$specContainer.after(this.$container);
+    }
   },
 
   activate() {
@@ -925,7 +926,6 @@ let referencePane = {
       e.parentNode.replaceChild(document.createTextNode(e.textContent), e);
     });
 
-    // prettier-ignore
     this.$headerText.innerHTML = `Syntax-Directed Operations for<br><a href="${makeLinkToId(alternativeId)}" class="menu-pane-header-production"><emu-nt>${parentName}</emu-nt> ${colons.outerHTML} </a>`;
     this.$headerText.querySelector('a').append(rhs);
     this.showSDOsBody(sdos, alternativeId);
@@ -1188,17 +1188,23 @@ function doShortcut(e) {
     document.documentElement.classList.toggle('show-ao-annotations');
   } else if (e.key === '?') {
     document.getElementById('shortcuts-help').classList.toggle('active');
+  } else if (e.key === ';') {
+    let el = document.getElementById('bd75b99add5f');
+    if (el != null) el.remove();
   }
 }
 
 function init() {
+  if (document.getElementById('menu') == null) {
+    return;
+  }
   menu = new Menu();
   let $container = document.getElementById('spec-container');
   $container.addEventListener(
     'mouseover',
     debounce(e => {
       Toolbox.activateIfMouseOver(e);
-    })
+    }),
   );
   document.addEventListener(
     'keydown',
@@ -1209,7 +1215,7 @@ function init() {
         }
         document.getElementById('shortcuts-help').classList.remove('active');
       }
-    })
+    }),
   );
 }
 
@@ -1364,7 +1370,7 @@ window.addEventListener('beforeunload', () => {
 // https://w3c.github.io/csswg-drafts/css-counter-styles/
 
 const lowerLetters = Array.from({ length: 26 }, (_, i) =>
-  String.fromCharCode('a'.charCodeAt(0) + i)
+  String.fromCharCode('a'.charCodeAt(0) + i),
 );
 // Implement the lower-alpha 'alphabetic' algorithm,
 // adjusting for indexing from 0 rather than 1.
@@ -1435,7 +1441,8 @@ const counterByDepth = [];
 function addStepNumberText(
   ol,
   depth = 0,
-  special = [...ol.classList].some(c => c.startsWith('nested-'))
+  indent = '',
+  special = [...ol.classList].some(c => c.startsWith('nested-')),
 ) {
   let counter = !special && counterByDepth[depth];
   if (!counter) {
@@ -1458,8 +1465,11 @@ function addStepNumberText(
   let i = (Number(ol.getAttribute('start')) || 1) - 1;
   for (const li of ol.children) {
     const marker = document.createElement('span');
-    marker.textContent = `${i < cache.length ? cache[i] : getTextForIndex(i)}. `;
+    const markerText = i < cache.length ? cache[i] : getTextForIndex(i);
+    const extraIndent = ' '.repeat(markerText.length + 2);
+    marker.textContent = `${indent}${markerText}. `;
     marker.setAttribute('aria-hidden', 'true');
+    marker.setAttribute('class', 'list-marker');
     const attributesContainer = li.querySelector('.attributes-tag');
     if (attributesContainer == null) {
       li.prepend(marker);
@@ -1467,7 +1477,7 @@ function addStepNumberText(
       attributesContainer.insertAdjacentElement('afterend', marker);
     }
     for (const sublist of li.querySelectorAll(':scope > ol')) {
-      addStepNumberText(sublist, depth + 1, special);
+      addStepNumberText(sublist, depth + 1, indent + extraIndent, special);
     }
     i++;
   }
@@ -1477,6 +1487,52 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('emu-alg > ol').forEach(ol => {
     addStepNumberText(ol);
   });
+});
+
+// Omit indendation when copying a single algorithm step.
+document.addEventListener('copy', evt => {
+  // Construct a DOM from the selection.
+  const doc = document.implementation.createHTMLDocument('');
+  const domRoot = doc.createElement('div');
+  const html = evt.clipboardData.getData('text/html');
+  if (html) {
+    domRoot.innerHTML = html;
+  } else {
+    const selection = getSelection();
+    const singleRange = selection?.rangeCount === 1 && selection.getRangeAt(0);
+    const container = singleRange?.commonAncestorContainer;
+    if (!container?.querySelector?.('.list-marker')) {
+      return;
+    }
+    domRoot.append(singleRange.cloneContents());
+  }
+
+  // Preserve the indentation if there is no hidden list marker, or if selection
+  // of more than one step is indicated by either multiple such markers or by
+  // visible text before the first one.
+  const listMarkers = domRoot.querySelectorAll('.list-marker');
+  if (listMarkers.length !== 1) {
+    return;
+  }
+  const treeWalker = document.createTreeWalker(domRoot, undefined, {
+    acceptNode(node) {
+      return node.nodeType === Node.TEXT_NODE || node === listMarkers[0]
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_SKIP;
+    },
+  });
+  while (treeWalker.nextNode()) {
+    const node = treeWalker.currentNode;
+    if (node.nodeType === Node.ELEMENT_NODE) break;
+    if (/\S/u.test(node.data)) return;
+  }
+
+  // Strip leading indentation from the plain text representation.
+  evt.clipboardData.setData('text/plain', domRoot.textContent.trimStart());
+  if (!html) {
+    evt.clipboardData.setData('text/html', domRoot.innerHTML);
+  }
+  evt.preventDefault();
 });
 
 'use strict';
@@ -1552,5 +1608,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let sdoMap = JSON.parse(`{}`);
-let biblio = JSON.parse(`{"refsByClause":{"sec-ifabruptcloseasynciterator":["_ref_0"],"sec-array.fromAsync":["_ref_1","_ref_2"]},"entries":[{"type":"clause","id":"introduction","titleHTML":"Introduction","number":""},{"type":"term","term":"IfAbruptCloseAsyncIterator","refId":"sec-ifabruptcloseasynciterator"},{"type":"clause","id":"sec-ifabruptcloseasynciterator","title":"IfAbruptCloseAsyncIterator ( value, iteratorRecord )","titleHTML":"IfAbruptCloseAsyncIterator ( <var>value</var>, <var>iteratorRecord</var> )","number":"1.1.1.1","referencingIds":["_ref_0","_ref_1","_ref_2"]},{"type":"clause","id":"sec-iterator-abstract-operations","titleHTML":"Iterator Abstract Operations","number":"1.1.1"},{"type":"clause","id":"sec-iteration","titleHTML":"Iteration","number":"1.1"},{"type":"clause","id":"sec-control-abstraction-objects","titleHTML":"Control Abstraction Objects","number":"1"},{"type":"clause","id":"sec-array.fromAsync","title":"Array.fromAsync ( asyncItems [ , mapper [ , thisArg ] ] )","titleHTML":"<ins>Array.fromAsync ( <var>asyncItems</var> [ , <var>mapper</var> [ , <var>thisArg</var> ] ] )</ins>","number":"2.1.1.1"},{"type":"clause","id":"sec-properties-of-the-array-constructor","titleHTML":"Properties of the Array Constructor","number":"2.1.1"},{"type":"clause","id":"sec-array-objects","titleHTML":"Array Objects","number":"2.1"},{"type":"clause","id":"sec-indexed-collections","titleHTML":"Indexed Collections","number":"2"}]}`);
+let biblio = JSON.parse(`{"refsByClause":{"sec-ifabruptcloseasynciterator":["_ref_0"],"sec-array.fromAsync":["_ref_1","_ref_2","_ref_3"]},"entries":[{"type":"clause","id":"introduction","titleHTML":"Introduction","number":""},{"type":"op","aoid":"IfAbruptCloseAsyncIterator","refId":"sec-ifabruptcloseasynciterator"},{"type":"clause","id":"sec-ifabruptcloseasynciterator","title":"IfAbruptCloseAsyncIterator ( value, iteratorRecord )","titleHTML":"IfAbruptCloseAsyncIterator ( <var>value</var>, <var>iteratorRecord</var> )","number":"1.1.1","referencingIds":["_ref_0","_ref_1","_ref_2","_ref_3"]},{"type":"clause","id":"sec-operations-on-iterator-objects","titleHTML":"Operations on Iterator Objects","number":"1.1"},{"type":"clause","id":"sec-abstract-operations","titleHTML":"Abstract Operations","number":"1"},{"type":"clause","id":"sec-array.fromAsync","title":"Array.fromAsync ( asyncItems [ , mapper [ , thisArg ] ] )","titleHTML":"<ins>Array.fromAsync ( <var>asyncItems</var> [ , <var>mapper</var> [ , <var>thisArg</var> ] ] )</ins>","number":"2.1.1.1"},{"type":"clause","id":"sec-properties-of-the-array-constructor","titleHTML":"Properties of the Array Constructor","number":"2.1.1"},{"type":"clause","id":"sec-array-objects","titleHTML":"Array Objects","number":"2.1"},{"type":"clause","id":"sec-indexed-collections","titleHTML":"Indexed Collections","number":"2"}]}`);
 ;let usesMultipage = false
