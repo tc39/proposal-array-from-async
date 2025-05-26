@@ -234,15 +234,34 @@ const d = await Data.fromAsync(asyncGen(4));
 ### Optional parameters
 Array.fromAsync has two optional parameters: `mapfn` and `thisArg`.
 
-`mapfn` is an optional mapping callback, which is called on each value yielded
-from the input (and awaited if it came from a synchronous input), along with
-its index integer (starting from 0). Each result of the mapping callback is, in
-turn, awaited then added to the array.
+`mapfn` is an optional mapping callback, which is called on each value yielded from the input,
+along with its index integer (starting from 0).
+Each result of the mapping callback is, in turn, awaited then added to the array.
 
-(Without the optional mapping callback, each value yielded from asynchronous
+However, when `mapfn` is given and the input is a sync iterable (or non-iterable array-like),
+then each value from the input is awaited before being given to `mapfn`.
+(The values from the input are *not* awaited if the input is an async iterable.)
+This matches the behavior of `for await`.
+
+When `mapfn` is not given, each value yielded from asynchronous
 inputs is not awaited, and each value yielded from synchronous inputs is
-awaited only once, before the value is added to the result array. This matches
-the behavior of `for await`.)
+awaited only once, before the value is added to the result array.
+This also matches the behavior of `for await`.
+
+This means that:
+```js
+Array.fromAsync(input)
+```
+…is not equivalent to:
+```js
+Array.fromAsync(input, x => x)
+```
+…at least when `input` is an async iterable.
+
+This is because, whenever input is an async iterable that yields promise items,
+`Array.fromAsync(input)` will not resolve those promise items,
+but `Array.fromAsync(input, x => x)` will resolve them
+because the result of the `x => x` mapping function is awaited.
 
 `thisArg` is a `this`-binding receiver value for the mapping callback. By
 default, this is undefined. These optional parameters match the behavior of
@@ -452,8 +471,8 @@ when the sync iterator yields a rejected promise as its next value.
 ## Other proposals
 
 ### Relationship with iterator-helpers
-The [iterator-helpers][] and [async-iterator-helpers][] proposal define
-Iterator.toArray  and AsyncIterator.toArray. The following pairs of lines are
+The [iterator-helpers][] and [async-iterator-helpers][] proposals define
+Iterator.toArray and AsyncIterator.toArray. The following pairs of lines are
 equivalent:
 
 [iterator-helpers]: https://github.com/tc39/proposal-iterator-helpers
