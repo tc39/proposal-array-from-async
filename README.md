@@ -267,7 +267,8 @@ because the result of the `x => x` mapping function is awaited.
 For example:
 
 ```js
-function as () {
+function createAsyncIter () {
+  let i = 0;
   return {
     [Symbol.asyncIterator]() {
       return {
@@ -282,10 +283,10 @@ function as () {
 }
 
 // This prints `[Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)]`:
-console.log(await Array.fromAsync(it));
+console.log(await Array.fromAsync(createAsyncIter()));
 
 // This prints `[1, 2, 3]`:
-console.log(await Array.fromAsync(it, x => x));
+console.log(await Array.fromAsync(createAsyncIter(), x => x));
 ```
 
 See also [issue #19](https://github.com/tc39/proposal-array-from-async/issues/19).
