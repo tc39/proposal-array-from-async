@@ -234,6 +234,7 @@ const d = await Data.fromAsync(asyncGen(4));
 ### Optional parameters
 Array.fromAsync has two optional parameters: `mapfn` and `thisArg`.
 
+#### Mapping function
 `mapfn` is an optional mapping callback, which is called on each value yielded from the input,
 along with its index integer (starting from 0).
 Each result of the mapping callback is, in turn, awaited then added to the array.
@@ -263,6 +264,33 @@ This is because, whenever input is an async iterable that yields promise items,
 but `Array.fromAsync(input, x => x)` will resolve them
 because the result of the `x => x` mapping function is awaited.
 
+For example:
+
+```js
+function as () {
+  return {
+    [Symbol.asyncIterator]() {
+      return {
+        async next() {
+          if (i > 2) return { done: true };
+          i++;
+          return { value: Promise.resolve(i), done: false }
+        }
+      }
+    }
+  };
+}
+
+// This prints `[Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)]`:
+console.log(await Array.fromAsync(it));
+
+// This prints `[1, 2, 3]`:
+console.log(await Array.fromAsync(it, x => x));
+```
+
+See also [issue #19](https://github.com/tc39/proposal-array-from-async/issues/19).
+
+#### `this` argument
 `thisArg` is a `this`-binding receiver value for the mapping callback. By
 default, this is undefined. These optional parameters match the behavior of
 Array.from. Their exclusion would be surprising to developers who are already
